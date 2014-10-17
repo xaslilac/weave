@@ -44,7 +44,11 @@ npm install -g https://github.com/partheseas/teal/tarball/master
 ```
 
 3. [Download](https://github.com/partheseas/weave/tarball/master), extract, and translate Weave
-    take ~/Downloads/weave # (or whatever directory it's extracted into)
+
+```Shell
+take ~/Downloads/weave # (or whatever directory it's extracted into)
+```
+
 4. You're good to go! Just use `require()` to load in the newly generated weave.js file.
 
 **I will be publishing weave in the NPM directory eventually. I want to get a fully functioning product ready first though.**
