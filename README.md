@@ -34,6 +34,17 @@ Weave is a combination of an HTTPD server, and an application server (think [Exp
 Weave is written in Teal, (essentially lazy JavaScript, everything translates directly) and translated into Javascript.
 Since all translations are literal the generated code should be completely safe.
 
+## Installation
+
+1. Install [Node and NPM](http://nodejs.org/)
+2. Install Teal
+    npm install -g https://github.com/partheseas/teal/tarball/master
+3. [Download](https://github.com/partheseas/weave/tarball/master), extract, and translate Weave
+    take ~/Downloads/weave # (or whatever directory it's extracted into)
+4. You're good to go! Just use `require()` to load in the newly generated weave.js file.
+
+*I will be publishing weave in the NPM directory eventually. I want to get a fully functioning product ready first though.*
+
 ## Features
 
 - An easy to use, convenient and reliable CLI
