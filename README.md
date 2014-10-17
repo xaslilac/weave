@@ -38,7 +38,9 @@ Since all translations are literal the generated code should be completely safe.
 
 1. Install [Node and NPM](http://nodejs.org/)
 2. Install Teal
+
     npm install -g https://github.com/partheseas/teal/tarball/master
+    
 3. [Download](https://github.com/partheseas/weave/tarball/master), extract, and translate Weave
     take ~/Downloads/weave # (or whatever directory it's extracted into)
 4. You're good to go! Just use `require()` to load in the newly generated weave.js file.
