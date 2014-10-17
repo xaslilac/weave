@@ -1,7 +1,7 @@
 # Weave
 
 [![Written in Teal](http://img.shields.io/badge/teal-v0.3.1-62eaaa.svg?style=flat)](https://github.com/partheseas/teal)
-![Current Stability: Beta](http://img.shields.io/badge/stability-beta-f04c5e.svg?style=flat)
+![Current Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
 
 ## Disclosure
 
@@ -36,20 +36,16 @@ Since all translations are literal the generated code should be completely safe.
 
 ## Installation
 
-1. Install [Node and NPM](http://nodejs.org/)
-2. Install Teal
+1. Download and install [Node and NPM](http://nodejs.org/)
+2. [Download](https://github.com/partheseas/weave/tarball/master) and extract Weave
+3. Run the following two commands in your shell
 
 ```Shell
 npm install -g https://github.com/partheseas/teal/tarball/master
+take /wherever/you/extracted/Weave
 ```
 
-3. [Download](https://github.com/partheseas/weave/tarball/master), extract, and translate Weave
-
-```Shell
-take ~/Downloads/weave # (or whatever directory it's extracted into)
-```
-
-4. You're good to go! Just use `require()` to load in the newly generated weave.js file.
+You're good to go! Just use `require()` to load in the newly generated weave.js file.
 
 **I will be publishing weave in the NPM directory eventually. I want to get a fully functioning product ready first though.**
 
