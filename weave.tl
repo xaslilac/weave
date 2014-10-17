@@ -66,15 +66,21 @@ q = function s { return s.split(",") }
 // Add support for Google's SPDY protocol and for HTTP 2.0. HTTPS support is
 // hard for me to implement without access to any sort of secure certificate
 // of my own to work with, and is a requirement for SPDY.
+// So it seems that HTTPS support is simply creating an extra server, using
+// certificates supplied, and doing some extra stuff to hook up the server
+// to the app.
 
 
 
 
 
 // First we import Node core modules, then we import our own modules.
-module 'crypto', 'DOM', 'events', 'fs', 'http', 'MIME', 'path', 'url', 'util', 'Wildcard';
+var weave, DOM, MIME, Wildcard;
+module 'crypto', 'events', 'fs', 'http', 'path', 'url', 'util';
+DOM = require( "./utilities/DOM.js" )
+MIME = require( "./utilities/MIME.js" )
+Wildcard = require( "./utilities/Wildcard.js" )
 
-var weave;
 module.exports = exports = weave = {
   version: 0.3,
 
@@ -116,6 +122,9 @@ weave.App = weave.Class( events.EventEmitter, function {
   // Do I want to import modules here? Or somewhere else?
   // What are we supposed to do to with the arguments?
   // I really want to do something important here :(
+
+  // TODO: This is where we need to create an error log for
+  // the app and other app wide configuration stuff.
 })
 
 weave.App::resetCache = function {
@@ -125,10 +134,16 @@ weave.App::resetCache = function {
   }
 }
 
+weave.App::listen =
 weave.App::linkHost = function {
   var app = @;
   Array::forEach.call( arguments, function host {
     var wildcard, cachedhost, split, hostname, port, server;
+
+    // If the argument is just the port, default the host to *
+    if Number.is( host ) {
+      host = "*:{{host}}"
+    }
 
     // If the host is a wildcard then clear all wildcardMatches that match
     // it. If it's a literal, clear wildcardMatches for that literal.
@@ -399,7 +414,8 @@ weave.Connection::behavior = function name {
   return behavior
 }
 
-weave.Connection::get = function name, asString {
+weave.Connection::get =
+weave.Connection::getHeader = function name, asString {
   // Make sure the header name is lowercase, so that it
   // can be case insensitive.
   name = name.toLowerCase()
