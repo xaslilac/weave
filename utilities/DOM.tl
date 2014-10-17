@@ -5,6 +5,13 @@
 var DOM;
 
 module.exports = exports = DOM = {
+  HTMLDocument: function type, title {
+    var doc = new DOM.Document( "html", type );
+    doc.head = doc.baseElement.appendChild( new DOM.Head( title ) )
+    doc.body = doc.baseElement.appendChild( new DOM.Body() )
+    return doc
+  },
+
 	Document: function base, type {
 		@docType = type
 		@baseElement = new DOM.Element( base )
@@ -12,20 +19,24 @@ module.exports = exports = DOM = {
 	},
 
   Head: function title {
-    @appendChild(
-      new DOM.Element("title").appendChild(
-        new DOM.TextNode( title )
-      )
+    var element = new DOM.Element( "head" )
+
+    element.appendChild(
+      new DOM.Element("title")
+    ).appendChild(
+      new DOM.TextNode( title )
+    
     )
     @title = title
+    return element
   },
 
   Body: function {
-
+    return new DOM.Element( "body" )
   },
 
 	Element: function tag {
-		@tagName = tag.toUpperCase()
+		@tagName = tag
 		@children = []
 		@attributes = {}
 		@nodeType = 1
@@ -58,6 +69,8 @@ DOM.Element::toString = function {
     contents += child.toString()
   })
   contents += "</{{@tagName}}>"
+
+  return contents
 }
 
 DOM.TextNode::toString =
@@ -69,4 +82,5 @@ DOM.Comment::toString = function {
 
 DOM.Element::appendChild = function child {
   @children.push( child )
+  return child
 }
