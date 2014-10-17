@@ -1,5 +1,8 @@
 # Weave
 
+[![Written in Teal](http://img.shields.io/badge/teal-v0.3.1-62eaaa.svg?style=flat)](https://github.com/partheseas/teal)
+![Current Stability: Beta](http://img.shields.io/badge/stability-beta-f04c5e.svg?style=flat)
+
 ## Disclosure
 
 ### License
@@ -26,10 +29,10 @@ SOFTWARE.
 
 ## Overview
 
-Weave is a combination of an HTTPD server, and an Node.js app server (think Express)
+Weave is a combination of an HTTPD server, and an application server (think (Express)[http://expressjs.com/]) written in Node.js.
 
 Weave is written in Teal, (essentially lazy JavaScript, everything translates directly) and translated into Javascript.
-All translations are literal and should be completely safe.
+Since all translations are literal the generated code should be completely safe.
 
 ## Features
 
