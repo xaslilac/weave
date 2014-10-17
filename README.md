@@ -29,7 +29,7 @@ SOFTWARE.
 
 ## Overview
 
-Weave is a combination of an HTTPD server, and an application server (think [Express](http://expressjs.com/)) written in Node.js.
+Weave is a combination of an HTTPD server, and an application server (think [Express](http://expressjs.com/)) made for Node.js.
 
 Weave is written in Teal, (essentially lazy JavaScript, everything translates directly) and translated into Javascript.
 Since all translations are literal the generated code should be completely safe.
