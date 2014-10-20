@@ -20,7 +20,7 @@ module.exports = exports = DOM = {
 
   Head: function (title ){
     var element = new DOM.Element( "head" )
-    
+
     element.appendChild(
       new DOM.Element("title")
     ).appendChild(
@@ -36,7 +36,7 @@ module.exports = exports = DOM = {
   },
 
 	Element: function (tag ){
-		this.tagName = tag.toUpperCase()
+		this.tagName = tag
 		this.children = []
 		this.attributes = {}
 		this.nodeType = 1
