@@ -10,13 +10,15 @@
 // Some basic utilities, like an asynchronous implemenation of Array::some,
 // basic type detection (Constructor.is(possibleInstance)), an object extender,
 // and a way to quickly write Arrays of strings. u is just short for undefined.
-var q, u;
+// n is short for a carriage return line feed buffer, and z is the last chunk
+// of a message with Transfer-Encoding: chunked for Keep-Alive connections.
+var q, u, n, z;
 
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
 Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 Object.extend = function o,e {@keys(o).forEach(function p {if !e.hasOwnProperty(p){e[p]=o[p]}});return e}
-q = function s { return s.split(",") }
+q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\r\n\r\n")
 
 
 
@@ -24,7 +26,7 @@ q = function s { return s.split(",") }
 
 // TODO: So here are all the things I still need to bring over from Trailer.
 
-// MimeDictionary, GZip, URL Redirects, URL Cleaning (maybe? but different?),
+// GZip, URL Redirects, URL Cleaning (maybe? but different?),
 // request:data -> Connection piping, ReadFile with Content-Length, caching,
 // Last-Modified, and Content-Type. directory.html, directory.json, and
 // directory listings in general? Remember the whole depth === 1 thing.
@@ -75,11 +77,12 @@ q = function s { return s.split(",") }
 
 
 // First we import Node core modules, then we import our own modules.
-var weave, DOM, MIME, Wildcard;
+var weave, DOM, MIME, Router, Wildcard;
 module 'crypto', 'events', 'fs', 'http', 'path', 'url', 'util';
-DOM = require( "./utilities/DOM.js" )
-MIME = require( "./utilities/MIME.js" )
-Wildcard = require( "./utilities/Wildcard.js" )
+DOM = require( "./utilities/DOM" )
+MIME = require( "./utilities/MIME" )
+Router = require( "./router")
+Wildcard = require( "./utilities/Wildcard" )
 
 module.exports = exports = weave = {
   version: 0.3,
@@ -106,37 +109,81 @@ module.exports = exports = weave = {
     return constructor
   },
 
-  Dictionary: MIME
-}
+  Dictionary: MIME,
+  Router: Router,
 
-
-
-
-
-weave.App = weave.Class( events.EventEmitter, function {
-  // Create the initial configuration storage object and use
-  // resetCache() to create the initial empty cache.
-  @configuration = {}
-  @resetCache()
-
-  // Do I want to import modules here? Or somewhere else?
-  // What are we supposed to do to with the arguments?
-  // I really want to do something important here :(
-
-  // TODO: This is where we need to create an error log for
-  // the app and other app wide configuration stuff.
-})
-
-weave.App::resetCache = function {
-  @cache = {
-    resolvedPaths: {},
-    parentDirectories: {}
+  configuration: {
+    //adminEmail: "foo@bar.com"
   }
 }
 
+
+
+
+
+weave.App = weave.Class( events.EventEmitter, function appName {
+  // Create the initial configuration storage object and use
+  // resetCache() to create the initial empty cache.
+  @configuration = {
+    appName: appName,
+    //adminEmail: "foo@bar.com"
+  }
+  @cache = {
+    parentDirectories: {},
+    resolvedPaths: {}
+  }
+
+  // All apps being run within the same process can be
+  // configured with the use of flags.
+  // TODO: Make this better, configurable.
+  // We'll put a lot more effort into this around the version 0.5~0.6
+  // time frame, when we implement an actual CLI for managing servers.
+  process.argv.forEach( function arg {
+    switch arg {
+      case "--weave-debug":
+        @configuration.debug = true
+    }
+  }, @ )
+
+  // An array of functions that are run prior to the router.
+  @responders = []
+
+  // The router processes the request and turns it into something
+  // slightly more meaningful, so that we can generate a response.
+  @router = new weave.Router()
+  @engine // do something cool here I guess.
+
+  // @error is the function that should be called for all errors
+  // relating to a particular app. 
+  // @warning is used when something isn't going quite as planned,
+  // but can still be handled.
+  // @debug can be called to output anything to the console, but
+  // will only print if the app is in debug mode.
+  // These are not prototype methods because in the future they might
+  // do something specific to each app.
+  // XXX: Actually, these probably still should be prototype methods.
+  @error = function e {
+    console.error.apply( console, arguments )
+    return {
+      type: "error",
+      message: e
+    }
+  }
+  @warning = function e {
+    console.log.apply( console, arguments )
+    return {
+      type: "warning",
+      message: e
+    }
+  }
+  @debug = function e {
+    app.configuration.debug && e && console.log.apply( console, arguments )
+    return app.configuration.debug
+  }
+})
+
 weave.App::listen =
 weave.App::linkHost = function {
-  var app = @;
   Array::forEach.call( arguments, function host {
     var wildcard, cachedhost, split, hostname, port, server;
 
@@ -147,6 +194,7 @@ weave.App::linkHost = function {
 
     // If the host is a wildcard then clear all wildcardMatches that match
     // it. If it's a literal, clear wildcardMatches for that literal.
+    // TODO: Eventually we should translate this to Object.keys().forEach
     if /\*/.test( host ) {
       wildcard = new Wildcard( host )
       for cachedhost in weave.cache.wildcardMatches {
@@ -164,15 +212,12 @@ weave.App::linkHost = function {
     if split = host.match( /^(.+?)(\:([0-9]{1,5}))$/ ) {
       port = Number( split[3] )
       if port < 1 || port > 65535 {
-        // TODO: Something about errors and telling people that this
-        // isn't going to work because the port number is invalid
-        // Probably return something more informative than return 0;
-        return 0;
+        return @error( "app.linkHost: {{port}} is not a valid port number." )
       }
 
       // We save the app to the host so that we can
       // quickly relate the Host header to the app.
-      weave.apps[ host ] = app
+      weave.apps[ host ] = @
 
       // We check to see if we have a server, running on the port yet.
       // If there isn't one then we start it, and have it listen to
@@ -191,7 +236,7 @@ weave.App::linkHost = function {
         })
       }
     }
-  })
+  }, @)
 
   // Return @ from all configuration methods so they can be chained.
   return @
@@ -200,27 +245,36 @@ weave.App::linkHost = function {
 weave.App::addDirectory = function directory, inherit, configuration {
   // Clear the cache so that the configuration can be modified and
   // not conflict with previously caches requests.
-  @resetCache()
+  @cache.parentDirectories = {}
 
   // If we only have two arguments then inherit is actually going to be the
   // configuration. If we have three arguments, then we set the inheritance.
-  // Connection::bahavior will load inheritance from @configuration._super.
+  // Connection::bahavior will load inheritance from @configuration._super,
+  // followed by app.configuration, followed by weave.configuration.
   configuration ?
-    configuration._super = @configuration[ inherit ] :
+    configuration._super = String.is( inherit ) ?
+      @configuration[ inherit ] :
+      inherit :
     configuration = inherit
 
+  // The main reason this event is important is for 3rd party modules
+  // that might alter the configuration, or that need to clear caches
+  // for anything that is based off of a configurable property.
+  @emit( "configured", directory, configuration, @configuration, @ )
   @configuration[ directory ] = configuration
 
+  // Return @ from all configuration methods so they can be chained.
   return @
 }
 
 weave.App::addInterface = function directory, handle {
-  // TODO: There should be a wrapper between the interface
-  // and the configuration. Probably an object that also
+  // TODO: Should there be a wrapper between the interface
+  // and the configuration? Probably an object that also
   // contains details about what HTTP standards the interface
   // supports, like Upgrades, Cookies, etc.
   @configuration[ directory ] = handle
 
+  // Return @ from all configuration methods so they can be chained.
   return @
 }
 
@@ -235,12 +289,11 @@ weave.App::addWebSocket = function directory, handle {
     if ( connection.get( "connection" ) === "Upgrade" && connection.get( "upgrade" ) === "websocket" ) {
       key = connection.get( "sec-websocket-key" )
       accept = weave.utilities.SHA1_64( key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" )
-      connection._NODE_RESPONSE.write(
-        "HTTP/1.1 101 Switching Protocols\r\n" +
-        "Connection: Upgrade\r\n" +
-        "Upgrade: websocket\r\n" +
-        "Sec-WebSocket-Accept: " + accept + "\r\n\r\n"
-      )
+      connection.writeHead( 101, {
+        "Connection": "Upgrade",
+        "Upgrade": "websocket",
+        "Sec-WebSocket-Accept": accept
+      })
       handle.call( connection, connection )
     }
   })
@@ -261,13 +314,21 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // For time tracking and caching purposes, save the time that
   // the connection first began processing. Initialize the state.
   @DATE = new Date()
-  @state = @PROCESSING
+  @state = 0
 
-  // Currently, we only support HTTP version 1.1 requests.
-  if i.httpVersion !== "1.1" {
-    // TODO: In the future respond with a 505.
-    console.log( "kill it with fire!", i.httpVersion )
-    return i.connection.destroy()
+  // What kind of Connection are we dealing with?
+  @method = i.method
+  @isKeepAlive = i.headers.connection === "keep-alive"
+  @isUpgrade   = i.headers.connection === "Upgrade"
+
+  // If we don't have a Host header then there's no way to figure
+  // out which app is supposed to be used to handle the Connection.
+  if !i.headers.host {
+    // XXX: @error isn't written yet, but it will probably depend
+    // on having an app the handle the error. We might just need
+    // to immediately end the connection if there is no Host Header.
+    @error( 404, "The request is missing the Host header used to " +
+                 "find the website the client is attempting to view." )
   }
 
   // Save these here, mainly for internal use with the classes methods.
@@ -275,11 +336,6 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // with them should be through using methods of the Connection class.
   @_NODE_REQUEST = i
   @_NODE_CONNECTION = i.connection
-
-  // XXX: THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY
-  // Or is it, I kind of don't want it to be. Writing your own HTTP printer
-  // is kind of hard and kind of unnecessary except when it is. (Upgrades)
-  @_NODE_RESPONSE = o
 
   // Give each connection a UUID for a little bit of tracing.
   @UUID = weave.util.RNDM_RG(0x10000000,     0xFFFFFFFF,     16) + "-" +
@@ -318,21 +374,20 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
 		if app {
 			@app = weave.cache.wildcardMatches[ @host ] = weave.apps[ app ]
 		} else {
-      // XXX: ????????????????????????????????????????????????
-      if !@changeState( @NO_APP ) {
-  			return i.connection.destroy()
-      }
+      // If there isn't an app listening end the connection.
+      return i.connection.destroy()
 		}
 	}
 
-  // Check to see if we've already found the configuration for this path
-  // If not check to see if there's a directory with a configuration that matches
-  // the URL that we're processing and cache it. If there are multiple matches we
-  // check it against the last match to see if it's longer. The longest match
-  // should always be the most specific configuration.
+  // Check to see if we've already found the configuration for this path.
+  // If not check to see if there's a directory with a configuration that
+  // matches the URL we're processing and cache it. If there are multiple
+  // matches we check it against the longest match to see if it's longer.
+  // The longest match should always be the most specific configuration.
   if @app.cache.parentDirectories[ @url.pathname ] {
     @directory = @app.cache.parentDirectories[ @url.pathname ]
   } else {
+    // TODO: Convert this to Object.keys().forEach
     for directory in @app.configuration {
       if @app.configuration.hasOwnProperty( directory ) {
         if ~@url.pathname.indexOf( directory ) && directory.length > @directory.length {
@@ -346,71 +401,51 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // is handling the connection, and shorten the URL relative to the
   // directory. If we didn't find a match then report a 501 (Not Implemented).
   if @directory {
-    @changeState( @ACCEPTED )
     @configuration = @app.configuration[ @directory ]
     @url.pathname = path.relative( @directory, @url.pathname )
-    @resolve( function error, details {
-      // TODO: Should this be able to say WebSocket?
+
+    // Announce that the app matched an incoming connection and check
+    // if the app has any responders. If it does, run them and then
+    // hand the connection off the router, and then off to the engine.
+    @app.emit( "match", @, @configuration, app )
+    if @app.responders.length {
+      @app.responsers.forEach( function responder {
+        responder.call( @app, @ )
+      } ) }
+    //@app.router( @, @app.engine )???
+    @app.router( @, function error, details {
       if details.type !== "interface" {
         @end( "{{@host}} {{details.path}}\n\n{{@UUID}}\n{{util.inspect(@configuration)}}" )
       }
     })
   } else {
-    @changeState( @NO_CONFIGURATION )
+    @app.error( "No configured directory for requested URL " + @url.pathname )
+    @error( 404, "Requested URL did matched an app but did not have a configuration." )
   }
 })
 
-// XXX: There's a lot that I like about this API, and there's also
-// a lot to dislike. Having one universal event, and having all
-// listeners be called everytime anything happens is a slow down.
-// However, it's very convient for checking progress on a request,
-// as all the variables are numbers, allowing you to use <, <=, etc.
-// I feel that event names need to be make more specific, and that
-// these progress variables should only be used internally.
-Object.extend( {          // These are the possible values for Connection::state
-                          // Always reference these variables and not the numbers
-                          // themselves, as they are not final and may change.
-  PROCESSING: 0,          // The request has been received and is being processed.
-  HTTP_UNSUPPORTED: 1,    // Currently, all connections must be HTTP/1.1.
-  NO_APP: 4,              // There is not an app to handle the request.
-  NO_CONFIGURATION: 5,    // There is not a configuration for the requested url.
-  PROCESSING_UPGRADE: 10, // The request is for an upgrade and is being processed.
-  UPGRADED: 11,           // The request has been successfully upgraded.
-  UNABLE_TO_UPGRADE: 19,  // We were not able to upgrade the request.
-  ACCEPTED: 20,           // The request has been match to an app and configuration.
-  WRITING_HEAD: 24,       // Response status has been written and we are writing headers.
-  WRITING_BODY: 27,       // Headers have been written and we are writting the body.
-  SUCCESSFUL: 22,         // Response has been written and the connection is closed.
-  REDIRECTED: 30,         // Connection was redirected. Do not use for cached responses.
-}, weave.Connection:: )
-
-// I also don't really like this API, and I don't like
-// having to do essentially the same thing multiple times.
-// How do I teach this function the names of more specific
-// events so that it can emit them as well? I suppose you
-// could listen to each specific event and have it call
-// changeState, but that's a lot of boilerplate, too many
-// extra function calls, and would prevent being able to
-// tell if anyone else is actually listening to events,
-// since we would be listening to all of them.
-weave.Connection::changeState = function state {
-  if @state < state {
-    @state = state
-    return @emit( "statechange", state, @ )
-  }
-}
-
 weave.Connection::behavior = function name {
-  var behavior, property, _super;
+  var behavior,
+  nests = name.split(".");
 
-  property = @configuration[ name ]
-  if @configuration._super { _super = @configuration._super[ name ] }
+  // Load from @configuration, @configuration._super,
+  // @app.configuration, and then weave.configuration
+  [ @configuration, @configuration._super,
+    @app.configuration, weave.configuration ].some( function cursor {
+      // Make sure the cursor actually exists, in case
+      // @configuration._super isn't defined.
+      if cursor {
+        // If the cursor follows all the way to the requested property
+        // the set the behavior and return true to stop checking.
+        if ( nests.every( function nest { return cursor = cursor[ nest ] } ) ) {
+          behavior = cursor
+          return true;
+        }
+      }
+  })
 
-  // TODO: In the future we might do extra processing on
-  // behavior before returning it Or will we? I think maybe
-  // we should just keep leaving it alone.
-  behavior = property || _super
-
+  // Behavior will only be defined if we actually found a match.
+  // Otherwise it will just be undefined. Return it anyway.
   return behavior
 }
 
@@ -418,6 +453,7 @@ weave.Connection::get =
 weave.Connection::getHeader = function name, asString {
   // Make sure the header name is lowercase, so that it
   // can be case insensitive.
+  var header;
   name = name.toLowerCase()
 
   // If asString is true then the header must be returned as a 
@@ -432,7 +468,10 @@ weave.Connection::getHeader = function name, asString {
       case "if-modified-since":
         // FIXME: If the header is undefined it will just
         // return whatever the date is right now.
-        return new Date( @_NODE_REQUEST.headers[ name ] )
+        header = @_NODE_REQUEST.headers[ name ]
+        if header {
+          return new Date( header )
+        }
         break;
       case "cookies":
         // FIXME: Let's note use the querystring module anymore.
@@ -446,167 +485,93 @@ weave.Connection::getHeader = function name, asString {
   return @_NODE_REQUEST.headers[ name ]
 }
 
-weave.Connection::isUpgrade = function {
-  return @get( "connection" ) === "Upgrade"
-}
-
+// Create destroy, pause, and resume reference methods.
 q("destroy,pause,resume").forEach( function name {
   weave.Connection::[name] = function {
     @_NODE_CONNECTION[name]()
   }
 })
 
-weave.Connection::resolve = function callback {
-  var cursor, connection, details;
-
-  // We need to save the connection, since we have to deal
-  // with so many asynchronous functions and callbacks, and
-  // details is what we will give the callback as a result.
-  // XXX: I think we need to define details as a constant
-  // and create a copy for each connection using Object.create
-  connection = @
-  details = {
-    isDirectory: function { return @type === "directory" },
-    isFile:      function { return @type === "file" },
-    isInterface: function { return @type === "interface" },
-    // path: resolved path,
-    // result: the result of the function if ifFunction is true,
-    // stats: fs.stat,
-    // type: "directory"|"file"|"interface",
-    url: connection.url
+weave.Connection::status = function status {
+  // If we haven't written the status yet, right it
+  // and start writting headers.
+  if @state === 0 {
+    @_NODE_CONNECTION.write( "HTTP/1.1 {{status}} {{http.STATUS_CODES[status]}}\r\n")
+    @state = 1
   }
-
-  // If the configuration is a Function, then the directory is an
-  // Interface, so set the type and call the callback with the results.
-  if Function.is( connection.configuration ) {
-    return callback.call( connection, undefined, Object.extend( details, {
-      type: "interface", result: connection.configuration( connection )
-    }))
-  }
-
-  // Upgrades are only supported via interfaces.
-  // TODO: Let's emit an upgrade event here as one last attempt
-  // at saving the connection before we destroy it.
-  if connection.isUpgrade() {
-    connection._NODE_CONNECTION.destroy()
-    return callback.call( connection, "could not upgrade" )
-  }
-
-  // cursor points to where ever we're searching for files.
-  cursor = path.join( connection.configuration.location
-    .replace( /^~/, process.env.HOME ), connection.url.pathname )
-
-  // Set the initial depth to 0. Depth is used to keep track of
-  // how many directories we've moved down from the original url.
-  // This is mainly used for directory indexes with finite depth.
-  if !connection.url.hasOwnProperty( "depth" ) {
-    connection.url.depth = 0
-  }
-
-  // Check to see if it exists, and if it's a file or a directory.
-  // If it doesn't exist, then step up a directory and try again.
-  fs.exists( cursor, function exists {
-    if exists {
-      fs.stat( cursor, function error, stats {
-        // If it's a file, then we're done, and we just call the callback.
-        // If it's a directory, then check for an index, making sure that
-        // is has a fitting depth, that it exists, and is a file. We use a
-        // customized Array::some function that you can use with asynchronous
-        // functions, since you tell it when to go to the next item. The
-        // callback is run when .next() is called but there is not another
-        // item to process, so it will only be called if there isn't a match.
-        if stats.isFile() {
-          callback.call( connection, undefined, Object.extend( details, {
-            path: cursor, stats: stats, type: "file"
-          }))
-        } else if stats.isDirectory() {
-          Object.keys( connection.configuration.indexes ).someAsync( function index, n, some {
-            if connection.url.depth <= connection.configuration.indexes[ index ] {
-              index = path.join( cursor, index )
-              fs.exists( index, function exists {
-                if exists {
-                  fs.stat( index, function error, stats {
-                    if stats.isFile() {
-                      callback.call( connection, undefined, Object.extend( details, {
-                        path: index, stats: stats, type: "file"
-                      }))
-                    } else some.next()
-                  })
-                } else some.next()
-              })
-            } else some.next()
-          }, function {
-            if connection.url.depth === 0 {
-              callback.call( connection, undefined, Object.extend( details, {
-                path: cursor, stats: stats, type: "directory"
-              }))
-            } else {
-              // TODO: Should change this to something about "directory
-              // found but contained no indexes"
-              callback.call( connection, 404 )
-            }
-          })
-        }
-      })
-    } else {
-      // If there's room to step back and keep searching for files then we do so.
-      if path.relative( connection.configuration.location, connection.url.pathname ) {
-        connection.url.pathname = path.join( connection.url.pathname, ".." )
-        connection.url.depth++
-        @resolve( callback )
-      } else {
-        callback.call( connection, 404 )
-      }
+}
+  
+weave.Connection::writeHeader = function header, value {
+  // If no body content has been sent yet, check if the status has.
+  // If not, right the status, and then right the header.
+  if @state < 2 {
+    if @state === 0 {
+      @status( 200 )
     }
-  })
+    @_NODE_CONNECTION.write( "{{header}}: {{value}}\r\n" )
+  }
 }
 
-// TODO: weave.Connection::writeHead but with a different name
-// Possibly weave.Connection::set
-// set( "status", 200 )
-// set( 200 )
-// set( "Date", new Date something something)
-// set({ Date: new Date something } )
+weave.Connection::writeLastHeader = function header, value {
+  // If there's an actual header to right, then right it.
+  // Then end the header and start righting the body.
+  if header {
+    @writeHeader( header, value )
+  }
+  @_NODE_CONNECTION.write( "\r\n" )
+  @state = 2
+}
 
-// TODO: weave.Connection::write
-weave.Connection::write = function first, second {
-  if arguments.length === 1 {
-    if Number.is( first ) {
-      @_NODE_CONNECTION.write( "HTTP/1.1 {{first}} {{http.STATUS_CODES[first]}}\r\n" )
-      @state = @WRITING_HEAD
-    } else {
-      // Finish the head before writing the body
-      if @state === @WRITING_HEAD {
-        @_NODE_CONNECTION.write( "\r\n" )
-      }
-      @_NODE_CONNECTION.write( first )
-    }
-  } else if arguments.length === 2 {
-    if Number.is( first ) && Object.is( second ) {
-      @_NODE_CONNECTION.write( "HTTP/1.1 {{first}} {{http.STATUS_CODES[first]}}\r\n" )
-      Object.keys( second ).forEach( function key {
-        @_NODE_CONNECTION.write( "{{key}}: {{second[key]}}\r\n" )
-      })
-      @state = @WRITING_HEAD
-    } else if String.is( first ) && String.is( second ) {
-      // Make sure the status is already written, before writing a header
-      if @state === @WRITING_HEAD {
-        @_NODE_CONNECTION.write( "{{first}}: {{second}}" )
-      } else {
-        // Write it later or something
-      }
-    }
+weave.Connection::writeHead = function status, headers {
+  if Number.is( status ) && Object.is( headers ) {
+    @status( status )
+    Object.keys( second ).forEach( function key {
+      @writeHeader( key, second[ key ] )
+    })
   } else {
-    // TODO: Too many arguments, error out
-    return 0;
+    @app.error( "writeHead: invalid header", status, headers )
   }
 }
 
-// TODO: weave.Connection::end
+// XXX: Is the connection keep-alive or close?
+// TODO: Check before assuming Transfer-encoding: chunked
+weave.Connection::write = function content, encoding {
+  var buf;
+
+  console.log( buf.toString() )
+  // If we aren't writing the body yet, right some final headers.
+  if @state < 3 {
+    if @state < 2 {
+      // Write required headers and shit
+      @isKeepAlive && @writeHeader( "Transfer-Encoding", "chunked" )
+      @writeLastHeader( "Date", @DATE.toUTCString() )
+
+      @state = 2
+    }
+
+    if @isKeepAlive {
+      buf = Buffer.concat( [
+        new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
+        new Buffer( content, encoding ), n ] )
+
+      @_NODE_CONNECTION.write( buf )
+    } else {
+      console.log( "NOOOO" )
+      @_NODE_CONNECTION.write( content, encoding )
+    }
+  }
+}
+
 weave.Connection::end = function {
-  //@write.apply( @, arguments )
+  // Write all the arguments, and then send "last chunk"
+  @write.apply( @, arguments )
+  @isKeepAlive ?
+    @_NODE_CONNECTION.write( z ) :
+    200
 
-  @_NODE_RESPONSE.end.apply( @_NODE_RESPONSE, arguments )
+  @state = 3
+}
 
-  // Something about \r\n0\r\n
+weave.Connection::error = function code, description {
+  // wtf do I do here
 }
