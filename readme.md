@@ -1,7 +1,7 @@
 # Weave
 
 [![Written in Teal](http://img.shields.io/badge/teal-v0.3.1-62eaaa.svg?style=flat)](https://github.com/partheseas/teal)
-![Current Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
+![Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
 
 ## Disclosure
 
@@ -33,6 +33,8 @@ Weave is a combination of an HTTPD server, and an application server (think [Exp
 
 Weave is written in Teal, (essentially lazy JavaScript, everything translates directly) and translated into Javascript.
 Since all translations are literal the generated code should be completely safe.
+
+TODO: Put a readme in the Teal repository detailing differences and semantics and whatever
 
 ## Installation
 
