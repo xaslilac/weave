@@ -1,7 +1,8 @@
-// MIT License / Copyright Tyler Washburn 2014
+// MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
-var q, u, n, z;
+var weave, q, u, n, z;
+weave = require( "./weave" )
 
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
@@ -11,15 +12,10 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 
 
 
-
-// WE NEED TO CONVERT THIS TO MATCH OUR NEW MODULES.
-
-var weave;
 module 'fs', 'path';
 
-weave = require( "./weave" )
-
-weave.Engine = function {
+// WE NEED TO CONVERT THIS TO MATCH OUR NEW MODULES.
+weave.Printer = function {
   return function error, details, connection {
   console.log( details.isFile )
     if !error {
