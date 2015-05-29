@@ -20,13 +20,12 @@ module.exports = function {
       url: {
         value: connection.url,
         enumerable: true, writable: true, configurable: true } } )
-
     // If the configuration is a Function, then the directory is an
     // Interface, so set the type and call the callback with the results.
     if Function.is( connection.configuration ) {
       return callback.call( connection, undefined, Object.extend( details, {
         type: "interface", result: connection.configuration( connection )
-      }))
+      }), connection )
     }
 
     // Upgrades are only supported via interfaces.
@@ -43,7 +42,7 @@ module.exports = function {
 
     if connection.method !== "GET" && connection.method !== "HEAD" && connection.method !== "POST" {
       connection.destroy()
-      return callback.call( connection, "405 method not supported" )
+      return callback.call( connection, "405 method not supported", undefined, connection  )
     }
 
     // cursor points to where ever we're searching for files.
@@ -72,7 +71,7 @@ module.exports = function {
           if stats.isFile() {
             callback.call( connection, undefined, Object.extend( details, {
               path: cursor, stats: stats, type: "file"
-            }))
+            }), connection )
           } else if stats.isDirectory() {
             Object.keys( connection.configuration.indexes ).someAsync( function index, n, some {
               if connection.url.depth <= connection.configuration.indexes[ index ] {
@@ -83,7 +82,7 @@ module.exports = function {
                       if stats.isFile() {
                         callback.call( connection, undefined, Object.extend( details, {
                           path: index, stats: stats, type: "file"
-                        }))
+                        }), connection )
                       } else some.next()
                     })
                   } else some.next()
@@ -93,11 +92,11 @@ module.exports = function {
               if connection.url.depth === 0 {
                 callback.call( connection, undefined, Object.extend( details, {
                   path: cursor, stats: stats, type: "directory"
-                }))
+                }), connection )
               } else {
                 // TODO: Should change this to something about "directory
                 // found but contained no indexes"
-                callback.call( connection, 404 )
+                callback.call( connection, 404, undefined, connection )
               }
             })
           }
@@ -109,7 +108,7 @@ module.exports = function {
           connection.url.depth++
           @resolve( callback )
         } else {
-          callback.call( connection, 404 )
+          callback.call( connection, 404, undefined, connection )
         }
       }
     })
