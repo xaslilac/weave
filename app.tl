@@ -1,7 +1,8 @@
-// MIT License / Copyright Tyler Washburn 2014
+// MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
-var q, u, n, z;
+var weave, q, u, n, z, Wildcard;
+weave = require( "./weave" )
 
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
@@ -11,10 +12,11 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 
 
 
+module "events", "http";
+Wildcard = require( "./utilities/Wildcard" )
 
-var weave;
-weave = require( "./weave" )
-
+// The App class contains configuration data and handles delegation,
+// tracking, and caching of requests.
 weave.App = weave.Class( events.EventEmitter, function appName {
   // Create the initial configuration storage object and use
   // resetCache() to create the initial empty cache.
@@ -45,7 +47,7 @@ weave.App = weave.Class( events.EventEmitter, function appName {
   // The router processes the request and turns it into something
   // slightly more meaningful, so that we can generate a response.
   @router = new weave.Router()
-  @engine = new weave.Engine()
+  @printer = new weave.Printer()
 
   // @error is the function that should be called for all errors
   // relating to a particular app.

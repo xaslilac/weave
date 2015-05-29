@@ -1,7 +1,7 @@
 /* MIT License
    Created by partheseas (Tyler Washburn)
-   Copyright Tyler Washburn 2014
-   Weave -0.4 - Make webs */
+   Copyright Tyler Washburn 2015
+   Weave - Make webs */
 
 // Strict mode is actually great for use in debugging, and catching
 // problems in code that wouldn't usually be found. You should try it.
@@ -12,13 +12,13 @@
 // and a way to quickly write Arrays of strings. u is just short for undefined.
 // n is short for a carriage return line feed buffer, and z is the last chunk
 // of a message with Transfer-Encoding: chunked for Keep-Alive connections.
-var q, u, n, z;
+var weave, q;
 
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
 Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 Object.extend = function o,e {@keys(o).forEach(function p {if !e.hasOwnProperty(p){e[p]=o[p]}});return e}
-q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\r\n\r\n")
+q = function s { return s.split(",") }
 
 
 
@@ -81,20 +81,13 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 
 
 // Import all of the modules that we need before we do anything crazy.
-var weave, DOM, Engine, MIME, Router, Wildcard;
-module 'crypto', 'events', 'fs', 'http', 'path', 'url', 'util';
-
-DOM = require( "./utilities/DOM" )
-Wildcard = require( "./utilities/Wildcard" )
+module 'crypto';
 
 module.exports = exports = weave = {
-  version: 0.3,
+  version: -0.4,
 
-  servers: {}, apps: {},
-  cache: { wildcardMatches: {} },
-  constants: {
-    WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-  },
+  servers: {}, apps: {}, cache: { wildcardMatches: {} },
+  constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" },
 
   util: {
     SHA1_64: function data {
@@ -127,4 +120,4 @@ module.exports = exports = weave = {
   }
 }
 
-weave._pieces( "app,connection,router,engine" )
+weave._pieces( "app,connection,router,printer" )

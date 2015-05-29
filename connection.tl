@@ -1,7 +1,8 @@
-// MIT License / Copyright Tyler Washburn 2014
+// MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
-var q, u, n, z;
+var weave, q, u, n, z, Wildcard;
+weave = require( "./weave" )
 
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
@@ -11,14 +12,12 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 
 
 
+module "events", "http", "path", "util", "url";
+Wildcard = require( "./utilities/Wildcard" )
 
 // The Connection class is responsible for determining which App is
 // responsible for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
-
-var weave;
-weave = require( "./weave" )
-
 weave.Connection = weave.Class( events.EventEmitter, function i, o {
 	var app, directory;
 
@@ -127,12 +126,12 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
       @app.responsers.forEach( function responder {
         responder.call( @app, @ )
       } ) }
-    @app.router( @, @app.engine )
-  /*@app.router( @, function error, details {
+    //@app.router( @, @app.printer )
+    @app.router( @, function error, details {
       if details.type !== "interface" {
         @end( "{{@host}} {{details.path}}\n\n{{@UUID}}\n{{util.inspect(@configuration)}}" )
       }
-    })*/
+    })
   } else {
     @app.error( "No configured directory for requested URL " + @url.pathname )
     @error( 404, "Requested URL did matched an app but did not have a configuration." )
@@ -223,7 +222,7 @@ weave.Connection::writeHeader = function header, value {
     if @state === 0 {
       @status( 200 )
     }
-    @_NODE_CONNECTION.write( "{{header}}: {{value}}\r\n" )
+    @_NODE_CONNECTION.write( "{{header}}: {{value + n}}" )
   }
 }
 
@@ -233,7 +232,7 @@ weave.Connection::writeLastHeader = function header, value {
   if header {
     @writeHeader( header, value )
   }
-  @_NODE_CONNECTION.write( "\r\n" )
+  @_NODE_CONNECTION.write( n )
   @state = 2
 }
 
@@ -258,7 +257,7 @@ weave.Connection::write = function content, encoding {
     if @state < 2 {
       // Write required headers and shit
       @isKeepAlive && @writeHeader( "Transfer-Encoding", "chunked" )
-      @writeLastHeader( "Date", @DATE.toUTCString() )
+      @writeLastHeader( "Date", @date.toUTCString() )
 
       @state = 2
     }
