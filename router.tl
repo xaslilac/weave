@@ -14,8 +14,9 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 
 module 'fs', 'path';
 
-// WE NEED TO CONVERT THIS TO MATCH OUR NEW MODULES.
-var DETAILS = {
+// If you add any kind of "Connection::type" please make sure that you add
+// an "isType" function.
+weave.constants.DETAILS = {
   isDirectory: function { return @type === "directory" },
   isFile:      function { return @type === "file" },
   isInterface: function { return @type === "interface" },
@@ -30,10 +31,12 @@ var DETAILS = {
 
 weave.Router = function {
   return function connection, callback {
-    var cursor, details;
+    var cursor, details, indexes;
 
-    // Details is what we will give the callback as a result.
-    details = Object.create( DETAILS, {
+    // We give the callback (usually an instance of weave.Printer) this details
+    // object as the second argument to let it know what we have found about
+    // about the request so far.
+    details = Object.create( weave.constants.DETAILS, {
       url: {
         value: connection.url,
         enumerable: true, writable: true, configurable: true } } )
@@ -90,9 +93,9 @@ weave.Router = function {
               path: cursor, stats: stats, type: "file"
             }), connection )
           } else if stats.isDirectory() {
-            console.log( connection )
-            Object.keys( connection.configuration.indexes ).someAsync( function index, n, some {
-              if connection.url.depth <= connection.configuration.indexes[ index ] {
+            indexes = connection.behavior( "indexes" )
+            Object.keys( indexes ).someAsync( function index, n, some {
+              if connection.url.depth <= indexes[ index ] {
                 index = path.join( cursor, index )
                 fs.exists( index, function exists {
                   if exists {
@@ -114,7 +117,11 @@ weave.Router = function {
               } else {
                 // TODO: Should change this to something about "directory
                 // found but contained no indexes"
-                callback.call( connection, 404, undefined, connection )
+                // Isn't really an error unless you want it to be. Most people would
+                // just display the directory contents.
+                callback.call( connection, undefined, Object.extend( details, {
+                  path: cursor, stats: stats, type: "directory"
+                }), connection )
               }
             })
           }
@@ -124,9 +131,12 @@ weave.Router = function {
         if path.relative( connection.configuration.location, connection.url.pathname ) {
           connection.url.pathname = path.join( connection.url.pathname, ".." )
           connection.url.depth++
-          @resolve( callback )
+          connection.app.router( connection, callback )
         } else {
-          callback.call( connection, 404, undefined, connection )
+          // TODO: Come up with a better way to handle errors.
+          callback.call( connection, 404, Object.extend( details, {
+            path: cursor, stats: stats, type: "file"
+          }), connection )
         }
       }
     })
