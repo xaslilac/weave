@@ -1,7 +1,7 @@
 /* MIT License
    Created by partheseas (Tyler Washburn)
    Copyright Tyler Washburn 2014
-   Weave - Make webs [-0.3] (pre-release) */
+   Weave -0.4 - Make webs */
 
 // Strict mode is actually great for use in debugging, and catching
 // problems in code that wouldn't usually be found. You should try it.
@@ -26,14 +26,18 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 
 // TODO: So here are all the things I still need to bring over from Trailer.
 
-// GZip, URL Redirects, URL Cleaning (maybe? but different?),
-// request:data -> Connection piping, ReadFile with Content-Length, caching,
+// GZip, URL Redirects, URL Cleaning (maybe? but different? configurable?),
+// request:data -> Connection piping, ReadFile with Content-Length***, caching,
 // Last-Modified, and Content-Type. directory.html, directory.json, and
 // directory listings in general? Remember the whole depth === 1 thing.
 // Auto-generate error pages. There's still no way to write to the response
 // without accessing Connection::_NODE_RESPONSE. Should we allow Constant
 // HTTP Headers? Do they need to be written directly to each individual
 // request? How will they be written?
+// ***So I've since learned that the Content-Length header is not supposed to be
+// used if the Transfer-Encoding is Chunked. So I'm not sure if we actually need
+// to implement that or not. We could probably get away with live measuring as
+// we send data out.***
 
 
 
@@ -46,7 +50,14 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 // # Console logging - scheduled for v0.4
 // We needs to add some sort of unified error reporting system.
 
-// # Command Line Interface - scheduled for v0.6
+// # Remote debugging / Admin panel - scheduled for v0.6
+// Add the ability to have an online debug console/admin panel that you would
+// active with App.addInterface( "/net-internals", new weave.AdminPanel(App) )
+// or something similar. You'd be able to monitor an incoming request queue,
+// interface directly with the App collection from a secure, remote, REPL with
+// syntax highlighting, pretty printing, and more.
+
+// # Command Line Interface - scheduled for v0.8
 // The main reason this would be important, is it would provide a simple way
 // to actively maintain your server while it is running, without needing to
 // close a process, and open a new one. You could essentially "hot-swap" your
@@ -56,13 +67,6 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 // your terminal window when it's unneeded instead of leaving it open all the
 // time. This is something that I've wanted to be able to do for a while, but
 // is incredibly hard to implement, and would need to be outlined in detail.
-
-// # Remote debugging / Admin panel - scheduled for v0.8
-// Add the ability to have an online debug console/admin panel that you would
-// active with App.addInterface( "/net-internals", new weave.AdminPanel(App) )
-// or something similar. You'd be able to monitor an incoming request queue,
-// interface directly with the App collection from a secure, remote, REPL with
-// syntax highlighting, pretty printing, and more.
 
 // # SPDY Protocol / GZip / HTTP 2.0 / HTTPS support - scheduled for v1.0
 // Add support for Google's SPDY protocol and for HTTP 2.0. HTTPS support is
@@ -76,11 +80,12 @@ q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\
 
 
 
-// First we import Node core modules, then we import our own modules.
-var weave, DOM, MIME, Router, Wildcard;
+// Import all of the modules that we need before we do anything crazy.
+var weave, DOM, Engine, MIME, Router, Wildcard;
 module 'crypto', 'events', 'fs', 'http', 'path', 'url', 'util';
+
 DOM = require( "./utilities/DOM" )
-MIME = require( "./utilities/MIME" )
+Engine = require( "./engine" )
 Router = require( "./router")
 Wildcard = require( "./utilities/Wildcard" )
 
@@ -89,7 +94,9 @@ module.exports = exports = weave = {
 
   servers: {}, apps: {},
   cache: { wildcardMatches: {} },
-  // constants: {}, ???????????????????????????????????????
+  constants: {
+    WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+  },
 
   util: {
     SHA1_64: function data {
@@ -109,7 +116,8 @@ module.exports = exports = weave = {
     return constructor
   },
 
-  Dictionary: MIME,
+  Dictionary: require( "./utilities/MIME" ),
+  Engine: Engine,
   Router: Router,
 
   configuration: {
@@ -151,10 +159,10 @@ weave.App = weave.Class( events.EventEmitter, function appName {
   // The router processes the request and turns it into something
   // slightly more meaningful, so that we can generate a response.
   @router = new weave.Router()
-  @engine // do something cool here I guess.
+  @engine = new weave.Engine()
 
   // @error is the function that should be called for all errors
-  // relating to a particular app. 
+  // relating to a particular app.
   // @warning is used when something isn't going quite as planned,
   // but can still be handled.
   // @debug can be called to output anything to the console, but
@@ -286,9 +294,11 @@ weave.App::addWebSocket = function directory, handle {
     // it as base64. Then we write the head, tell it to switch protocols, and
     // begin the WebSocket connection. If it isn't expecting a WebSocket
     // upgrade then we totally freak out and blow up the whole world instead.
+    // As in we don't do anything at all and just ignore the connection.
+    // TODO: Should we just end it here or is there something weird I did?
     if ( connection.get( "connection" ) === "Upgrade" && connection.get( "upgrade" ) === "websocket" ) {
       key = connection.get( "sec-websocket-key" )
-      accept = weave.utilities.SHA1_64( key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" )
+      accept = weave.utilities.SHA1_64( key + weave.constants.WebSocketUUID )
       connection.writeHead( 101, {
         "Connection": "Upgrade",
         "Upgrade": "websocket",
@@ -308,12 +318,19 @@ weave.App::addWebSocket = function directory, handle {
 // The Connection class is responsible for determining which App is
 // responsible for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
+
+// XXX: How much do we actually want to be responsible for here?
+// We started developing our own equivalent to ServerResponse here
+// but that was specifically because Node doesn't create a ServerResponse
+// for Upgrade requests. Could we create a ServerResponse manually for requests
+// like those? Do we want to continue using our own code for responding?
+// Response writing is a lot easier to implement than request reading at least.
 weave.Connection = weave.Class( events.EventEmitter, function i, o {
 	var app, directory;
 
   // For time tracking and caching purposes, save the time that
   // the connection first began processing. Initialize the state.
-  @DATE = new Date()
+  @date = new Date()
   @state = 0
 
   // What kind of Connection are we dealing with?
@@ -343,9 +360,9 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
           weave.util.RNDM_RG(0x4000,         0x4FFF,         16) + "-" +
           weave.util.RNDM_RG(0x8000,         0xBFFF,         16) + "-" +
           weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16) + // The last range has to be
-          weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16)   // be split into two numbers
-                                                                   // because it's longer than
-  // Initialize @directory for the initial length comparisons.     // what Math.random() generates
+          weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16)   // be split into two calls
+                                                                   // because it's has more digits
+  // Initialize @directory for the initial length comparisons.     // than Math.random() generates
   // Make sure the host header is valid, and strip the port
   // and reapply it. This insures that it isn't missing from @host
   // and that it's the real connection port. Seperate parts of the
@@ -375,6 +392,10 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
 			@app = weave.cache.wildcardMatches[ @host ] = weave.apps[ app ]
 		} else {
       // If there isn't an app listening end the connection.
+      // NOTE: Should we really do this silently? Or should we report?
+      // We're trying to pretend that there isn't a server connected but
+      // is that really a good idea? We should probably tell someone that
+      // the server is connected and just not active.
       return i.connection.destroy()
 		}
 	}
@@ -412,12 +433,12 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
       @app.responsers.forEach( function responder {
         responder.call( @app, @ )
       } ) }
-    //@app.router( @, @app.engine )???
-    @app.router( @, function error, details {
+    @app.router( @, @app.engine )
+  /*@app.router( @, function error, details {
       if details.type !== "interface" {
         @end( "{{@host}} {{details.path}}\n\n{{@UUID}}\n{{util.inspect(@configuration)}}" )
       }
-    })
+    })*/
   } else {
     @app.error( "No configured directory for requested URL " + @url.pathname )
     @error( 404, "Requested URL did matched an app but did not have a configuration." )
@@ -426,7 +447,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
 
 weave.Connection::behavior = function name {
   var behavior,
-  nests = name.split(".");
+  nests = name.split(" ");
 
   // Load from @configuration, @configuration._super,
   // @app.configuration, and then weave.configuration
@@ -456,7 +477,7 @@ weave.Connection::getHeader = function name, asString {
   var header;
   name = name.toLowerCase()
 
-  // If asString is true then the header must be returned as a 
+  // If asString is true then the header must be returned as a
   // plain string. If it's not, then we can do some processing
   // to make it more useful than a string.
   if !asString {
@@ -474,7 +495,7 @@ weave.Connection::getHeader = function name, asString {
         }
         break;
       case "cookies":
-        // FIXME: Let's note use the querystring module anymore.
+        // I think this is how we parse cookies but I suck at them???
         return querystring.parse( @_NODE_REQUEST.headers.cookie, "; " )
         break;
     }
@@ -500,7 +521,7 @@ weave.Connection::status = function status {
     @state = 1
   }
 }
-  
+
 weave.Connection::writeHeader = function header, value {
   // If no body content has been sent yet, check if the status has.
   // If not, right the status, and then right the header.
@@ -538,7 +559,6 @@ weave.Connection::writeHead = function status, headers {
 weave.Connection::write = function content, encoding {
   var buf;
 
-  console.log( buf.toString() )
   // If we aren't writing the body yet, right some final headers.
   if @state < 3 {
     if @state < 2 {
