@@ -5,9 +5,9 @@
 
 ## Disclosure
 
-### License
+### MIT License
 
-Copyright Tyler Washburn 2014
+Copyright Tyler Washburn 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,17 +34,28 @@ Weave is a combination of an HTTPD server, and an application server (think [Exp
 Weave is written in Teal, (essentially lazy JavaScript, everything translates directly) and translated into Javascript.
 Since all translations are literal the generated code should be completely safe.
 
-TODO: Put a readme in the Teal repository detailing differences and semantics and whatever
-
 ## Installation
 
-1. Download and install [Node and NPM](http://nodejs.org/)
-2. [Download](https://github.com/partheseas/weave/tarball/master) and extract Weave
-3. Run the following two commands in your shell
+So installing is really weird righ now. Eventually we'll get on npm and make everything
+easier but for now this is the closest script I could figure out and it's bugy.
+
+Basically..
+1. Download and install Teal
+2. Download Weave
+3. Compile Weave from Teal to JavaScript with take
+4. Install the newly compiled Weave JavaScript with NPM as a global (command line)
+and as a regular module to include in your JavaScript.
 
 ```Shell
-npm install -g https://github.com/partheseas/teal/tarball/master
-take /wherever/you/extracted/Weave
+sudo npm install -g https://github.com/partheseas/teal/tarball/master
+mkdir .tmp
+
+curl -o .tmp/weave.tar.gz -L https://github.com/partheseas/weave/tarball/master
+tar -zxvf .tmp/weave.tar.gz
+DIR="$(ls -d .tmp/*/)"
+take $DIR && npm install $DIR
+
+rm .tmp -r
 ```
 
 You're good to go! Just use `require()` to load in the newly generated weave.js file.
@@ -74,6 +85,6 @@ You're good to go! Just use `require()` to load in the newly generated weave.js 
 - Client and server side caching support
   - Includes CLI to clear server-side cache
 - Serverside scripting support
- - PHP, Ruby, Python, and other scripting languages
- - Teal, CoffeeScript, and other Javascript dialect support
+  - PHP, Ruby, Python, and other scripting languages
+  - Teal, CoffeeScript, and other Javascript dialect support
 - Whatever else you can come up with!
