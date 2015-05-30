@@ -6,8 +6,6 @@ weave = require( "./weave" )
 
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
-Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
-Object.extend = function o,e {@keys(o).forEach(function p {if !e.hasOwnProperty(p){e[p]=o[p]}});return e}
 q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\r\n\r\n")
 
 
@@ -125,13 +123,10 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     if @app.responders.length {
       @app.responsers.forEach( function responder {
         responder.call( @app, @ )
-      } ) }
-    //@app.router( @, @app.printer )
-    @app.router( @, function error, details {
-      if details.type !== "interface" {
-        @end( "{{@host}} {{details.path}}\n\n{{@UUID}}\n{{util.inspect(@configuration)}}" )
-      }
-    })
+      })
+    }
+
+    @app.router( @, @app.printer )
   } else {
     @app.error( "No configured directory for requested URL " + @url.pathname )
     @error( 404, "Requested URL did matched an app but did not have a configuration." )
