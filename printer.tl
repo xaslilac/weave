@@ -18,7 +18,7 @@ weave.Printer = function {
       if details.isFile() {
         fs.readFile( details.path, function error, contents {
           connection.writeHeader( "Content-Type",
-            connection.behavior( "mimes {{path.extname( details.path )}}" ) )
+            connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
           connection.end( contents )
         })
       } else {
