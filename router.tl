@@ -6,8 +6,7 @@ weave = require( "./weave" )
 
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
-Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
-Object.extend = function o,e {@keys(o).forEach(function p {if !e.hasOwnProperty(p){e[p]=o[p]}});return e}
+Object.extend = function o,e {@keys(e).forEach(function p {o[p]=e[p]});return o}
 q = function s { return s.split(",") },n = new Buffer("\r\n"),z = new Buffer("0\r\n\r\n")
 
 
@@ -40,12 +39,14 @@ weave.Router = function {
       url: {
         value: connection.url,
         enumerable: true, writable: true, configurable: true } } )
+
     // If the configuration is a Function, then the directory is an
     // Interface, so set the type and call the callback with the results.
     if Function.is( connection.configuration ) {
-      return callback.call( connection, undefined, Object.extend( details, {
+      /*return callback.call( connection, undefined, Object.extend( details, {
         type: "interface", result: connection.configuration( connection )
-      }), connection )
+      }), connection )*/
+      return connection.configuration.call( connection, undefined, details, connection )
     }
 
     // Upgrades are only supported via interfaces.
