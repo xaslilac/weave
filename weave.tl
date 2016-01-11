@@ -34,9 +34,8 @@ q = function s { return s.split(",") }
 // HTTP Headers? Do they need to be written directly to each individual
 // request? How will they be written?
 // ***So I've since learned that the Content-Length header is not supposed to be
-// used if the Transfer-Encoding is Chunked. So I'm not sure if we actually need
-// to implement that or not. We could probably get away with live measuring as
-// we send data out.***
+// used if the Transfer-Encoding is Chunked. So that's not really something
+// that we need to do, because we always use Transfer-Encoding Chunked. ***
 
 
 

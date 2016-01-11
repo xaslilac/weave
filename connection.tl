@@ -52,7 +52,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
           weave.util.RNDM_RG(0x8000,         0xBFFF,         16) + "-" +
           weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16) + // The last range has to be
           weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16)   // be split into two calls
-                                                                   // because it's has more digits
+                                                                   // because it has more digits
   // Initialize @directory for the initial length comparisons.     // than Math.random() generates
   // Make sure the host header is valid, and strip the port
   // and reapply it. This insures that it isn't missing from @host
@@ -137,15 +137,19 @@ weave.Connection::behavior = function name {
   var behavior,
   nests = name.split(" ");
 
-  // Load from @configuration, @configuration._super,
-  // @app.configuration, and then weave.configuration
+  // Load in order of priority. If there is a directory configuration then
+  // that is the most important. The next most important would be the
+  // configuration that our directory is inheriting from. Next is the general
+  // app configuration and our last resort is weave's global configuration.
+  // If we find a high priority match first, don't bother checking for a low
+  // priority match. Just return the behavior.
   [ @configuration, @configuration._super,
     @app.configuration, weave.configuration ].some( function cursor {
       // Make sure the cursor actually exists, in case
       // @configuration._super isn't defined.
       if cursor {
         // If the cursor follows all the way to the requested property
-        // the set the behavior and return true to stop checking.
+        // then set the behavior and return true to stop checking.
         if ( nests.every( function nest { return cursor = cursor[ nest ] } ) ) {
           behavior = cursor
           return true;
@@ -153,8 +157,8 @@ weave.Connection::behavior = function name {
       }
   })
 
-  // Behavior will only be defined if we actually found a match.
-  // Otherwise it will just be undefined. Return it anyway.
+  // Return the matching behavior. If we didn't find one this should
+  // still just be undefined.
   return behavior
 }
 
