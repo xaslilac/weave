@@ -85,7 +85,9 @@ module.exports = exports = weave = {
   version: -0.4,
 
   servers: {}, apps: {}, cache: { wildcardMatches: {} },
-  constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" },
+  constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
+               Separator: process.env.OS === "Windows_NT" ? "\\" : "/",
+               HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/" },
 
   util: {
     SHA1_64: function data {

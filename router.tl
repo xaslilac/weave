@@ -57,18 +57,25 @@ weave.Router = function {
       return callback.call( connection, "501 not implemented / could not upgrade" )
     }
 
-    // These both do the exact same thing, just different ways. Which is better?
-    //["GET","HEAD","POST"].some( function method { return connection.method === method } )
-    //connection.method === "GET" || connection.method === "HEAD" || connection.method === "POST"
-
+    // If the request type isn't GET, HEAD, or POST, then we don't know how to
+    // handle it. But should we really disconnect? Code 405 let's them know that
+    // we can't handle the request, instead of just confusing the client as to
+    // why they didn't ever recieve anything in return to the request.
     if connection.method !== "GET" && connection.method !== "HEAD" && connection.method !== "POST" {
       connection.destroy()
       return callback.call( connection, "405 method not supported", undefined, connection  )
     }
 
+    // These both do the exact same thing, just different ways. Which is better?
+    //["GET","HEAD","POST"].some( function method { return connection.method === method } )
+    //connection.method === "GET" || connection.method === "HEAD" || connection.method === "POST"
+
     // cursor points to where ever we're searching for files.
-    cursor = path.join( connection.configuration.location
-      .replace( /^~/, process.env.HOME ), connection.url.pathname )
+    // If process.env.HOME is defined (which it won't be on Windows) and
+    // the path begins with ~, replace the ~ with the users home directory.
+    cursor = path.join(
+      connection.configuration.location.replace( /^~/, weave.constants.HOME ),
+      connection.url.pathname )
 
     // Set the initial depth to 0. Depth is used to keep track of
     // how many directories we've moved down from the original url.
