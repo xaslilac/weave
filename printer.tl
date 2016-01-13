@@ -1,7 +1,10 @@
 // MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
-var weave, q, u, n, z;
+// Define some global variables. n is a new line buffer, q is a QuickArray
+// Function, u is simply a shortened way for us to use a value of undefined
+// and z in an end packet buffer.
+var weave, n, q, u, z;
 weave = require( "./weave" )
 
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
@@ -22,7 +25,7 @@ weave.Printer = function {
           connection.end( contents )
         })
       } else {
-        @end( "{{@host}} {{details.path}}\n\n{{@UUID}}\n{{util.inspect(@configuration)}}" )
+        @end( "{{@host}} {{details.path}}\n\n\n{{@UUID}}\nDetails {{util.inspect(details)}}\n\nConfiguration {{util.inspect(@configuration)}}" )
       }
     }
   }
