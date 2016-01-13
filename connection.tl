@@ -25,14 +25,14 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   @state = 0
 
   // What kind of Connection are we dealing with?
-  @method = i.method
+  @method      = i.method
   @isKeepAlive = i.headers.connection === "keep-alive"
   @isUpgrade   = i.headers.connection === "Upgrade"
 
   // If we don't have a Host header then there's no way to figure
   // out which app is supposed to be used to handle the Connection.
   if !i.headers.host {
-    // XXX: @error isn't written yet, but it will probably depend
+    // XXX: @error isn't complete yet, but it will probably depend
     // on having an app the handle the error. We might just need
     // to immediately end the connection if there is no Host Header.
     @error( 404, "The request is missing the Host header used to " +
@@ -55,12 +55,19 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
                                                                    // because it has more digits
   // Initialize @directory for the initial length comparisons.     // than Math.random() generates
   // Make sure the host header is valid, and strip the port
-  // and reapply it. This insures that it isn't missing from @host
-  // and that it's the real connection port. Seperate parts of the
-  // url into a url object.
+  // and reapply it, so that it will always be included, even if the client
+  // didn't include the port in the hostname when they initialized the
+  // request. We also fill out @url with as much information as possible.
   @directory = ""
-	@host = i.headers.host.match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1] + ":" + i.connection.localPort
 	@url = url.parse( path.normalize( i.url ) )
+  @url.protocol = "http:"
+	@url.hostname = i.headers.host.match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1]
+  @url.port = i.connection.localPort
+  @url.host = @url.hostname + ":" + @url.port
+
+  // Leave this here just because we use to use it before we had a full @url
+  // object, and it's kind of convenient/I'm too lazy to update the references.
+  @host = @url.host
 
   // Check for a direct host match, or a cached wildcard match.
   // If there isn't one, check against wildcards, filtering out hosts
