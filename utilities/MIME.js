@@ -41,7 +41,8 @@ MimeDictionary.prototype.fromApacheFile = function ( path, encoding, callback ) 
     var type, extensions;
 
     if ( error ) {
-      callback( error )
+      if ( callback ) callback( error )
+      else throw error
     } else {
       // Remove all empty lines and comments and then split the file into lines.
       content = content
