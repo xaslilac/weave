@@ -1,6 +1,7 @@
 # Weave
 
 [![Written in Teal](http://img.shields.io/badge/teal-v0.3.1-62eaaa.svg?style=flat)](https://github.com/partheseas/teal)
+![Weave Version 0.4.2](https://img.shields.io/badge/weave-v0.4.2-5050DD.svg?style=flat)
 ![Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
 
 ## Disclosure
@@ -31,18 +32,18 @@ SOFTWARE.
 
 Weave is a combination of an HTTPD server, and an application server (think [Express](http://expressjs.com/)) made for Node.js.
 
-Weave is written in Teal, (essentially lazy JavaScript, everything translates directly) and translated into Javascript.
+Weave is written in Teal, (essentially lazy JavaScript, everything translates directly) and translated into JavaScript.
 Since all translations are literal the generated code should be completely safe.
 
 ## Installation
 
-So installing is really weird righ now. Eventually we'll get on npm and make everything
-easier but for now this is the closest script I could figure out and it's bugy.
+So installing is really weird right now. Eventually we'll get on npm and make everything
+easier but for now this is the closest script I could figure out and it's buggy.
 
 Basically..
-1. Download and install Teal
-2. Download Weave
-3. Compile Weave from Teal to JavaScript with take
+1. Download and install Teal  
+2. Download Weave  
+3. Compile Weave from Teal to JavaScript with take  
 4. Install the newly compiled Weave JavaScript with NPM as a global (command line)
 and as a regular module to include in your JavaScript.
 
@@ -69,7 +70,7 @@ You're good to go! Just use `require()` to load in the newly generated weave.js 
   - Update your server without ever taking your sites offline
 - Fast and accurate HTTP parsing
 - Reliable, super customizable HTTPD server
-- While mixing in the convience of a dedicated app server
+- The convenience of a dedicated app server
 - Support for media uploads
 - Error messages with helpful tracing
 - Nothing should ever crash the entire process
@@ -80,11 +81,11 @@ You're good to go! Just use `require()` to load in the newly generated weave.js 
   - Databases (hopefully)
   - Other gross stuff
 - Open and customizable API
-- Easily plug in your own code for complete control over the handleing of requests.
+- Easily plug in your own code for complete control over the handling of requests.
 - Incredibly scalable
 - Client and server side caching support
   - Includes CLI to clear server-side cache
-- Serverside scripting support
+- Server side scripting support
   - PHP, Ruby, Python, and other scripting languages
-  - Teal, CoffeeScript, and other Javascript dialect support
+  - Teal, CoffeeScript, and other JavaScript dialect support
 - Whatever else you can come up with!

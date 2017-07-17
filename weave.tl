@@ -46,7 +46,7 @@ q = function s { return s.split(",") }
 // not yet found a spot for implementation or are still being discussed.
 
 // # Console logging - scheduled for v0.4
-// We needs to add some sort of unified error reporting system.
+// We need to add some sort of unified error reporting system.
 
 // # Remote debugging / Admin panel - scheduled for v0.6
 // Add the ability to have an online debug console/admin panel that you would
@@ -82,12 +82,13 @@ q = function s { return s.split(",") }
 module 'crypto';
 
 module.exports = exports = weave = {
-  version: -0.4,
+  version: "0.4.2",
 
   servers: {}, apps: {}, cache: { wildcardMatches: {} },
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
                Separator: process.env.OS === "Windows_NT" ? "\\" : "/",
                HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/" },
+               // Should the failsafe possibly be "/usr/"? The only downside is it might not exist.
 
   util: {
     SHA1_64: function data {

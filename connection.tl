@@ -35,7 +35,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     // XXX: @error isn't complete yet, but it will probably depend
     // on having an app the handle the error. We might just need
     // to immediately end the connection if there is no Host Header.
-    @error( 404, "The request is missing the Host header used to " +
+    @error( 400, "The request is missing the Host header used to " +
                  "find the website the client is attempting to view." )
   }
 
@@ -61,6 +61,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   @directory = ""
 	@url = url.parse( path.normalize( i.url ) )
   @url.protocol = "http:"
+  @url.slashes = "//"
 	@url.hostname = i.headers.host.match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1]
   @url.port = i.connection.localPort
   @url.host = @url.hostname + ":" + @url.port
