@@ -254,10 +254,11 @@ weave.Connection::writeLastHeader = function header, value {
 }
 
 weave.Connection::writeHead = function status, headers {
-  if Number.is( status ) && Object.is( headers ) {
+  var connection = @;
+  if Number.is( status ) /*&& Object.is( headers )*/ {
     @status( status )
-    Object.keys( second ).forEach( function key {
-      @writeHeader( key, second[ key ] )
+    Object.keys( headers ).forEach( function key {
+      connection.writeHeader( key, headers[ key ] )
     })
   } else {
     @app.error( "writeHead: invalid header", status, headers )
