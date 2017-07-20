@@ -26,7 +26,7 @@ weave.Printer = function {
             connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
           connection.end( contents )
         })
-      } else if details.isDirectory() {
+      } else if details.isDirectory() && !connection.behavior( "disableIndexListings" ) {
         fs.readdir( details.path, function error, files {
           connection.status( error ? 500 : 200 )
           connection.writeHeader( "Content-Type", "text/html" )
@@ -41,7 +41,8 @@ weave.Printer = function {
       }
     } else {
       if error === 404 && details.isDirectory()
-      && connection.url.depth === 1 && connection.url.description === "directory.json" {
+      && connection.url.depth === 1 && connection.url.description === "directory.json"
+      && connection.behavior( "enableJSONIndexListings" ) {
         fs.readdir( details.path, function error, files {
           connection.status( error ? 500 : 200 )
           connection.writeHeader( "Content-Type", "application/json" )
