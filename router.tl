@@ -84,16 +84,15 @@ weave.Router = function {
     // weave.constants.HOME normalizes the API for Node across different platforms.
     cursor = path.join(
       connection.behavior( "location" ).replace( /^~/, weave.constants.HOME ),
-      unescape( connection.url.pathname ) ),
+      unescape( connection.url.path ) ),
 
     // This function makes depth adjustments, and is called rather than calling
     // search directly if a recursive search is necessary.
     reroute = function {
       // If there's room to step back and keep searching for files then we do so.
       if path.relative( "/", connection.url.path ) {
-        connection.url.path = path.join( connection.url.path, ".." ); cursor = path.join( cursor, ".." )
-        connection.url.description = path.relative( connection.url.path, connection.url.pathname )
-        console.log( connection.url.description )
+        connection.url.path = path.join( connection.url.path, ".." ), cursor = path.join( cursor, ".." );
+        connection.url.description = path.relative( connection.url.path, connection.url.pathname );
         connection.url.depth++, search()
       } else {
         // TODO: Come up with a better way to handle errors.
@@ -101,7 +100,7 @@ weave.Router = function {
           path: connection.url.pathname, stats: undefined, type: "file"
         }), connection )
       }
-    },
+    }
 
     // Define our search function
     search = function {
@@ -122,37 +121,41 @@ weave.Router = function {
                 path: cursor, stats: stats, type: "file"
               }), connection )
             } else if stats.isDirectory() {
-              indexes = connection.behavior( "indexes" )
-              Object.keys( indexes ).someAsync( function index, n, some {
-                if connection.url.depth <= indexes[ index ] {
-                  index = path.join( cursor, index )
-                  fs.exists( index, function exists {
-                    if exists {
-                      fs.stat( index, function error, stats {
-                        if stats.isFile() {
-                          callback.call( connection, undefined, Object.extend( details, {
-                            path: index, stats: stats, type: "file"
-                          }), connection )
-                        } else some.next()
-                      })
-                    } else some.next()
-                  })
-                } else some.next()
-              }, function {
-                if connection.url.depth === 0 {
-                  callback.call( connection, undefined, Object.extend( details, {
-                    path: cursor, stats: stats, type: "directory"
-                  }), connection )
-                } else {
-                  // TODO: Should change this to something about "directory
-                  // found but contained no indexes"
-                  // Isn't really an error unless you want it to be. Most people would
-                  // just display the directory contents.
-                  callback.call( connection, undefined, Object.extend( details, {
-                    path: cursor, stats: stats, type: "directory"
-                  }), connection )
-                }
-              })
+              if connection.url.depth === 0 && !connection.url.pathname.endsWith("/") {
+                connection.writeHead( 301, {
+                  "Location": connection.url.pathname + "/"
+                }).end()
+              } else {
+                indexes = connection.behavior( "indexes" )
+                Object.keys( indexes ).someAsync( function index, n, some {
+                  if connection.url.depth <= indexes[ index ] {
+                    index = path.join( cursor, index )
+                    fs.exists( index, function exists {
+                      if exists {
+                        fs.stat( index, function error, stats {
+                          if stats.isFile() {
+                            callback.call( connection, undefined, Object.extend( details, {
+                              path: index, stats: stats, type: "file"
+                            }), connection )
+                          } else some.next()
+                        })
+                      } else some.next()
+                    })
+                  } else some.next()
+                }, function {
+                  if connection.url.depth === 0 {
+                    callback.call( connection, undefined, Object.extend( details, {
+                      path: cursor, stats: stats, type: "directory"
+                    }), connection )
+                  } else {
+                    // If we found a directory, but there is not index file to handle
+                    // it and the depth of our search is not 0, it counts as not found.
+                    callback.call( connection, 404, Object.extend( details, {
+                      path: cursor, stats: stats, type: "directory"
+                    }), connection )
+                  }
+                })
+              }
             }
           })
         } else {
@@ -161,7 +164,7 @@ weave.Router = function {
           // a character that would be valid in a filename.
           if connection.url.depth === 0
           && Array.isArray( connection.behavior( "favoredExtensions" ) )
-          && connection.url.pathname.charAt( connection.url.pathname.length - 1 ).match( /[A-Za-z0-9-_]/ ) {
+          && connection.url.pathname.charAt( connection.url.pathname.length - 1 ).match( /[A-Za-z0-9\-\_]/ ) {
             connection.behavior( "favoredExtensions" ).someAsync( function extension, i, some {
               fs.exists( cursor + extension, function exists {
                 if exists {
