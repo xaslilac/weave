@@ -18,6 +18,8 @@ Wildcard = require( "./utilities/Wildcard" )
 weave.App = weave.Class( events.EventEmitter, function appName {
   // Create the initial configuration storage object and use
   // resetCache() to create the initial empty cache.
+  // XXX: We are currently using this for storing directory configurations.
+  // These objects need to be seperated to avoid conflict.
   @configuration = {
     appName: appName,
     //adminEmail: "foo@bar.com"
@@ -43,8 +45,9 @@ weave.App = weave.Class( events.EventEmitter, function appName {
   // An array of functions that are run prior to the router.
   @responders = []
 
-  // The router processes the request and turns it into something
-  // slightly more meaningful, so that we can generate a response.
+  // The router processes the request, decides what should be done with it,
+  // and then passes those details on to the printer for it to generate the
+  // actual response.
   @router = new weave.Router()
   @printer = new weave.Printer()
 
