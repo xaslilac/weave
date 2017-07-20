@@ -230,6 +230,8 @@ weave.Connection::status = function status {
     @_NODE_CONNECTION.write( "HTTP/1.1 {{status}} {{http.STATUS_CODES[status]}}\r\n")
     @state = 1
   }
+
+  return @
 }
 
 weave.Connection::writeHeader = function header, value {
@@ -241,6 +243,8 @@ weave.Connection::writeHeader = function header, value {
     }
     @_NODE_CONNECTION.write( "{{header}}: {{value + n}}" )
   }
+
+  return @
 }
 
 weave.Connection::writeLastHeader = function header, value {
@@ -251,6 +255,8 @@ weave.Connection::writeLastHeader = function header, value {
   }
   @_NODE_CONNECTION.write( n )
   @state = 2
+
+  return @
 }
 
 weave.Connection::writeHead = function status, headers {
@@ -263,6 +269,7 @@ weave.Connection::writeHead = function status, headers {
   } else {
     @app.error( "writeHead: invalid header", status, headers )
   }
+  return @
 }
 
 // XXX: Is the connection keep-alive or close?
@@ -294,6 +301,8 @@ weave.Connection::write = function content, encoding {
       @_NODE_CONNECTION.write( content, encoding )
     }
   }
+
+  return @
 }
 
 weave.Connection::end = function {
