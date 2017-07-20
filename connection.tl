@@ -108,9 +108,19 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     @directory = @app.cache.parentDirectories[ @url.pathname ]
   } else {
     // TODO: Convert this to Object.keys().forEach
+    // The only thing that will complicate converting this is all of the @references.
     for directory in @app.configuration {
       if @app.configuration.hasOwnProperty( directory ) {
-        if ~@url.pathname.indexOf( directory ) && directory.length > @directory.length {
+        // Check if the directory matches the beginning of the requested URL, and
+        // that it is a full directory. The second line avoids some issues, i.e.
+        // if you have a configuration for /abc/ but the file requested is /abc.html
+        // The correct directory for that should be /, but before this fix would
+        // have been thought to be /abc/.
+        if ~@url.path.indexOf( directory )
+        && ( @url.path === directory
+          || @url.path.charAt( directory.length ) === "/"
+          || @url.path.charAt( directory.length - 1 ) === "/" )
+        && directory.length > @directory.length {
           @directory = @app.cache.parentDirectories[ @url.pathname ] = directory
         }
       }
@@ -122,11 +132,11 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // directory. If we didn't find a match then report a 501 (Not Implemented).
   if @directory {
     @configuration = @app.configuration[ @directory ]
-    @url.pathname = path.relative( @directory, @url.pathname )
+    @url.path = path.join( "/", path.relative( @directory, @url.path ) )
 
     // Announce that the app matched an incoming connection and check
     // if the app has any responders. If it does, run them and then
-    // hand the connection off the router, and then off to the engine.
+    // hand the connection off to the router, and then off to the printer.
     @app.emit( "match", @, @configuration, app )
     if @app.responders.length {
       @app.responsers.forEach( function responder {
@@ -136,8 +146,8 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
 
     @app.router( @, @app.printer )
   } else {
-    @app.error( "No configured directory for requested URL " + @url.pathname )
-    @error( 404, "Requested URL did matched an app but did not have a configuration." )
+    @app.error( "No configured directory for requested URL {{@url.pathname}}" )
+    @error( 404, "Requested URL did match an app but did not have a configuration." )
   }
 })
 
@@ -256,6 +266,8 @@ weave.Connection::writeHead = function status, headers {
 
 // XXX: Is the connection keep-alive or close?
 // TODO: Check before assuming Transfer-encoding: chunked
+// TODO: Check before writing the Date header as well. Or disallow anyone else
+// from writing it with a condition in ::writeHeader().
 weave.Connection::write = function content, encoding {
   var buf;
 
@@ -285,7 +297,9 @@ weave.Connection::write = function content, encoding {
 
 weave.Connection::end = function {
   // Write all the arguments, and then send "last chunk"
-  @write.apply( @, arguments )
+  if arguments.length > 0 { @write.apply( @, arguments ) }
+
+  // NOTE: What the hell is that 200 for?
   @isKeepAlive ?
     @_NODE_CONNECTION.write( z ) :
     200
