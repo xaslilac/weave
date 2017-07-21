@@ -137,7 +137,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   } else {
     if !@app.emit( "failed connection", @ ) {
       @app.error( "No configured directory for requested URL {{@url.pathname}}" )
-      @generateErrorPage( 501, "Requested URL did match an app but did not have a configuration. 501 Not Implemented" )
+      @generateErrorPage( new weave.HTTPError( 501, "No configuration set for requested URL" ) )
     }
   }
 })
@@ -306,6 +306,12 @@ weave.Connection::end = function {
   @state = 3
 }
 
-weave.Connection::generateErrorPage = function code, description {
-  // wtf do I do here
+weave.Connection::generateErrorPage = function error {
+  if weave.HTTPError.is( error ) {
+		@behavior("errorPages {{error.status}}")
+		@status( error.status )
+		@end("panic!!")
+	} else {
+		console.error( "Connection::generateErrorPage requires argument weave.HTTPError!" )
+	}
 }

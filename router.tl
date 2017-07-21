@@ -63,7 +63,7 @@ weave.Router = function {
     // at saving the connection before we destroy it.
     if connection.isUpgrade {
       connection.destroy()
-      return printer.call( connection, "501 not implemented / could not upgrade" )
+      return connection.generateErrorPage( new weave.HTTPError( 501, "Cannot fullfil upgrade request." ) )
     }
 
     // If the request type isn't GET, HEAD, or POST, then we don't know how to
@@ -72,7 +72,7 @@ weave.Router = function {
     // why they didn't ever recieve anything in return to the request.
     if connection.method !== "GET" && connection.method !== "HEAD" && connection.method !== "POST" {
       connection.destroy()
-      return printer.call( connection, "405 method not supported", undefined, connection  )
+      return connection.generateErrorPage( new weave.HTTPError( 504, "Only GET, HEAD, and POST methods are supported." ) )
     }
     // These both do the exact same thing, just different ways. Which is better?
     //["GET","HEAD","POST"].some( function method { return connection.method === method } )
@@ -148,11 +148,14 @@ weave.Router = function {
                       path: cursor, stats: stats, type: "directory"
                     }), connection )
                   } else {
-                    // If we found a directory, but there is not index file to handle
-                    // it and the depth of our search is not 0, it counts as not found.
-                    printer.call( connection, 404, Object.extend( details, {
-                      path: cursor, stats: stats, type: "directory"
-                    }), connection )
+                    if connection.behavior( "enableJSONIndexListings" )
+                    && connection.url.depth === 1 && connection.url.description === "directory.json" {
+                      printer.call( connection, undefined, Object.extend( details, {
+                        path: cursor, stats: stats, type: "directory"
+                      }), connection )
+                    } else {
+                      connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file.") )
+                    }
                   }
                 })
               }

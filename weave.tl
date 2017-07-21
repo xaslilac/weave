@@ -114,7 +114,7 @@ module.exports = exports = weave = {
     constructor:: = Object.create( inherit::, {
       constructor: {
         value: constructor,
-        enumerable: false, writable: true, configurable: true },
+        enumerable: false, writable: false, configurable: true },
       _super: {
         value: inherit,
         enumerable: false, writable: true, configurable: true } } )
@@ -123,6 +123,24 @@ module.exports = exports = weave = {
   },
 
   Dictionary: require( './utilities/MIME' ),
+
+  HTTPError: function code, description {
+    if !Number.is( code ) {
+      console.error( 'HTTPError requires argument code to be a number!' )
+    }
+
+    return Object.create( weave.HTTPError::, {
+      constructor: {
+        value: weave.HTTPError,
+        enumerable: false, writable: false, configurable: true },
+      status: {
+        value: code,
+        enumerable: true, writable: false, configurable: true },
+      description: {
+        value: description,
+        enumerable: true, writable: false, configurable: true }
+    })
+  },
 
   configuration: {
     //adminEmail: "foo@bar.com"
@@ -136,7 +154,7 @@ require( './printer' )
 
 process.argv.forEach( function arg {
   switch arg {
-    case "--weave-debug":
+    case "--aww-hell-yes":
       console.log( "aww hell yes" )
       break;
   }
