@@ -1,7 +1,7 @@
 # Weave
 
 [![Written in Teal](http://img.shields.io/badge/teal-v0.3.1-62eaaa.svg?style=flat)](https://github.com/partheseas/teal)
-![Weave Version 0.4.2](https://img.shields.io/badge/weave-v0.4.2-5050DD.svg?style=flat)
+![Weave Version 0.1.8](https://img.shields.io/badge/weave-v0.1.8-5050DD.svg?style=flat)
 ![Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
 
 ## Disclosure
@@ -30,22 +30,21 @@ SOFTWARE.
 
 ## Overview
 
-Weave is a combination of an HTTPD server, and an application server (think [Express](http://expressjs.com/)) made for Node.js.
+Weave is an HTTPD App Server made for Node.js. It takes a unique approach to resolving
+file locations and gives you great control over the behavior of the server.
 
-Weave is written in Teal, (essentially lazy JavaScript, everything translates directly) and translated into JavaScript.
-Since all translations are literal the generated code should be completely safe.
+Weave is written in Teal, compiled into JavaScript, and run in Node along side
+your own code to configure and control it.
 
 ## Installation
 
 So installing is really weird right now. Eventually we'll get on npm and make everything
-easier but for now this is the closest script I could figure out and it's buggy.
+easier but for now this script should work pretty well on UNIX systems.
 
-Basically..
-1. Download and install Teal  
-2. Download Weave  
-3. Compile Weave from Teal to JavaScript with take  
-4. Install the newly compiled Weave JavaScript with NPM as a global (command line)
-and as a regular module to include in your JavaScript.
+The basic idea is..
+1. Download Teal from GitHub and install it with NPM as global to access the CLI
+2. Download Weave and compile it to JavaScript using the `take` command
+3. Install Weave with NPM in your usual directory to include in your code.
 
 ```Shell
 sudo npm install -g https://github.com/partheseas/teal/tarball/master
@@ -61,31 +60,15 @@ rm .tmp -r
 
 You're good to go! Just use `require()` to load in the newly generated weave.js file.
 
-**I will be publishing weave in the NPM directory eventually. I want to get a fully functioning product ready first though.**
+**I will be publishing weave in the NPM directory eventually. I just want to get a fully functioning product ready first.**
 
 ## Features
+- Extensive and powerful customization
+- Unique and versatile path resolving
+- Easy access to server side scripting in any language
 
-- An easy to use, convenient and reliable CLI
-  - Can be controlled entirely from the command-line
-  - Update your server without ever taking your sites offline
-- Fast and accurate HTTP parsing
-- Reliable, super customizable HTTPD server
-- The convenience of a dedicated app server
-- Support for media uploads
-- Error messages with helpful tracing
-- Nothing should ever crash the entire process
-- Partial download support (resuming)
-- Low memory cost
-  - Split large files into chunks when handling to avoid large chunk holding.
-- Simplify the more confusing aspects of servers
-  - Databases (hopefully)
-  - Other gross stuff
-- Open and customizable API
-- Easily plug in your own code for complete control over the handling of requests.
-- Incredibly scalable
-- Client and server side caching support
-  - Includes CLI to clear server-side cache
-- Server side scripting support
-  - PHP, Ruby, Python, and other scripting languages
-  - Teal, CoffeeScript, and other JavaScript dialect support
-- Whatever else you can come up with!
+
+### Coming soon...
+- An easy to use and robust command line interface
+- A simple web interface to control remotely or locally monitor internal data
+- SPDY & HTTP 2.0 support eventually maybe

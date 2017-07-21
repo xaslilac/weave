@@ -45,17 +45,20 @@ q = function s { return s.split(",") }
 // TODO: All the things that are going to be new features in Weave that have
 // not yet found a spot for implementation or are still being discussed.
 
-// # Console logging - scheduled for v0.4
-// We need to add some sort of unified error reporting system.
+// # Error page generation - scheduled for v0.2
 
-// # Remote debugging / Admin panel - scheduled for v0.6
+// # Console/file logging - scheduled for v0.3
+// Build a robust error and warning backend system with the ability to log to files
+
+// # Remote debugging / Admin panel - scheduled for v0.4
 // Add the ability to have an online debug console/admin panel that you would
-// active with App.addInterface( "/net-internals", new weave.AdminPanel(App) )
+// activate with App.addInterface( "/net-internals", new weave.AdminPanel(App) )
 // or something similar. You'd be able to monitor an incoming request queue,
 // interface directly with the App collection from a secure, remote, REPL with
 // syntax highlighting, pretty printing, and more.
 
-// # Command Line Interface - scheduled for v0.8
+// # Command Line Interface - scheduled for v0.5
+// Could be helpful for things like clearing a cache or updating a setting.
 // The main reason this would be important, is it would provide a simple way
 // to actively maintain your server while it is running, without needing to
 // close a process, and open a new one. You could essentially "hot-swap" your
@@ -66,13 +69,26 @@ q = function s { return s.split(",") }
 // time. This is something that I've wanted to be able to do for a while, but
 // is incredibly hard to implement, and would need to be outlined in detail.
 
+// # Partial downloads, uploads, streaming - scheduled for v0.6
+// Enable the ability to stream a video file from a certain time stamp, to
+// resume a disrupted download at a later time, and to accept user uploads. Read
+// large files in chunks rather than entirely at once to avoid eating memory.
+
+// # Stability & fine tuned error/warning reporting - scheduled for v0.7
+// As we approach feature completeness and having a production ready product,
+// fine tune the stability of the Weave to ensure that one request being mishandled
+// or any third party code is never able to completely break the process. try, catch
+// pairs on any calls to external resources, argument checking on all built in methods,
+// and ensuring that any and all errors are incredibly tracable to make debugging
+// quick and painless.
+
 // # SPDY Protocol / GZip / HTTP 2.0 / HTTPS support - scheduled for v1.0
 // Add support for Google's SPDY protocol and for HTTP 2.0. HTTPS support is
 // hard for me to implement without access to any sort of secure certificate
 // of my own to work with, and is a requirement for SPDY.
 // So it seems that HTTPS support is simply creating an extra server, using
 // certificates supplied, and doing some extra stuff to hook up the server
-// to the app.
+// to the app. Not sure how supporting multiple certificates would work.
 
 
 
@@ -82,7 +98,7 @@ q = function s { return s.split(",") }
 module 'crypto';
 
 module.exports = exports = weave = {
-  version: "0.4.2",
+  version: "0.1.8",
 
   servers: {}, apps: {}, cache: { wildcardMatches: {} },
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
