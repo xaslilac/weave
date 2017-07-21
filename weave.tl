@@ -14,7 +14,7 @@ var weave;
 // of a message with Transfer-Encoding: chunked for Keep-Alive connections.
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
-Object.extend = function o,e {@keys(e).forEach(function p {o[p]=e[p]});return o}
+Object.extend = function o,e {o!=null&&e!=null&&@keys(e).forEach(function p {o[p]=e[p]});return o}
 Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 
 
@@ -44,6 +44,9 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 // not yet found a spot for implementation or are still being discussed.
 
 // # Error page generation - scheduled for v0.2
+// Add the ability to specify HTML documents for use as error pages. If one is
+// not specified or doesn't exist, then we should generate our own, and it should
+// actually look nice and be meaningful.
 
 // # Console/file logging - scheduled for v0.3
 // Build a robust error and warning backend system with the ability to log to files
@@ -93,7 +96,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 
 
 // Import all of the modules that we need before we do anything crazy.
-module 'crypto';
+module 'crypto', 'http';
 
 module.exports = exports = weave = {
   version: "0.1.8",
@@ -101,7 +104,8 @@ module.exports = exports = weave = {
   servers: {}, apps: {}, cache: { wildcardMatches: {} },
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
                Separator: process.env.OS === "Windows_NT" ? "\\" : "/",
-               HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/" },
+               HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/",
+               STATUS_CODES: http.STATUS_CODES },
                // Should the failsafe possibly be "/usr/"? The only downside is it might not exist.
 
   util: {
@@ -137,7 +141,7 @@ module.exports = exports = weave = {
         value: code,
         enumerable: true, writable: false, configurable: true },
       description: {
-        value: description,
+        value: description || weave.constants.STATUS_CODES[ code ],
         enumerable: true, writable: false, configurable: true }
     })
   },
@@ -157,5 +161,9 @@ process.argv.forEach( function arg {
     case "--aww-hell-yes":
       console.log( "aww hell yes" )
       break;
+    case "--enable-repl":
+      require( './repl' )
+      weave.EnableREPL( process.stdin, process.stdout )
+      break;
   }
-}, @ )
+})
