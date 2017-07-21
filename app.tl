@@ -7,7 +7,7 @@ var Wildcard;
 
 
 
-module "events", "http";
+module 'events', 'http', 'path';
 Wildcard = require( "./utilities/Wildcard" )
 
 // The App class contains configuration data and handles delegation,
@@ -30,7 +30,7 @@ weave.App = weave.Class( events.EventEmitter, function appName {
   process.argv.forEach( function arg {
     switch arg {
       case "--weave-debug":
-        @configuration.debug = true
+        @debug = true
         break;
     }
   }, @ )
@@ -134,6 +134,10 @@ weave.App::addDirectory = function directory, inherit, configuration {
   // Clear the cache so that the configuration can be modified and
   // not conflict with previously caches requests.
   @cache.parentDirectories = {}
+
+  if !path.isAbsolute( directory ) {
+    return @error( "Directories must be absolute!" )
+  }
 
   // If we only have two arguments then inherit is actually going to be the
   // configuration. If we have three arguments, then we set the inheritance.
