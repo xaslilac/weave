@@ -305,6 +305,6 @@ weave.Connection::end = function {
   @state = 3
 }
 
-weave.Connection::error = function code, description {
+weave.Connection::generateErrorPage = function code, description {
   // wtf do I do here
 }
