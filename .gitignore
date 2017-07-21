@@ -4,6 +4,7 @@ app.js
 connection.js
 router.js
 printer.js
+utilities/DOM.js
 
 node_modules
 npm-debug.log
