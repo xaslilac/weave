@@ -39,7 +39,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // Save these here, mainly for internal use with the classes methods.
   // Ideally these wouldn't be used outside of Weave. All interactions
   // with them should be through using methods of the Connection class.
-  @_NODE_REQUEST = i
+  @_NODE_REQUEST = i, @_NODE_RESPONSE = o,
   @_NODE_CONNECTION = i.connection
 
   // Give each connection a UUID for a little bit of tracing.
@@ -51,16 +51,17 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
           weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16)   // be split into two calls
                                                                    // because it has more digits
   // Initialize @directory for the initial length comparisons.     // than Math.random() generates
-  // Make sure the host header is valid, and strip the port
-  // and reapply it, so that it will always be included, even if the client
-  // didn't include the port in the hostname when they initialized the
-  // request. We also fill out @url with as much information as possible.
   @directory = ""
+  // Normalize the url to prevent anyone being sneaky with, say, some "../../"
+  // tomfoolery to get low level file system access.
 	@url = url.parse( path.normalize( i.url ) )
+  // File out the url object with all the missing standard properties.
   @url.protocol = "http:"
   @url.slashes = "//"
+  // hostname should never have the port, but the host header sometimes will.
 	@url.hostname = i.headers.host.match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1]
   @url.port = i.connection.localPort
+  // host should always have the port, so apply it
   @url.host = @url.hostname + ":" + @url.port
 
   // Leave this here just because we use to use it before we had a full @url
@@ -104,9 +105,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   if @app.cache.parentDirectories[ @url.pathname ] {
     @directory = @app.cache.parentDirectories[ @url.pathname ]
   } else {
-    // TODO: Convert this to Object.keys().forEach
-    // The only thing that will complicate converting this is all of the @references.
-    for directory in @app.configuration {
+    Object.keys( @app.configuration ).forEach( function directory {
       if @app.configuration.hasOwnProperty( directory ) {
         // Check if the directory matches the beginning of the requested URL, and
         // that it is a full directory. The second line avoids some issues, i.e.
@@ -121,7 +120,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
           @directory = @app.cache.parentDirectories[ @url.pathname ] = directory
         }
       }
-    }
+    }, @)
   }
 
   // If we found a matching directory, then we save which configuration
@@ -136,8 +135,10 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     @app.emit( "connection", @ )
     @app.router( @, @app.printer )
   } else {
-    @app.error( "No configured directory for requested URL {{@url.pathname}}" )
-    @error( 404, "Requested URL did match an app but did not have a configuration." )
+    if !@app.emit( "failed connection", @ ) {
+      @app.error( "No configured directory for requested URL {{@url.pathname}}" )
+      @generateErrorPage( 501, "Requested URL did match an app but did not have a configuration. 501 Not Implemented" )
+    }
   }
 })
 
