@@ -27,30 +27,32 @@ weave.Printer = function {
           })
         }
       } else if details.isDirectory() && !connection.behavior( "disableIndexListings" ) {
-        fs.readdir( details.path, function error, files {
-          connection.status( error ? 500 : 200 )
-          connection.writeHeader( "Content-Type", "text/html" )
-          files.forEach( function file {
-            var href = path.join( "/", connection.url.path, file )
-            connection.write("<li><a href='{{href}}'>{{file}}</a></li>")
+        if connection.url.description === "directory.json" {
+          fs.readdir( details.path, function error, files {
+            connection.status( error ? 500 : 200 )
+            connection.writeHeader( "Content-Type", "application/json" )
+            connection.end(JSON.stringify(files))
           })
-          connection.end()
-        })
+        } else {
+          fs.readdir( details.path, function error, files {
+            connection.status( error ? 500 : 200 )
+            connection.writeHeader( "Content-Type", "text/html" )
+            files.forEach( function file {
+              var href = path.join( "/", connection.url.path, file )
+              connection.write("<li><a href='{{href}}'>{{file}}</a></li>")
+            })
+            connection.end()
+          })
+        }
       } else {
         @end( "{{@host}} {{details.path}}\n\n\n{{@UUID}}\nDetails {{util.inspect(details)}}\n\nConfiguration {{util.inspect(@configuration)}}" )
       }
+    } else if weave.HTTPError.is( error ) {
+      connection.status( error.status ).end( "oh fuck" )
     } else {
-      if error === 404 && details.isDirectory()
-      && connection.url.depth === 1 && connection.url.description === "directory.json"
-      && connection.behavior( "enableJSONIndexListings" ) {
-        fs.readdir( details.path, function error, files {
-          connection.status( error ? 500 : 200 )
-          connection.writeHeader( "Content-Type", "application/json" )
-          connection.end(JSON.stringify(files))
-        })
-      } else {
-        connection.status( 500 ).end( "oh fuck" )
-      }
+      // XXX: Do something more productive here later, placeholder code
+      console.log( 'Invalid error! Please use weave.HTTPError to report errors.' )
+      connection.destroy()
     }
   }
 }
