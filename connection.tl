@@ -294,13 +294,13 @@ weave.Connection::write = function content, encoding {
 }
 
 weave.Connection::end = function {
-  // Write all the arguments, and then send "last chunk"
+  // Write any data given, and then send the "last chunk"
   if arguments.length > 0 { @write.apply( @, arguments ) }
 
-  // NOTE: What the hell is that 200 for?
+  // Keep the connection alive or kill it
   @isKeepAlive ?
     @_NODE_CONNECTION.write( z ) :
-    200
+    @_NODE_CONNECTION.destroy()
 
   @state = 3
 }
