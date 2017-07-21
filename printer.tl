@@ -10,13 +10,22 @@ module 'fs', 'path', 'util';
 
 weave.Printer = function {
   return function error, details, connection {
+    var cacheDate;
     if !error {
       if details.isFile() {
-        fs.readFile( details.path, function error, contents {
-          connection.writeHeader( "Content-Type",
-            connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
-          connection.end( contents )
-        })
+        cacheDate = connection.get( "if-modified-since" )
+        // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
+        // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
+        if cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( details.stats.mtime.getTime() / 1000 ) {
+          connection.status( 304 ).end()
+        } else {
+          fs.readFile( details.path, function error, contents {
+            connection.writeHeader( "Content-Type",
+              connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
+              .writeHeader( "Last-Modified", details.stats.mtime.toUTCString() )
+              .end( contents )
+          })
+        }
       } else if details.isDirectory() && !connection.behavior( "disableIndexListings" ) {
         fs.readdir( details.path, function error, files {
           connection.status( error ? 500 : 200 )
