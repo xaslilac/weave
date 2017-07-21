@@ -172,34 +172,38 @@ weave.Connection::get =
 weave.Connection::getHeader = function name, asString {
   // Make sure the header name is lowercase, so that it
   // can be case insensitive.
-  var header;
-  name = name.toLowerCase()
+  var header = @_NODE_REQUEST.headers[ name ],
+	data; name = name.toLowerCase();
 
   // If asString is true then the header must be returned as a
   // plain string. If it's not, then we can do some processing
   // to make it more useful than a string.
   if !asString {
     switch name {
-      // TODO: When this gets implemented in Teal 0.4,
+      // TODO: When case gets implemented in Teal 0.4,
       // make sure this gets updated.
       // case "if-modified-since" {
       // }
       case "if-modified-since":
-        header = @_NODE_REQUEST.headers[ name ]
-        if header {
-          return new Date( header )
-        }
+        if header { return new Date( header ) }
         break;
-      case "cookies":
+      case "cookie":
         // I think this is how we parse cookies but I suck at them???
-        return querystring.parse( @_NODE_REQUEST.headers.cookie, "; " )
+				if String.is( header ) {
+					data = {}
+					header.split(";").forEach( function cookie {
+						cookie = cookie.trim().split( '=' )
+						data[cookie.shift()] = cookie.join( '=' ) || true
+					})
+					return data
+				}
         break;
     }
   }
 
   // If something else hasn't already been returned, or if asString
   // is true then just return the header as a normal string.
-  return @_NODE_REQUEST.headers[ name ]
+  return header
 };
 
 // Create destroy, pause, and resume reference methods.
@@ -330,7 +334,6 @@ weave.Connection::generateErrorPage = function error {
 			if exists {
 				fs.stat( errorPagePath, function serror, stats {
 					if !serror && stats.isFile() {
-						console.log( "found it" )
 						print({ path: errorPagePath, stats: stats, type: "file" })
 					}
 				})
