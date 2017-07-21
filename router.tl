@@ -36,8 +36,10 @@ weave.Router = function {
         value: connection.url,
         enumerable: true, writable: true, configurable: true } } )
 
-    // Make the printer easier to call.
-    printer = @app.printer
+    // Make the printer easier to call in different contexts.
+    printer = function {
+      return connection.app.printer.apply( connection.app, arguments )
+    }
 
     // If the configuration is a Function, then the request should be handle as
     // an interface type. Call the interface configuration.

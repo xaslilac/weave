@@ -49,8 +49,7 @@ weave.Printer = function {
           connection.end(JSON.stringify(files))
         })
       } else {
-        connection.status( 500 )
-        @end( "oh fuck" )
+        connection.status( 500 ).end( "oh fuck" )
       }
     }
   }
