@@ -15,12 +15,8 @@ Wildcard = require( "./utilities/Wildcard" )
 weave.App = weave.Class( events.EventEmitter, function appName {
   // Create the initial configuration storage object and use
   // resetCache() to create the initial empty cache.
-  // XXX: We are currently using this for storing directory configurations.
-  // These objects need to be seperated to avoid conflict.
-  @configuration = {
-    appName: appName,
-    //adminEmail: "foo@bar.com"
-  }
+  @appName = appName,
+  @configuration = {}
   @cache = {
     parentDirectories: {},
     resolvedPaths: {}
@@ -35,6 +31,7 @@ weave.App = weave.Class( events.EventEmitter, function appName {
     switch arg {
       case "--weave-debug":
         @configuration.debug = true
+        console.log( "aww hell yes" )
         break;
     }
   }, @ )
@@ -119,9 +116,9 @@ weave.App::linkHost = function {
       // http://nodejs.org/api/dgram.html
       if !weave.servers[ port ] {
         weave.servers[ port ] = server = http.createServer()
-        server.listen( port, "::" )
-
-        q("request,upgrade").forEach( function event {
+        server.listen( port, '::' );
+        
+        ['request', 'upgrade'].forEach( function event {
           server.on( event, function i, o {
             new weave.Connection( i, o )
           })

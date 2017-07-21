@@ -133,7 +133,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     // Emit the connection event to so that the connection can be handed to
     // the router and any other user code.
     @app.emit( "connection", @ )
-    @app.router( @, @app.printer )
+    @app.router( @ )
   } else {
     if !@app.emit( "failed connection", @ ) {
       @app.error( "No configured directory for requested URL {{@url.pathname}}" )
@@ -203,10 +203,10 @@ weave.Connection::getHeader = function name, asString {
   // If something else hasn't already been returned, or if asString
   // is true then just return the header as a normal string.
   return @_NODE_REQUEST.headers[ name ]
-}
+};
 
 // Create destroy, pause, and resume reference methods.
-q("destroy,pause,resume").forEach( function name {
+['destroy', 'pause', 'resume'].forEach( function name {
   weave.Connection::[name] = function {
     @_NODE_CONNECTION[name]()
   }
