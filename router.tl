@@ -1,8 +1,8 @@
 // MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
-// n is a CRLF buffer, z is an end packet buffer, u is undefined.
-var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n'), u;
+// n is a CRLF buffer, z is an end packet buffer.
+var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
 
 
 
