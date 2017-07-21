@@ -26,21 +26,23 @@ weave.constants.DETAILS = {
 
 
 weave.Router = function {
-  return function connection, callback {
-    var cursor, details, indexes, search, reroute;
+  return function connection {
+    var cursor, details, printer, search, reroute;
 
-    // We give the callback (usually an instance of weave.Printer) this details
-    // object as the second argument to let it know what we have found about
-    // about the request so far.
+    // We give the printer this details object to let it know what we
+    // have found about about the request so far.
     details = Object.create( weave.constants.DETAILS, {
       url: {
         value: connection.url,
         enumerable: true, writable: true, configurable: true } } )
 
+    // Make the printer easier to call.
+    printer = @app.printer
+
     // If the configuration is a Function, then the request should be handle as
     // an interface type. Call the interface configuration.
     if Function.is( connection.configuration ) {
-      /*return callback.call( connection, undefined, Object.extend( details, {
+      /*return printer.call( connection, undefined, Object.extend( details, {
         type: "interface", result: connection.configuration( connection )
       }), connection )*/
       // TODO: This is messy right now. Nothing is being passed the results of the interface.
@@ -59,7 +61,7 @@ weave.Router = function {
     // at saving the connection before we destroy it.
     if connection.isUpgrade {
       connection.destroy()
-      return callback.call( connection, "501 not implemented / could not upgrade" )
+      return printer.call( connection, "501 not implemented / could not upgrade" )
     }
 
     // If the request type isn't GET, HEAD, or POST, then we don't know how to
@@ -68,7 +70,7 @@ weave.Router = function {
     // why they didn't ever recieve anything in return to the request.
     if connection.method !== "GET" && connection.method !== "HEAD" && connection.method !== "POST" {
       connection.destroy()
-      return callback.call( connection, "405 method not supported", undefined, connection  )
+      return printer.call( connection, "405 method not supported", undefined, connection  )
     }
     // These both do the exact same thing, just different ways. Which is better?
     //["GET","HEAD","POST"].some( function method { return connection.method === method } )
@@ -91,7 +93,7 @@ weave.Router = function {
         connection.url.depth++, search()
       } else {
         // TODO: Come up with a better way to handle errors.
-        callback.call( connection, 404, Object.extend( details, {
+        printer.call( connection, 404, Object.extend( details, {
           path: connection.url.pathname, stats: undefined, type: "file"
         }), connection )
       }
@@ -99,12 +101,13 @@ weave.Router = function {
 
     // Define our search function
     search = function {
+      var indexes;
       // Check to see if it exists, and if it's a file or a directory.
       // If it doesn't exist, then step up a directory and try again.
       fs.exists( cursor, function exists {
         if exists {
           fs.stat( cursor, function error, stats {
-            // If it's a file, then we're done, and we just call the callback.
+            // If it's a file, then we're done, and we just call the printer.
             // If it's a directory, then check for an index, making sure that
             // is has a fitting depth, that it exists, and is a file. We use a
             // customized Array::some function that you can use with asynchronous
@@ -112,7 +115,7 @@ weave.Router = function {
             // callback is run when .next() is called but there is not another
             // item to process, so it will only be called if there isn't a match.
             if stats.isFile() {
-              callback.call( connection, undefined, Object.extend( details, {
+              printer.call( connection, undefined, Object.extend( details, {
                 path: cursor, stats: stats, type: "file"
               }), connection )
             } else if stats.isDirectory() {
@@ -129,7 +132,7 @@ weave.Router = function {
                       if exists {
                         fs.stat( index, function error, stats {
                           if stats.isFile() {
-                            callback.call( connection, undefined, Object.extend( details, {
+                            printer.call( connection, undefined, Object.extend( details, {
                               path: index, stats: stats, type: "file"
                             }), connection )
                           } else some.next()
@@ -139,13 +142,13 @@ weave.Router = function {
                   } else some.next()
                 }, function {
                   if connection.url.depth === 0 {
-                    callback.call( connection, undefined, Object.extend( details, {
+                    printer.call( connection, undefined, Object.extend( details, {
                       path: cursor, stats: stats, type: "directory"
                     }), connection )
                   } else {
                     // If we found a directory, but there is not index file to handle
                     // it and the depth of our search is not 0, it counts as not found.
-                    callback.call( connection, 404, Object.extend( details, {
+                    printer.call( connection, 404, Object.extend( details, {
                       path: cursor, stats: stats, type: "directory"
                     }), connection )
                   }
@@ -165,7 +168,7 @@ weave.Router = function {
                 if exists {
                   fs.stat( cursor + extension, function error, stats {
                     if stats.isFile() {
-                      callback.call( connection, undefined, Object.extend( details, {
+                      printer.call( connection, undefined, Object.extend( details, {
                         path: cursor + extension, stats: stats, type: "file"
                       }), connection )
                     } else some.next()
