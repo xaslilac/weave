@@ -158,8 +158,8 @@ require( './printer' )
 
 process.argv.forEach( function arg {
   switch arg {
-    case "--aww-hell-yes":
-      console.log( "aww hell yes" )
+    case "--aww-heck-yes":
+      console.log( "aww heck yes" )
       break;
     case "--enable-repl":
       require( './repl' )
