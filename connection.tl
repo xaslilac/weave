@@ -131,16 +131,9 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     @configuration = @app.configuration[ @directory ]
     @url.path = path.join( "/", path.relative( @directory, @url.path ) )
 
-    // Announce that the app matched an incoming connection and check
-    // if the app has any responders. If it does, run them and then
-    // hand the connection off to the router, and then off to the printer.
-    @app.emit( "match", @, @configuration, app )
-    if @app.responders.length {
-      @app.responsers.forEach( function responder {
-        responder.call( @app, @ )
-      })
-    }
-
+    // Emit the connection event to so that the connection can be handed to
+    // the router and any other user code.
+    @app.emit( "connection", @ )
     @app.router( @, @app.printer )
   } else {
     @app.error( "No configured directory for requested URL {{@url.pathname}}" )

@@ -39,9 +39,6 @@ weave.App = weave.Class( events.EventEmitter, function appName {
     }
   }, @ )
 
-  // An array of functions that are run prior to the router.
-  @responders = []
-
   // The router processes the request, decides what should be done with it,
   // and then passes those details on to the printer for it to generate the
   // actual response.
