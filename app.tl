@@ -31,7 +31,6 @@ weave.App = weave.Class( events.EventEmitter, function appName {
     switch arg {
       case "--weave-debug":
         @configuration.debug = true
-        console.log( "aww hell yes" )
         break;
     }
   }, @ )
@@ -117,7 +116,7 @@ weave.App::linkHost = function {
       if !weave.servers[ port ] {
         weave.servers[ port ] = server = http.createServer()
         server.listen( port, '::' );
-        
+
         ['request', 'upgrade'].forEach( function event {
           server.on( event, function i, o {
             new weave.Connection( i, o )
