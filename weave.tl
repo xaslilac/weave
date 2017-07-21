@@ -3,21 +3,19 @@
    Copyright Tyler Washburn 2015
    Weave - Make webs */
 
-// Strict mode is actually great for use in debugging, and catching
-// problems in code that wouldn't usually be found. You should try it.
+// Strict mode is cool
 "use strict";
 
+var weave;
 // Some basic utilities, like an asynchronous implemenation of Array::some,
 // basic type detection (Constructor.is(possibleInstance)), an object extender,
 // and a way to quickly write Arrays of strings. u is just short for undefined.
 // n is short for a carriage return line feed buffer, and z is the last chunk
 // of a message with Transfer-Encoding: chunked for Keep-Alive connections.
-var weave, q;
-
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
+Object.extend = function o,e {@keys(e).forEach(function p {o[p]=e[p]});return o}
 Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
-q = function s { return s.split(",") }
 
 
 
@@ -124,17 +122,22 @@ module.exports = exports = weave = {
     return constructor
   },
 
-  _pieces: function l {
-    q(l).forEach(function (m) {
-      require( "./{{m}}" )
-    })
-  },
-
-  Dictionary: require( "./utilities/MIME" ),
+  Dictionary: require( './utilities/MIME' ),
 
   configuration: {
     //adminEmail: "foo@bar.com"
   }
 }
 
-weave._pieces( "app,connection,router,printer" )
+require( './app' )
+require( './connection' )
+require( './router' )
+require( './printer' )
+
+process.argv.forEach( function arg {
+  switch arg {
+    case "--weave-debug":
+      console.log( "aww hell yes" )
+      break;
+  }
+}, @ )
