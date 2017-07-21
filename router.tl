@@ -31,12 +31,13 @@ weave.Router = function {
 
     // We give the printer this details object to let it know what we
     // have found about about the request so far.
-    details = Object.create( weave.constants.DETAILS, {
-      url: {
-        value: connection.url,
-        enumerable: true, writable: true, configurable: true } } )
+  	details = Object.create( weave.constants.DETAILS, {
+  		url: {
+  			value: @url,
+  			enumerable: true, writable: true, configurable: true } } )
 
     // Make the printer easier to call in different contexts.
+    // XXX: Should this be more automatic like the version in generateErrorPage?
     printer = function {
       return connection.app.printer.apply( connection.app, arguments )
     }
@@ -63,7 +64,7 @@ weave.Router = function {
     // at saving the connection before we destroy it.
     if connection.isUpgrade {
       connection.destroy()
-      return connection.generateErrorPage( new weave.HTTPError( 501, "Cannot fullfil upgrade request." ) )
+      return connection.generateErrorPage( new weave.HTTPError( 501, "Cannot Upgrade" ) )
     }
 
     // If the request type isn't GET, HEAD, or POST, then we don't know how to
@@ -72,7 +73,7 @@ weave.Router = function {
     // why they didn't ever recieve anything in return to the request.
     if connection.method !== "GET" && connection.method !== "HEAD" && connection.method !== "POST" {
       connection.destroy()
-      return connection.generateErrorPage( new weave.HTTPError( 504, "Only GET, HEAD, and POST methods are supported." ) )
+      return connection.generateErrorPage( new weave.HTTPError( 405, "Only GET, HEAD, and POST methods are supported." ) )
     }
     // These both do the exact same thing, just different ways. Which is better?
     //["GET","HEAD","POST"].some( function method { return connection.method === method } )
@@ -95,9 +96,7 @@ weave.Router = function {
         connection.url.depth++, search()
       } else {
         // TODO: Come up with a better way to handle errors.
-        printer.call( connection, 404, Object.extend( details, {
-          path: connection.url.pathname, stats: undefined, type: "file"
-        }), connection )
+        connection.generateErrorPage( new weave.HTTPError( 404 ) )
       }
     }
 
@@ -117,7 +116,7 @@ weave.Router = function {
             // callback is run when .next() is called but there is not another
             // item to process, so it will only be called if there isn't a match.
             if stats.isFile() {
-              printer.call( connection, undefined, Object.extend( details, {
+              printer( undefined, Object.extend( details, {
                 path: cursor, stats: stats, type: "file"
               }), connection )
             } else if stats.isDirectory() {
@@ -134,7 +133,7 @@ weave.Router = function {
                       if exists {
                         fs.stat( index, function error, stats {
                           if stats.isFile() {
-                            printer.call( connection, undefined, Object.extend( details, {
+                            printer( undefined, Object.extend( details, {
                               path: index, stats: stats, type: "file"
                             }), connection )
                           } else some.next()
@@ -144,13 +143,13 @@ weave.Router = function {
                   } else some.next()
                 }, function {
                   if connection.url.depth === 0 {
-                    printer.call( connection, undefined, Object.extend( details, {
+                    printer( undefined, Object.extend( details, {
                       path: cursor, stats: stats, type: "directory"
                     }), connection )
                   } else {
                     if connection.behavior( "enableJSONIndexListings" )
                     && connection.url.depth === 1 && connection.url.description === "directory.json" {
-                      printer.call( connection, undefined, Object.extend( details, {
+                      printer( undefined, Object.extend( details, {
                         path: cursor, stats: stats, type: "directory"
                       }), connection )
                     } else {
@@ -173,7 +172,7 @@ weave.Router = function {
                 if exists {
                   fs.stat( cursor + extension, function error, stats {
                     if stats.isFile() {
-                      printer.call( connection, undefined, Object.extend( details, {
+                      printer( undefined, Object.extend( details, {
                         path: cursor + extension, stats: stats, type: "file"
                       }), connection )
                     } else some.next()

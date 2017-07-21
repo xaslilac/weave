@@ -7,7 +7,7 @@ var Wildcard;
 
 
 
-module "events", "http", "path", "util", "url";
+module 'events', 'fs', 'http', 'path', 'util', 'url';
 Wildcard = require( "./utilities/Wildcard" )
 
 // The Connection class is responsible for determining which App is
@@ -32,8 +32,8 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     // XXX: @error isn't complete yet, but it will probably depend
     // on having an app the handle the error. We might just need
     // to immediately end the connection if there is no Host Header.
-    @error( 400, "The request is missing the Host header used to " +
-                 "find the website the client is attempting to view." )
+    @generateErrorPage( new weave.HTTPError( 400, "The request is missing the" +
+		  "Host header, and I am unable to determine how to direct this request." ) )
   }
 
   // Save these here, mainly for internal use with the classes methods.
@@ -59,14 +59,11 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   @url.protocol = "http:"
   @url.slashes = "//"
   // hostname should never have the port, but the host header sometimes will.
-	@url.hostname = i.headers.host.match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1]
+	@url.hostname = @get( 'host' ).match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1]
   @url.port = i.connection.localPort
   // host should always have the port, so apply it
-  @url.host = @url.hostname + ":" + @url.port
-
-  // Leave this here just because we use to use it before we had a full @url
-  // object, and it's kind of convenient/I'm too lazy to update the references.
-  @host = @url.host
+	// Also make a shortcut to be lazy with
+  @host = @url.host = @url.hostname + ":" + @url.port
 
   // Check for a direct host match, or a cached wildcard match.
   // If there isn't one, check against wildcards, filtering out hosts
@@ -307,10 +304,38 @@ weave.Connection::end = function {
 }
 
 weave.Connection::generateErrorPage = function error {
+	// Create a details object for us to pass to printer.
+	var errorPagePath, cursor, connection = @,
+	details = Object.create( weave.constants.DETAILS, {
+		url: {
+			value: @url,
+			enumerable: true, writable: true, configurable: true } } );
+
+	// Make the printer easier to call in different contexts.
+	print = function more {
+		return connection.app.printer( error, Object.extend( details, more ), connection )
+	}
+
+	// cursor points to where ever we're searching for files.
+	// If the app location begins with ~, replace it with the users home directory.
+	// weave.constants.HOME normalizes the API for Node across different platforms.
+	cursor = path.join( connection.behavior( "location" ).replace( /^~/, weave.constants.HOME ) )
+
+	// NOTE: Router and this share a lot of boilerplate code. We should do something
+	// to merge them together maybe?
+
   if weave.HTTPError.is( error ) {
-		@behavior("errorPages {{error.status}}")
-		@status( error.status )
-		@end("panic!!")
+		errorPagePath = path.join( cursor, @behavior( 'errorPages {{error.status}}' ) )
+		fs.exists( errorPagePath, function exists {
+			if exists {
+				fs.stat( errorPagePath, function serror, stats {
+					if !serror && stats.isFile() {
+						console.log( "found it" )
+						print({ path: errorPagePath, stats: stats, type: "file" })
+					}
+				})
+			} else print()
+		})
 	} else {
 		console.error( "Connection::generateErrorPage requires argument weave.HTTPError!" )
 	}

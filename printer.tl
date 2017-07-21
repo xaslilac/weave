@@ -11,7 +11,7 @@ module 'fs', 'path', 'util';
 weave.Printer = function {
   return function error, details, connection {
     var cacheDate;
-    if !error {
+    if details.path {
       if details.isFile() {
         cacheDate = connection.get( "if-modified-since" )
         // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
@@ -20,6 +20,8 @@ weave.Printer = function {
           connection.status( 304 ).end()
         } else {
           fs.readFile( details.path, function error, contents {
+            // We may be printing an error page from generateErrorPage
+            connection.status( weave.HTTPError.is( error ) ? error.status : 200 )
             connection.writeHeader( "Content-Type",
               connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
               .writeHeader( "Last-Modified", details.stats.mtime.toUTCString() )
@@ -48,9 +50,11 @@ weave.Printer = function {
         @end( "{{@host}} {{details.path}}\n\n\n{{@UUID}}\nDetails {{util.inspect(details)}}\n\nConfiguration {{util.inspect(@configuration)}}" )
       }
     } else if weave.HTTPError.is( error ) {
-      connection.status( error.status ).end( "oh fuck" )
+      // Generate an error page programatically.
+      connection.status( error.status ).end( "oh heck its a {{error.status}}" )
     } else {
       // XXX: Do something more productive here later, placeholder code
+      // Probably either a 404 or 500 error
       console.log( 'Invalid error! Please use weave.HTTPError to report errors.' )
       connection.destroy()
     }
