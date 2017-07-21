@@ -187,8 +187,6 @@ weave.Connection::getHeader = function name, asString {
       // case "if-modified-since" {
       // }
       case "if-modified-since":
-        // FIXME: If the header is undefined it will just
-        // return whatever the date is right now.
         header = @_NODE_REQUEST.headers[ name ]
         if header {
           return new Date( header )
