@@ -43,15 +43,25 @@ weave.Printer = function {
             connection.writeHeader( "Content-Type", "text/html" )
 
             document = new DOM.HTMLDocument( 'html', 'Contents of {{connection.url.path}}' )
-            files.forEach( function file {
-              var href = path.join( "/", connection.url.path, file ),
-              li = new DOM.Element( 'li' ),
-              a = new DOM.Element( 'a' );
+            files.someAsync( function file, i, some {
+              var href, li = new DOM.Element( 'li' ), a = new DOM.Element( 'a' );
 
-              a.setAttribute( 'href', href ), a.innerHTML = './{{file}}'
-              document.body.appendChild( li ).appendChild( a )
-            })
-            connection.end( document.toString() )
+              fs.stat( path.join( details.path, file ), function error, stats {
+                if stats.isDirectory() {
+                  file += "/"
+                  li.className = 'directory'
+                  a.setAttribute( 'style', 'color: green;' )
+                }
+
+                href = path.join( "/", connection.url.pathname, file )
+                a.setAttribute( 'href', href ), a.innerHTML = './{{file}}'
+                document.body.appendChild( li ).appendChild( a )
+                some.next()
+              } )
+
+
+            }, function { connection.end( document.toString() ) })
+
           })
         }
       } else {

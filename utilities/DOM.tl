@@ -50,6 +50,15 @@ module.exports = exports = DOM = {
         set: function value {
           e.children = [ new DOM.TextNode( value ) ]
         }
+      },
+
+      className: {
+        get: function {
+          return e.attributes[ 'class' ]
+        },
+        set: function value {
+          return e.attributes[ 'class' ] = value
+        }
       }
     } )
 
