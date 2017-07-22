@@ -66,6 +66,7 @@ You're good to go! Just use `require()` to load in the newly generated weave.js 
 - Extensive and powerful customization
 - Unique and versatile path resolving
 - Easy access to server side scripting in any language
+- Quick and easy to setup WebSocket implementation
 
 
 ### Coming soon...

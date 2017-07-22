@@ -36,10 +36,6 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
 		  "Host header, and I am unable to determine how to direct this request." ) )
   }
 
-	i.on( 'data', function data {
-		connection.emit( 'data', data )
-	})
-
   // Save these here, mainly for internal use with the classes methods.
   // Ideally these wouldn't be used outside of Weave. All interactions
   // with them should be through using methods of the Connection class.
@@ -128,6 +124,8 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // is handling the connection, and shorten the URL relative to the
   // directory. If we didn't find a match then report a 501 (Not Implemented).
   if @directory {
+		@_NODE_CONNECTION.on( 'data', function data { connection.emit( 'data', data ) })
+
     @configuration = @app.configuration[ @directory ]
     @url.path = path.join( "/", path.relative( @directory, @url.path ) )
 
@@ -241,7 +239,7 @@ weave.Connection::writeHeader = function header, value {
   return @
 }
 
-weave.Connection::writeLastHeader = function header, value {
+weave.Connection::endHead = function header, value {
   // If there's an actual header to right, then right it.
   // Then end the header and start righting the body.
   if header {
@@ -260,6 +258,7 @@ weave.Connection::writeHead = function status, headers {
     Object.keys( headers ).forEach( function key {
       connection.writeHeader( key, headers[ key ] )
     })
+
   } else {
     @app.error( "writeHead: invalid header", status, headers )
   }
@@ -277,8 +276,10 @@ weave.Connection::write = function content, encoding {
   if @state < 3 {
     if @state < 2 {
       // Write required headers and shit
-      @isKeepAlive && @writeHeader( "Transfer-Encoding", "chunked" )
-      @writeLastHeader( "Date", @date.toUTCString() )
+      @isKeepAlive ?
+				@writeHeader( "Transfer-Encoding", "chunked" ) :
+				@writeHeader( "Content-Length", content.length )
+      @endHead( "Date", @date.toUTCString() )
 
       @state = 2
     }
@@ -290,9 +291,9 @@ weave.Connection::write = function content, encoding {
 
       @_NODE_CONNECTION.write( buf )
     } else {
-      // TODO: Something more informative/productive.
-      console.log( "NOOOO" )
+			// XXX: I don't know if this is 100%, but I think it is.
       @_NODE_CONNECTION.write( content, encoding )
+			@_NODE_CONNECTION.end()
     }
   }
 
@@ -306,14 +307,14 @@ weave.Connection::end = function {
   // Keep the connection alive or kill it
   @isKeepAlive ?
     @_NODE_CONNECTION.write( z ) :
-    @_NODE_CONNECTION.destroy()
+    @_NODE_CONNECTION.end()
 
   @state = 3
 }
 
 weave.Connection::generateErrorPage = function error {
 	// Create a details object for us to pass to printer.
-	var errorPagePath, cursor, connection = @,
+	var errorPageName, errorPagePath, cursor, connection = @,
 	details = Object.create( weave.constants.DETAILS, {
 		url: {
 			value: @url,
@@ -335,16 +336,19 @@ weave.Connection::generateErrorPage = function error {
 	// to merge them together maybe?
 
   if weave.HTTPError.is( error ) {
-		errorPagePath = path.join( cursor, @behavior( 'errorPages {{error.status}}' ) )
-		fs.exists( errorPagePath, function exists {
-			if exists {
-				fs.stat( errorPagePath, function serror, stats {
-					if !serror && stats.isFile() {
-						print({ path: errorPagePath, stats: stats, type: "file" })
-					}
-				})
-			} else return print()
-		})
+		errorPageName = @behavior( 'errorPages {{error.status}}' )
+		if errorPageName {
+			errorPagePath = path.join( cursor, @behavior( 'errorPages {{error.status}}' ) )
+			fs.exists( errorPagePath, function exists {
+				if exists {
+					fs.stat( errorPagePath, function serror, stats {
+						if !serror && stats.isFile() {
+							print({ path: errorPagePath, stats: stats, type: "file" })
+						}
+					})
+				} else return print()
+			})
+		} else return print()
 	} else {
 		console.error( "Connection::generateErrorPage requires argument weave.HTTPError!" )
 	}

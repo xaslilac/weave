@@ -169,28 +169,3 @@ weave.App::addInterface = function directory, handle {
   // Return @ from all configuration methods so they can be chained.
   return @
 }
-
-weave.App::addWebSocket = function directory, handle {
-  @addInterface( directory, function connection {
-    var key, accept;
-    // Make sure the client is expecting a WebSocket upgrade. Take the key,
-    // and generate the handshake response by taking the SHA1 hash and encode
-    // it as base64. Then we write the head, tell it to switch protocols, and
-    // begin the WebSocket connection. If it isn't expecting a WebSocket
-    // upgrade then we totally freak out and blow up the whole world instead.
-    // As in we don't do anything at all and just ignore the connection.
-    // TODO: Should we just end it here or is there something weird I did?
-    if ( connection.get( "connection" ) === "Upgrade" && connection.get( "upgrade" ) === "websocket" ) {
-      key = connection.get( "sec-websocket-key" )
-      accept = weave.utilities.SHA1_64( key + weave.constants.WebSocketUUID )
-      connection.writeHead( 101, {
-        "Connection": "Upgrade",
-        "Upgrade": "websocket",
-        "Sec-WebSocket-Accept": accept
-      })
-      handle.call( connection, connection )
-    }
-  })
-
-  return @
-}

@@ -106,16 +106,27 @@ module.exports = exports = weave = {
                Separator: process.env.OS === "Windows_NT" ? "\\" : "/",
                HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/",
                STATUS_CODES: http.STATUS_CODES,
-               STATUS_EXPLANATIONS: {
+               STATUS_DESCRIPTIONS: {
                  404: "The file you requested may have been moved or no longer exists."
-               }},
-               // Should the failsafe possibly be "/usr/"? The only downside is it might not exist.
+               } },
 
   util: {
     SHA1_64: function data {
       return crypto.createHash( "sha1" ).update( data ).digest( "base64" ) },
     RNDM_RG: function min, max, base {
-      return Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min ).toString( base ) } },
+      return Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min ).toString( base ) },
+    READ_BITS: function byte {
+      return [ byte >= 128 ? 1 : 0,
+      (byte %= 128) >= 64  ? 1 : 0,
+      (byte %= 64)  >= 32  ? 1 : 0,
+      (byte %= 32)  >= 16  ? 1 : 0,
+      (byte %= 16)  >= 8   ? 1 : 0,
+      (byte %= 8)   >= 4   ? 1 : 0,
+      (byte %= 4)   >= 2   ? 1 : 0,
+      (byte %= 2)   == 1   ? 1 : 0 ] },
+    BINARY_UINT: function binary {
+      return Number.parseInt( binary.join(""), 2 )
+    } },
 
   Class: function inherit, constructor {
     constructor:: = Object.create( inherit::, {
@@ -143,8 +154,11 @@ module.exports = exports = weave = {
       status: {
         value: code,
         enumerable: true, writable: false, configurable: true },
+      statusCode: {
+        value: weave.constants.STATUS_CODES[ code ],
+        enumerable: true, writable: false, configurable: true },
       description: {
-        value: description || weave.constants.STATUS_CODES[ code ],
+        value: description || weave.constants.STATUS_DESCRIPTIONS[ code ],
         enumerable: true, writable: false, configurable: true }
     })
   },
@@ -167,6 +181,9 @@ process.argv.forEach( function arg {
     case "--enable-repl":
       require( './repl' )
       weave.EnableREPL( process.stdin, process.stdout )
+      break;
+    case "--enable-web-socket":
+      require( './websocket' )
       break;
   }
 })

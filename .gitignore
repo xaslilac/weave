@@ -4,6 +4,7 @@ connection.js
 router.js
 printer.js
 repl.js
+websocket.js
 utilities/DOM.js
 
 node_modules

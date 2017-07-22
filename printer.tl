@@ -71,15 +71,16 @@ weave.Printer = function {
     } else {
       if weave.HTTPError.is( error ) {
         document = new DOM.HTMLDocument( 'html', '{{error.status}} {{weave.constants.STATUS_CODES[ error.status ]}}' )
-        document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = '{{error.status}} {{error.description}}'
-        document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = weave.constants.STATUS_EXPLANATIONS[ error.status ] || "Please try again later"
+        document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = '{{error.status}} {{error.statusCode}}'
+        if error.description {
+          document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = error.description
+        }
         // Generate an error page programatically.
         connection.status( error.status ).end( document.toString() )
       } else {
         console.error( 'Invalid error! Please use weave.HTTPError to report errors.' )
         document = new DOM.HTMLDocument( 'html', '500 Internal Server Error' )
         document.body.appendChild( new Element( 'h1' ) ).innerHTML = '500 Internal Server Error'
-        document.body.appendChild( new Element( 'p' ) ).innerHTML = 'weave.HTTPError was not used'
           + ' to report error to printer.'
         // Generate an error page programatically.
         connection.status( error.status ).end( document.toString() )
