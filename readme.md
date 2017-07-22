@@ -1,7 +1,7 @@
 # Weave
 
 [![Written in Teal](http://img.shields.io/badge/teal-v0.3.1-62eaaa.svg?style=flat)](https://github.com/partheseas/teal)
-![Weave Version 0.1.9](https://img.shields.io/badge/weave-v0.1.8-5050DD.svg?style=flat)
+![Weave Version 0.1.9](https://img.shields.io/badge/weave-v0.1.9-5050DD.svg?style=flat)
 ![Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
 
 ## Disclosure

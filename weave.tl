@@ -99,6 +99,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 // quick and painless.
 
 // # Release - v1.0 (Free from the Web)
+// All desired features polished and in place for the world to see!
 
 
 
