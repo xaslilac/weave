@@ -25,7 +25,7 @@ module.exports = exports = DOM = {
       new DOM.Element("title")
     ).appendChild(
       new DOM.TextNode( title )
-    
+
     )
     @title = title
     return element
@@ -36,6 +36,23 @@ module.exports = exports = DOM = {
   },
 
 	Element: function tag {
+    var e = @;
+
+    Object.defineProperties( @, {
+      innerHTML: {
+        get: function {
+          var contents;
+          e.children.forEach( function child {
+            contents += child.toString()
+          })
+          return contents
+        },
+        set: function value {
+          e.children = [ new DOM.TextNode( value ) ]
+        }
+      }
+    } )
+
 		@tagName = tag
 		@children = []
 		@attributes = {}
@@ -61,8 +78,8 @@ DOM.Element::toString = function {
 	var contents = "", attributes = "";
 
   Object.keys( @attributes ).forEach( function key {
-    attributes += '{{key}}="{{@attributes[key]}}" '
-  })
+    attributes += ' {{key}}="{{@attributes[key]}}"'
+  }, @)
 
   contents += "<{{@tagName}} {{attributes}}>"
   @children.forEach( function child {
@@ -73,8 +90,7 @@ DOM.Element::toString = function {
   return contents
 }
 
-DOM.TextNode::toString =
-DOM.Comment::toString = function {
+DOM.TextNode::toString = DOM.Comment::toString = function {
   return @text
 }
 
@@ -83,4 +99,8 @@ DOM.Comment::toString = function {
 DOM.Element::appendChild = function child {
   @children.push( child )
   return child
+}
+
+DOM.Element::setAttribute = function attr, value {
+  return @attributes[ attr ] = value
 }

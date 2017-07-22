@@ -105,7 +105,10 @@ module.exports = exports = weave = {
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
                Separator: process.env.OS === "Windows_NT" ? "\\" : "/",
                HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/",
-               STATUS_CODES: http.STATUS_CODES },
+               STATUS_CODES: http.STATUS_CODES,
+               STATUS_EXPLANATIONS: {
+                 404: "The file you requested may have been moved or no longer exists."
+               }},
                // Should the failsafe possibly be "/usr/"? The only downside is it might not exist.
 
   util: {

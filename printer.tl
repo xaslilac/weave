@@ -3,6 +3,7 @@
 
 // n is a CRLF buffer, z is an end packet buffer.
 var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
+var DOM = require( './utilities/DOM' );
 
 
 
@@ -10,7 +11,7 @@ module 'fs', 'path', 'util';
 
 weave.Printer = function {
   return function error, details, connection {
-    var cacheDate;
+    var cacheDate, document;
     if details.path {
       if details.isFile() {
         cacheDate = connection.get( "if-modified-since" )
@@ -21,14 +22,15 @@ weave.Printer = function {
         } else {
           fs.readFile( details.path, function error, contents {
             // We may be printing an error page from generateErrorPage
-            connection.status( weave.HTTPError.is( error ) ? error.status : 200 )
+            // This code *works* fine but for some reason breaks syntax highlighting in Atom.
+            ///connection.status( weave.HTTPError.is( error ) ? error.status : 200 )
             connection.writeHeader( "Content-Type",
               connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
               .writeHeader( "Last-Modified", details.stats.mtime.toUTCString() )
               .end( contents )
           })
         }
-      } else if details.isDirectory() && !connection.behavior( "disableIndexListings" ) {
+      } else if details.isDirectory() && !connection.behavior( "disableDirectoryListings" ) {
         if connection.url.description === "directory.json" {
           fs.readdir( details.path, function error, files {
             connection.status( error ? 500 : 200 )
@@ -39,24 +41,39 @@ weave.Printer = function {
           fs.readdir( details.path, function error, files {
             connection.status( error ? 500 : 200 )
             connection.writeHeader( "Content-Type", "text/html" )
+
+            document = new DOM.HTMLDocument( 'html', 'Contents of {{connection.url.path}}' )
             files.forEach( function file {
-              var href = path.join( "/", connection.url.path, file )
-              connection.write("<li><a href='{{href}}'>{{file}}</a></li>")
+              var href = path.join( "/", connection.url.path, file ),
+              li = new DOM.Element( 'li' ),
+              a = new DOM.Element( 'a' );
+
+              a.setAttribute( 'href', href ), a.innerHTML = './{{file}}'
+              document.body.appendChild( li ).appendChild( a )
             })
-            connection.end()
+            connection.end( document.toString() )
           })
         }
       } else {
+        // This needs to be moved somewhere else.
         @end( "{{@host}} {{details.path}}\n\n\n{{@UUID}}\nDetails {{util.inspect(details)}}\n\nConfiguration {{util.inspect(@configuration)}}" )
       }
-    } else if weave.HTTPError.is( error ) {
-      // Generate an error page programatically.
-      connection.status( error.status ).end( "oh heck its a {{error.status}}" )
     } else {
-      // XXX: Do something more productive here later, placeholder code
-      // Probably either a 404 or 500 error
-      console.log( 'Invalid error! Please use weave.HTTPError to report errors.' )
-      connection.destroy()
+      if weave.HTTPError.is( error ) {
+        document = new DOM.HTMLDocument( 'html', '{{error.status}} {{weave.constants.STATUS_CODES[ error.status ]}}' )
+        document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = '{{error.status}} {{error.description}}'
+        document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = weave.constants.STATUS_EXPLANATIONS[ error.status ] || "Please try again later"
+        // Generate an error page programatically.
+        connection.status( error.status ).end( document.toString() )
+      } else {
+        console.error( 'Invalid error! Please use weave.HTTPError to report errors.' )
+        document = new DOM.HTMLDocument( 'html', '500 Internal Server Error' )
+        document.body.appendChild( new Element( 'h1' ) ).innerHTML = '500 Internal Server Error'
+        document.body.appendChild( new Element( 'p' ) ).innerHTML = 'weave.HTTPError was not used'
+          + ' to report error to printer.'
+        // Generate an error page programatically.
+        connection.status( error.status ).end( document.toString() )
+      }
     }
   }
 }

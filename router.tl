@@ -147,7 +147,7 @@ weave.Router = function {
                       path: cursor, stats: stats, type: "directory"
                     }), connection )
                   } else {
-                    if connection.behavior( "enableJSONIndexListings" )
+                    if connection.behavior( "enableJSONDirectoryListings" )
                     && connection.url.depth === 1 && connection.url.description === "directory.json" {
                       printer( undefined, Object.extend( details, {
                         path: cursor, stats: stats, type: "directory"
