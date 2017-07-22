@@ -218,10 +218,14 @@ weave.Connection::getHeader = function name, asString {
 weave.Connection::status = function status {
   // If we haven't written the status yet, right it
   // and start writting headers.
-  if @state === 0 {
+  if @state === 0 && Number.is( status ) {
     @_NODE_CONNECTION.write( "HTTP/1.1 {{status}} {{http.STATUS_CODES[status]}}\r\n")
+		@_STATUS = status
+		@_WRITTEN_HEADERS = {}
     @state = 1
-  }
+  } else {
+		console.log( 'Cannot write status {{status}} to HTTP stream!' )
+	}
 
   return @
 }
@@ -233,6 +237,7 @@ weave.Connection::writeHeader = function header, value {
     if @state === 0 {
       @status( 200 )
     }
+		@_WRITTEN_HEADERS[ header ] = value
     @_NODE_CONNECTION.write( "{{header}}: {{value + n}}" )
   }
 
@@ -265,6 +270,10 @@ weave.Connection::writeHead = function status, headers {
   return @
 }
 
+weave.Connection::hasBody = function {
+	return @method !== "HEAD" && @_STATUS !== 304
+}
+
 // XXX: Is the connection keep-alive or close?
 // TODO: Check before assuming Transfer-encoding: chunked
 // TODO: Check before writing the Date header as well. Or disallow anyone else
@@ -283,18 +292,20 @@ weave.Connection::write = function content, encoding {
 
       @state = 2
     }
+		
+		if @hasBody() {
+	    if @isKeepAlive {
+	      buf = Buffer.concat( [
+	        new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
+	        new Buffer( content, encoding ), n ] )
 
-    if @isKeepAlive {
-      buf = Buffer.concat( [
-        new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
-        new Buffer( content, encoding ), n ] )
-
-      @_NODE_CONNECTION.write( buf )
-    } else {
-			// XXX: I don't know if this is 100%, but I think it is.
-      @_NODE_CONNECTION.write( content, encoding )
-			@_NODE_CONNECTION.end()
-    }
+	      @_NODE_CONNECTION.write( buf )
+	    } else {
+				// XXX: I don't know if this is 100%, but I think it is.
+	      @_NODE_CONNECTION.write( content, encoding )
+				@_NODE_CONNECTION.end()
+	    }
+		}
   }
 
   return @
