@@ -49,9 +49,12 @@ weave.Router = function {
         type: "interface", result: connection.configuration( connection )
       }), connection )*/
       // TODO: This is messy right now. Nothing is being passed the results of the interface.
-      return connection.configuration.call( connection, undefined, Object.extend( details, {
+      Object.extend( details, {
+        result: connection.configuration.call( connection.app, connection, details ),
         type: "interface"
-      }), connection )
+      })
+
+      return;
     }
 
     // Set the initial depth to 0. Depth is used to keep track of
