@@ -16,35 +16,21 @@ weave.WebSocket = weave.Class( events.EventEmitter, function {
 })
 
 weave.WebSocketConnection = weave.Class( events.EventEmitter, function socket, httpConnection {
+  var socketConnection = @;
   @_WEAVE_CONNECTION = httpConnection
   @_NODE_CONNECTION = httpConnection._NODE_CONNECTION
+  @readyState = 0
+
   socket.handshake( httpConnection, @ )
-})
 
-weave.WebSocket::handshake = function httpConnection, socketConnection {
-  var key, accept, socket = @;
-  // Make sure the client is expecting a WebSocket upgrade. Take the key,
-  // and generate the handshake response by taking the SHA1 hash and encode
-  // it as base64. Then we write the head, tell it to switch protocols, and
-  // begin the WebSocket connection. If it isn't expecting a WebSocket
-  // upgrade then we totally freak out and blow up the whole world instead.
-  // As in we don't do anything at all and just ignore the connection.
-  // TODO: Should we just end it here or is there something weird I did?
-  if ( httpConnection.get( "connection" ) === "Upgrade" && httpConnection.get( "upgrade" ) === "websocket" ) {
-    key = httpConnection.get( "sec-websocket-key" )
-    accept = weave.util.SHA1_64( key + weave.constants.WebSocketUUID )
-    httpConnection.writeHead( 101, {
-      "Connection": "Upgrade",
-      "Upgrade": "websocket",
-      "Sec-WebSocket-Accept": accept
-    }).endHead()
-
-    socket.emit( 'connection', socketConnection )
-
-    httpConnection.on( 'data', function data {
-      var message = socket.decode( data );
+  httpConnection.on( 'data', function data {
+    var message = socket.decode( data );
+    if socketConnection.readyState === 1 {
       if message.opcode <= 0x2 {
         socketConnection.emit( 'message', message, socketConnection )
+      } else if message.opcode === 0x8 {
+        socketConnection.close( null, null, message )
+        console.log( 'received close frame')
       } else if message.opcode === 0x9 {
         console.log( "pong ping" ) // TEMPORARY
         socketConnection.emit( 'ping', message, socketConnection )
@@ -52,9 +38,31 @@ weave.WebSocket::handshake = function httpConnection, socketConnection {
       } else if message.opcode === 0xA {
         socketConnection.emit( 'pong', message, socketConnection )
       }
-    })
+    }
+  })
+})
+
+weave.WebSocket::handshake = function httpConnection, socketConnection {
+  var key, accept, socket = @;
+  // Make sure the client is expecting a WebSocket upgrade, and that it gave us a key.
+  if ( httpConnection.get( "connection" ) === "Upgrade" && httpConnection.get( "upgrade" ) === "websocket" ) {
+    key = httpConnection.get( "sec-websocket-key" )
+    if key {
+      // Compute the sec-websocket-accept header value to complete the handshake.
+      accept = weave.util.SHA1_64( key + weave.constants.WebSocketUUID )
+      httpConnection.writeHead( 101, {
+        "Connection": "Upgrade",
+        "Upgrade": "websocket",
+        "Sec-WebSocket-Accept": accept
+      }).endHead()
+
+      // We're connected!
+      socketConnection.readyState = 1
+      socket.emit( 'connection', socketConnection )
+    } else httpConnection.generateErrorPage( new weave.HTTPError( 400, "Client expected a websocket"
+                                                  + " but did not include a sec-websocket-key header."))
   } else {
-    connection.generateErrorPage( new weave.HTTPError( 426, "Client was not expecting a WebSocket." ) )
+    httpConnection.generateErrorPage( new weave.HTTPError( 426, "Client was not expecting a WebSocket." ) )
   }
 }
 
@@ -75,11 +83,16 @@ weave.WebSocket::decode = function data {
   if payloadLength === 126 {
     details.length = Number.parseInt( data[2].toString(16) + data[3].toString(16), 16 )
     offset = 2
-  } else if payloadLength === 127 {
-    details.length = ""
-    data.slice( 2, 10 ).forEach( function l { details.length += l.toString(16) })
-    details.length = Number.parseInt( details.length, 16 )
-    offset = 8
+  } else if payloadLength === 127 && data[2] < 128 {
+    // For 64 bit lengths, the most significant bit must be 0
+    if data[2] < 128 {
+      details.length = ""
+      data.slice( 2, 10 ).forEach( function l { details.length += l.toString(16) })
+      details.length = Number.parseInt( details.length, 16 )
+      offset = 8
+    } else {
+      console.error( "Received a websocket with an invalid length." )
+    }
   } else details.length = payloadLength
 
   if details.masked {
@@ -91,12 +104,15 @@ weave.WebSocket::decode = function data {
     details.buffer = Buffer.from( decoded )
 
     // If the data is identified as text, then convert it to a string
-    if details.opcode === 1 {
+    if details.opcode === 0x1 {
       details.data = details.buffer.toString( 'utf-8' )
+    } else if details.opcode === 0x8 {
+      details.code = Number.parseInt( details.buffer.slice( 0, 2 ).toString( 'hex' ), 16 )
+      details.reason = details.buffer.slice( 2 ).toString( 'utf-8' )
     }
   } else {
     // Incoming data is required to be masked, so ignore it if it isn't.
-    // TODO: Should we do something here?
+    @close( 1002, "Data was not masked." )
   }
 
   return details
@@ -109,10 +125,7 @@ weave.WebSocketConnection::send = function data, opcode {
     } else console.error( "WebSocket data should be a string or a buffer!" )
   }
 
-  var _ = weave.util,
-  prefix = [ Number.is( opcode ) ? 128 + opcode : 129, 0 ], length,
-  maskingKey = [ weave.util.RNDM_RG( 0, 0xFF ), weave.util.RNDM_RG( 0, 0xFF ),
-                 weave.util.RNDM_RG( 0, 0xFF ), weave.util.RNDM_RG( 0, 0xFF ) ];
+  var _ = weave.util, prefix = [ Number.is( opcode ) ? 128 + opcode : 129, 0 ], length;
 
   // Determine if we need an extendedPayloadLength, and if we do, how long.
   // We must add the correct number of spacing 0's to our length string to
@@ -161,4 +174,49 @@ weave.WebSocketConnection::ping = function callback {
 
     return true
   } return false
+}
+
+weave.WebSocketConnection::close = function code, reason, message {
+  // This defaults the code to 1000
+  var codeBuffer = [ 0x3, 0xe8 ];
+  console.log( @readyState )
+
+  // If the connection is already being closed, this will just be the
+  // client returning a close frame, so we finish closing the connection.
+  if @readyState === 2 {
+    console.log( 'closing connection', @ )
+    @readyState = 3
+    //@_NODE_CONNECTION.close()
+    @emit( 'close', message )
+  } else if @readyState < 2 {
+    // If we have processed a message, then the client is requesting we close
+    // the connection. If there is no message, then it is us closing it.
+    if message {
+      console.log( 'closing connection..' )
+      @readyState = 3
+      @send( message.buffer, 0x8 )
+      //@_NODE_CONNECTION.close()
+      @emit( 'close', message )
+    } else {
+      @readyState = 2
+      if Number.is( code ) && code < 65535 {
+        codeBuffer[1] = code % 256
+        codeBuffer[0] = ( code - codeBuffer[1] ) / 256
+      }
+
+      codeBuffer = Buffer.from( codeBuffer, 'hex' )
+
+      if reason != null && !Buffer.isBuffer( reason ) {
+        if String.is( reason ) {
+          reason = Buffer.from( reason )
+        } else console.error( "WebSocket data should be a string or a buffer!" )
+      }
+
+      @send( reason != null ? Buffer.concat([ codeBuffer, reason ]) : codeBuffer, 0x8 )
+    }
+  } else {
+    return false
+  }
+
+  return true
 }

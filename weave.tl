@@ -136,14 +136,9 @@ module.exports = exports = weave = {
       (byte %= 4)   >= 2   ? 1 : 0,
       (byte %= 2)   == 1   ? 1 : 0 ] },
     BINARY_UINT: function binary {
-      return Number.parseInt( binary.join(""), 2 )
-    },
+      return Number.parseInt( binary.join(""), 2 ) },
     times: function times, task {
-      var t = 0;
-      while t++ < times {
-        task()
-      }
-    } },
+      var t = 0; while t++ < times { task() } } },
 
   Class: function inherit, constructor {
     constructor:: = Object.create( inherit::, {
