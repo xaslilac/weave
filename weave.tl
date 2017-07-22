@@ -99,7 +99,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 module 'crypto', 'http';
 
 module.exports = exports = weave = {
-  version: "0.1.8",
+  version: "0.1.9",
 
   servers: {}, apps: {}, cache: { wildcardMatches: {} },
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
@@ -185,9 +185,12 @@ process.argv.forEach( function arg {
     case "--aww-heck-yes":
       console.log( "aww heck yes" )
       break;
+    case "--weave-debug":
+      weave.debug = true
+      break;
     case "--enable-repl":
       require( './repl' )
-      weave.EnableREPL( process.stdin, process.stdout )
+      weave.connectREPL( process.stdin, process.stdout )
       break;
     case "--enable-web-socket":
       require( './websocket' )

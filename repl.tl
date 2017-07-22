@@ -21,7 +21,7 @@ weave.getAppByName = function n {
   return match;
 }
 
-weave.EnableREPL = function i, o {
+weave.connectREPL = function i, o {
   setTimeout( function {
     var input = "", prefix = "> ";
     o.write( prefix )
@@ -38,6 +38,7 @@ weave.EnableREPL = function i, o {
           input = ""
           o.write( prefix )
         } catch e {
+          weave.debug && console.log( e )
           o.write( "... " )
         }
       } else {
@@ -46,11 +47,4 @@ weave.EnableREPL = function i, o {
       }
     })
   }, 400 )
-}
-
-// Crazy experimental!!
-weave.__SelfUpdate = function {
-  i.removeAllListeners('data')
-  require.cache = {}
-  require( './weave' )
 }
