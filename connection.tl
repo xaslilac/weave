@@ -14,7 +14,7 @@ Wildcard = require( "./utilities/Wildcard" )
 // responsible for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
 weave.Connection = weave.Class( events.EventEmitter, function i, o {
-	var app, directory;
+	var app, directory, connection = @;
 
   // For time tracking and caching purposes, save the time that
   // the connection first began processing. Initialize the state.
@@ -35,6 +35,10 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     @generateErrorPage( new weave.HTTPError( 400, "The request is missing the" +
 		  "Host header, and I am unable to determine how to direct this request." ) )
   }
+
+	i.on( 'data', function data {
+		connection.emit( 'data', data )
+	})
 
   // Save these here, mainly for internal use with the classes methods.
   // Ideally these wouldn't be used outside of Weave. All interactions
@@ -323,7 +327,9 @@ weave.Connection::generateErrorPage = function error {
 	// cursor points to where ever we're searching for files.
 	// If the app location begins with ~, replace it with the users home directory.
 	// weave.constants.HOME normalizes the API for Node across different platforms.
-	cursor = path.join( connection.behavior( "location" ).replace( /^~/, weave.constants.HOME ) )
+	if connection.behavior( "location" ) {
+		cursor = path.join( connection.behavior( "location" ).replace( /^~/, weave.constants.HOME ) )
+	} else return print()
 
 	// NOTE: Router and this share a lot of boilerplate code. We should do something
 	// to merge them together maybe?
@@ -337,7 +343,7 @@ weave.Connection::generateErrorPage = function error {
 						print({ path: errorPagePath, stats: stats, type: "file" })
 					}
 				})
-			} else print()
+			} else return print()
 		})
 	} else {
 		console.error( "Connection::generateErrorPage requires argument weave.HTTPError!" )
