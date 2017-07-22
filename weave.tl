@@ -114,7 +114,8 @@ module.exports = exports = weave = {
     SHA1_64: function data {
       return crypto.createHash( "sha1" ).update( data ).digest( "base64" ) },
     RNDM_RG: function min, max, base {
-      return Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min ).toString( base ) },
+      var r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
+      return base ? r.toString( base ) : r },
     READ_BITS: function byte {
       return [ byte >= 128 ? 1 : 0,
       (byte %= 128) >= 64  ? 1 : 0,
@@ -126,6 +127,12 @@ module.exports = exports = weave = {
       (byte %= 2)   == 1   ? 1 : 0 ] },
     BINARY_UINT: function binary {
       return Number.parseInt( binary.join(""), 2 )
+    },
+    times: function times, task {
+      var t = 0;
+      while t++ < times {
+        task()
+      }
     } },
 
   Class: function inherit, constructor {
