@@ -1,16 +1,16 @@
 var fs = require( "fs" ), MimeDictionary;
 
 MimeDictionary = function map {
-  this.dictionary = {}
+  @dictionary = {}
 
   if ( String.is( map ) ) {
-    this.fromApacheFile( map )
+    @fromApacheFile( map )
   } else if ( Array.is( map ) ) {
     map.forEach( function ( ind ) {
-      this.fromApacheFile( ind )
+      @fromApacheFile( ind )
     }, this )
   } else {
-    this.define.apply( this, arguments )
+    @define.apply( this, arguments )
   }
 }
 
@@ -20,16 +20,16 @@ MimeDictionary::define = function type, extensions {
     // With multiple extensions
     if ( Array.is( extensions ) ) {
       extensions.forEach( function ( extension ) {
-        this.dictionary[extension] = type
-      }, this)
+        @dictionary[extension] = type
+      }, @)
     // With a single extension
     } else {
-      this.dictionary[extension] = extensions
+      @dictionary[extension] = extensions
     }
   // We're defining a bunch of types
   } else {
     Object.keys( type ).forEach( function ( key ) {
-      this.define( key, type[ key ] )
+      @define( key, type[ key ] )
     })
   }
 }
@@ -55,7 +55,7 @@ MimeDictionary::fromApacheFile = function path, encoding, callback {
         line = line.trim()
 
         // Ignore any empty lines that made it this far
-        if line{
+        if line {
           // Remove multiple spaces/tabs and make sure extensions
           // have dots, and then turn it into an array.
           line = line.replace( /\s+/g, ' .' ).split(' ')

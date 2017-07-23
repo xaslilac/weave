@@ -8,10 +8,7 @@
 
 var weave;
 // Some basic utilities, like an asynchronous implemenation of Array::some,
-// basic type detection (Constructor.is(possibleInstance)), an object extender,
-// and a way to quickly write Arrays of strings. u is just short for undefined.
-// n is short for a carriage return line feed buffer, and z is the last chunk
-// of a message with Transfer-Encoding: chunked for Keep-Alive connections.
+// an object property setter, and basic universal type detection.
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
   next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
 Object.extend = function o,e {o!=null&&e!=null&&@keys(e).forEach(function p {o[p]=e[p]});return o}
