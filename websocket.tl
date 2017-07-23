@@ -8,11 +8,17 @@ var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\
 
 module 'events';
 
-weave.WebSocket = weave.Class( events.EventEmitter, function {
+weave.WebSocket = weave.Class( events.EventEmitter, function app, path {
   var socket = @;
-  @interface = function httpConnection {
-    return new weave.WebSocketConnection( socket, httpConnection )
+  if !weave.App.is( app ) {
+    if String.is( app ) && weave.App.is( weave.apps[ app ] ) {
+      app = weave.apps[ app ]
+    } else throw 'WebSocket: argument app must be an instance of weave.App or string appName'
   }
+
+  app.addInterface( path, function connection {
+    return new weave.WebSocketConnection( socket, httpConnection )
+  })
 })
 
 weave.WebSocketConnection = weave.Class( events.EventEmitter, function socket, httpConnection {
