@@ -53,7 +53,7 @@ mkdir .tmp
 curl -o .tmp/weave.tar.gz -L https://github.com/partheseas/weave/tarball/master
 tar -zxvf .tmp/weave.tar.gz
 DIR="$(ls -d .tmp/*/)"
-take $DIR && npm install $DIR
+take $DIR --output-dir=bin && npm install $DIR
 
 rm .tmp -r
 ```
