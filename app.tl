@@ -129,6 +129,13 @@ weave.App::linkHost = function {
             new weave.Connection( i, o )
           })
         })
+
+        // This is a property that will be used by our error system in
+        // the future to know if an error is encountered before any servers
+        // have started listening. It would be safe before this point to
+        // kill the process entirely. Once this is set to true, things should
+        // fail more gracefully.
+        weave._ACTIVE = true
       }
     }
   }, @)

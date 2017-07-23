@@ -229,13 +229,18 @@ weave.Connection::status = function status {
 		@_WRITTEN_HEADERS = {}
     @state = 1
   } else {
-		console.log( 'Cannot write status {{status}} to HTTP stream!' )
+		console.log( 'Cannot write status {{status}} to HTTP stream, already wrote {{@_STATUS}}!' )
 	}
 
   return @
 }
 
 weave.Connection::writeHeader = function header, value {
+	if !String.is( header ) {
+		console.error( 'argument header must be a string' )
+		return @
+	}
+
   // If no body content has been sent yet, check if the status has.
   // If not, right the status, and then right the header.
   if @state < 2 {
@@ -248,7 +253,9 @@ weave.Connection::writeHeader = function header, value {
 		}
 		@_WRITTEN_HEADERS[ header ] = value
     @_NODE_CONNECTION.write( "{{header}}: {{value + n}}" )
-  }
+  } else {
+		console.log( 'Headers already sent! Perharps use a trailer.')
+	}
 
   return @
 }
