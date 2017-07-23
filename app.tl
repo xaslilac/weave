@@ -76,9 +76,12 @@ weave.App::linkHost = function {
     var wildcard, cachedhost, split, hostname, port, server;
 
     // If the argument is just the port, default the host to *
-    if Number.is( host ) {
-      host = "*:{{host}}"
+    if !String.is( host ) {
+      if Number.is( host ) { host = "*:{{host}}" }
+      else throw "Host much be a string, or port must be a number."
     }
+    // If the host is already taken, abandon ship.
+    if weave.apps[ host ] { throw "Host {{host}} already used by {{weave.apps[host].appName}}." }
 
     // If the host is a wildcard then clear all wildcardMatches that match
     // it. If it's a literal, clear wildcardMatches for that literal.
