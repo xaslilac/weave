@@ -4,23 +4,23 @@
 
 var Wildcard;
 
-module.exports = exports = Wildcard = function ( string ) {
+module.exports = exports = Wildcard = function string {
   if ( /^[A-Za-z0-9\*\[\]\.\_\-\:]+$/.test( string ) ) {
-  	this.expression = RegExp( "^" +
+  	@expression = RegExp( "^" +
   		string
   		  .replace( /([\.\[\]])/g, "\\$1" ) // Make sure that special charaters are escaped before creating the expression
   		  .replace( /\*/g, ".+" ) // Turn * wildcards into . wildcards
   	+  "$" )
-  	this.string = string
+  	@string = string
   }
 }
 
-Wildcard.prototype.match = function ( string ) {
-  return this.expression.exec( string )
+Wildcard::match = function ( string ) {
+  return @expression.exec( string )
 }
 
 Wildcard.match = function ( wildcard, string ) {
-  return new Wildcard( wildcard ).test( string )
+  return new Wildcard( wildcard ).match( string )
 }
 
 Wildcard.bestMatch = function ( wildcards, string ) {

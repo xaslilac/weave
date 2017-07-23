@@ -194,7 +194,7 @@ process.argv.forEach( function arg {
       weave.debug = true
       break;
     case "--enable-repl":
-      require( './repl' )
+      require( './developer-tools/repl' )
       weave.connectREPL( process.stdin, process.stdout )
       break;
     case "--enable-web-socket":

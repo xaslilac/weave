@@ -1,11 +1,4 @@
-weave.js
-app.js
-connection.js
-router.js
-printer.js
-repl.js
-websocket.js
-utilities/DOM.js
+bin
 
 node_modules
 npm-debug.log

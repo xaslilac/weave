@@ -2,7 +2,7 @@
 "use strict";
 
 // n is a CRLF buffer, z is an end packet buffer.
-var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n'),
+var weave = require( '../weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n'),
 $ = function n { return weave.getAppByName( n ) },
 $$ = function n, d { return $(n).configuration[ d || "/" ] };
 
@@ -38,7 +38,7 @@ weave.connectREPL = function i, o {
           input = ""
           o.write( prefix )
         } catch e {
-          weave.debug && console.log( e )
+          weave.debug && console.log( global.e = e )
           o.write( "... " )
         }
       } else {
