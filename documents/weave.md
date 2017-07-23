@@ -28,6 +28,9 @@ An object containing all instances of http.Server controlled by Weave. A given
 server can be accessed by using it's attached port as the property name. For example,
 a server listening to port 80 can be accessed by using `weave.servers[80]`.
 
+### apps
+An object holding all instances of weave.App, stored as `appName: app` pairs.
+
 ### hosts
 An object linking host names to the Weave apps that handle them. They are stored as
 `hostname: app` pairs relevant hostname, and are allowed to have wildcards (\*) in their
