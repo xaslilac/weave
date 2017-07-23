@@ -124,7 +124,12 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // is handling the connection, and shorten the URL relative to the
   // directory. If we didn't find a match then report a 501 (Not Implemented).
   if @directory {
-		@_NODE_CONNECTION.on( 'data', function data { connection.emit( 'data', data ) })
+		// We check if this connection already has our data event listener to
+		// avoid adding it multiple times if the connection is keep alive.
+		if !@_NODE_CONNECTION._weavePipe {
+			@_NODE_CONNECTION._weavePipe = connection
+		  @_NODE_CONNECTION.on( 'data', function data { connection.emit( 'data', data ) })
+		}
 
     @configuration = @app.configuration[ @directory ]
     @url.path = path.join( "/", path.relative( @directory, @url.path ) )
@@ -237,6 +242,10 @@ weave.Connection::writeHeader = function header, value {
     if @state === 0 {
       @status( 200 )
     }
+
+		if header.toLowerCase() === "last-modified" && @_STATUS >= 300 {
+			console.error( "You can't cache an error!" )
+		}
 		@_WRITTEN_HEADERS[ header ] = value
     @_NODE_CONNECTION.write( "{{header}}: {{value + n}}" )
   }
@@ -292,7 +301,7 @@ weave.Connection::write = function content, encoding {
 
       @state = 2
     }
-		
+
 		if @hasBody() {
 	    if @isKeepAlive {
 	      buf = Buffer.concat( [

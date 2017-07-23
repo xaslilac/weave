@@ -17,17 +17,18 @@ weave.Printer = function {
         cacheDate = connection.get( "if-modified-since" )
         // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
         // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
-        if cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( details.stats.mtime.getTime() / 1000 ) {
+        if !error && cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( details.stats.mtime.getTime() / 1000 ) {
           connection.status( 304 ).end()
         } else {
-          fs.readFile( details.path, function error, contents {
+          fs.readFile( details.path, function ferror, contents {
             // We may be printing an error page from generateErrorPage
             // This code *works* fine but for some reason breaks syntax highlighting in Atom.
-            ///connection.status( weave.HTTPError.is( error ) ? error.status : 200 )
-            connection.writeHeader( "Content-Type",
-              connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
-              .writeHeader( "Last-Modified", details.stats.mtime.toUTCString() )
-              .end( contents )
+            connection.status( weave.HTTPError.is( error ) ? error.status : 200 )
+              .writeHeader( "Content-Type", connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
+
+            if !error { connection.writeHeader( "Last-Modified", details.stats.mtime.toUTCString() ) }
+
+            connection.end( contents )
           })
         }
       } else if details.isDirectory() && !connection.behavior( "disableDirectoryListings" ) {
