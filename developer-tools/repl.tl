@@ -11,14 +11,7 @@ $$ = function n, d { return $(n).configuration[ d || "/" ] };
 module 'util';
 
 weave.getAppByName = function n {
-  var match;
-  Object.keys( weave.apps ).some( function app {
-    if weave.apps[ app ].appName === n {
-      match = weave.apps[ app ]
-      return true;
-    }
-  })
-  return match;
+  return weave.apps[n];
 }
 
 weave.connectREPL = function i, o {

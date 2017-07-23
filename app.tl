@@ -13,6 +13,10 @@ Wildcard = require( "./utilities/Wildcard" )
 // The App class contains configuration data and handles delegation,
 // tracking, and caching of requests.
 weave.App = weave.Class( events.EventEmitter, function appName {
+  if weave.apps[ appName ] {
+    throw "App {{appName}} already exists!"
+  } else weave.apps[ appName ] = @
+
   // Create the initial configuration storage object and use
   // resetCache() to create the initial empty cache.
   @appName = appName,
@@ -81,7 +85,7 @@ weave.App::linkHost = function {
       else throw "Host much be a string, or port must be a number."
     }
     // If the host is already taken, abandon ship.
-    if weave.apps[ host ] { throw "Host {{host}} already used by {{weave.apps[host].appName}}." }
+    if weave.hosts[ host ] { throw "Host {{host}} already used by {{weave.hosts[host].appName}}." }
 
     // If the host is a wildcard then clear all wildcardMatches that match
     // it. If it's a literal, clear wildcardMatches for that literal.
@@ -108,7 +112,7 @@ weave.App::linkHost = function {
 
       // We save the app to the host so that we can
       // quickly relate the Host header to the app.
-      weave.apps[ host ] = @
+      weave.hosts[ host ] = @
 
       // We check to see if we have a server, running on the port yet.
       // If there isn't one then we start it, and have it listen to

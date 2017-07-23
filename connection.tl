@@ -68,13 +68,13 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // Check for a direct host match, or a cached wildcard match.
   // If there isn't one, check against wildcards, filtering out hosts
   // that don't contain at least one wildcard since they won't match.
-  if weave.apps[ @host ] {
-    @app = weave.apps[ @host ].app
+  if weave.hosts[ @host ] {
+    @app = weave.hosts[ @host ].app
   } else if weave.cache.wildcardMatches[ @host ] {
     @app = weave.cache.wildcardMatches[ @host ]
   } else {
 		app = Wildcard.bestMatch(
-      Object.keys( weave.apps ).filter( function host {
+      Object.keys( weave.hosts ).filter( function host {
         return /\*/.test( host )
       }),
     @host )
@@ -83,7 +83,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     // If there isn't a linked app then just end the connection
     // and exit out of the function.
 		if app {
-			@app = weave.cache.wildcardMatches[ @host ] = weave.apps[ app ]
+			@app = weave.cache.wildcardMatches[ @host ] = weave.hosts[ app ]
 		} else {
       // If there isn't an app listening end the connection.
       // NOTE: Should we really do this silently? Or should we report?

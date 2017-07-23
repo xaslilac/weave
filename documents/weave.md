@@ -28,10 +28,10 @@ An object containing all instances of http.Server controlled by Weave. A given
 server can be accessed by using it's attached port as the property name. For example,
 a server listening to port 80 can be accessed by using `weave.servers[80]`.
 
-### apps
-An object containing references to all active Weave apps. They are stored by their
-relevant hostname, and are allowed to have wildcards (\*) in their hostnames. For
-example, an app for a developer/admin version of your website might listen to
-"localhost" on port 8080 rather than to any host on port 80. This app could be found
+### hosts
+An object linking host names to the Weave apps that handle them. They are stored as
+`hostname: app` pairs relevant hostname, and are allowed to have wildcards (\*) in their
+hostnames. For example, an app for a developer/admin version of your website might listen
+to "localhost" on port 8080 rather than to any host on port 80. This app could be found
 under `weave.apps["localhost:8080"]`, and the app for your public website could be found
 under `weave.apps["*:80"]`
