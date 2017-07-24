@@ -1,3 +1,8 @@
+# Notice
+
+This module requires the `--enable-web-socket` flag to be set. Please ensure the
+flag is set before attempting to use this module.
+
 #weave.WebSocket
 
 ## Usage

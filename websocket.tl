@@ -8,18 +8,38 @@ var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\
 
 module 'events';
 
-weave.WebSocket = weave.Class( events.EventEmitter, function app, path {
+weave.WebSocket = weave.Class( events.EventEmitter, function app, path, listener {
   var socket = @;
+
+  if app && !weave.App.is( app ) {
+    if String.is( app ) && weave.App.is( weave.apps[ app ] ) {
+      app = weave.apps[ app ]
+    } else if Function.is( app ) && path == undefined && listener == undefined {
+      listener = app
+    } else throw 'WebSocket: argument app must be an instance of weave.App or string appName'
+  }
+
+  if app && path { @attach( app, path ) }
+  if Function.is( listener ) { @on( 'connection', listener ) }
+})
+
+// XXX: Currently, it is possible to attach the same WebSocket instance to
+// multiple apps and paths. This might be useful if we can give the event
+// listeners good data on where specifically the message is coming from, but
+// could also be bad and complicate things unnecessarily.
+weave.WebSocket::attach = function app, path {
+  var socket = @;
+
   if !weave.App.is( app ) {
     if String.is( app ) && weave.App.is( weave.apps[ app ] ) {
       app = weave.apps[ app ]
     } else throw 'WebSocket: argument app must be an instance of weave.App or string appName'
   }
 
-  app.addInterface( path, function connection {
+  app.addInterface( path, function httpConnection {
     return new weave.WebSocketConnection( socket, httpConnection )
   })
-})
+}
 
 weave.WebSocketConnection = weave.Class( events.EventEmitter, function socket, httpConnection {
   var socketConnection = @;
@@ -27,10 +47,14 @@ weave.WebSocketConnection = weave.Class( events.EventEmitter, function socket, h
   @_NODE_CONNECTION = httpConnection._NODE_CONNECTION
   @readyState = 0
 
-  socket.handshake( httpConnection, @ )
+  socketConnection.handshake( httpConnection, @ )
+
+  // We're connected!
+  socketConnection.readyState = 1
+  socket.emit( 'connection', socketConnection )
 
   httpConnection.on( 'data', function data {
-    var message = socket.decode( data );
+    var message = socketConnection.decode( data );
     if socketConnection.readyState === 1 {
       if message.opcode <= 0x2 {
         socketConnection.emit( 'message', message, socketConnection )
@@ -48,7 +72,7 @@ weave.WebSocketConnection = weave.Class( events.EventEmitter, function socket, h
   })
 })
 
-weave.WebSocket::handshake = function httpConnection, socketConnection {
+weave.WebSocketConnection::handshake = function httpConnection, socketConnection {
   var key, accept, socket = @;
   // Make sure the client is expecting a WebSocket upgrade, and that it gave us a key.
   if ( httpConnection.get( "connection" ) === "Upgrade" && httpConnection.get( "upgrade" ) === "websocket" ) {
@@ -61,10 +85,6 @@ weave.WebSocket::handshake = function httpConnection, socketConnection {
         "Upgrade": "websocket",
         "Sec-WebSocket-Accept": accept
       }).endHead()
-
-      // We're connected!
-      socketConnection.readyState = 1
-      socket.emit( 'connection', socketConnection )
     } else httpConnection.generateErrorPage( new weave.HTTPError( 400, "Client expected a websocket"
                                                   + " but did not include a sec-websocket-key header."))
   } else {
@@ -72,16 +92,16 @@ weave.WebSocket::handshake = function httpConnection, socketConnection {
   }
 }
 
-weave.WebSocket::decode = function data {
+weave.WebSocketConnection::decode = function data {
   // Set up our scope with all the necessary variables.
   var _ = weave.util,
   b0 = _.READ_BITS( data[0] ),
   b1 = _.READ_BITS( data[1] ),
   offset = 0, decoded = [],
   details = {
-    masked: b1[0], // 0 if false, 1 if true
-    FIN: b0[0], // 0 if partial, 1 if final frame
-    opcode: _.BINARY_UINT( b0.slice( 4, 8 ) ) },
+  masked: b1[0], // 0 if false, 1 if true
+  FIN: b0[0], // 0 if partial, 1 if final frame
+  opcode: _.BINARY_UINT( b0.slice( 4, 8 ) ) },
   payloadLength = _.BINARY_UINT( b1.slice( 1, 8 ) );
 
   // Check if the frame has an extended payload length,
@@ -139,13 +159,13 @@ weave.WebSocketConnection::send = function data, opcode {
   // figured out, complete the prefix and make it a Buffer.
   if data.length > 125 {
     if data.length > 65536 {
-      output[1] += 127,
+      prefix[1] += 127,
       length = data.length.toString( 16 )
-      _times( 16 - length.length, function () { length = "0" + length } )
+      _.times( 16 - length.length, function () { length = "0" + length } )
     } else {
-      output[1] += 126,
+      prefix[1] += 126,
       length = data.length.toString( 16 )
-      _times( 4 - length.length, function () { length = "0" + length } )
+      _.times( 4 - length.length, function () { length = "0" + length } )
     }
     prefix = Buffer.concat([ Buffer.from( prefix, 'hex'), Buffer.from( length, 'hex' ) ])
   } else {
@@ -185,7 +205,7 @@ weave.WebSocketConnection::ping = function callback {
 weave.WebSocketConnection::close = function code, reason, message {
   // This defaults the code to 1000
   var codeBuffer = [ 0x3, 0xe8 ];
-  console.log( @readyState )
+  console.log( @readyState, code, reason, message )
 
   // If the connection is already being closed, this will just be the
   // client returning a close frame, so we finish closing the connection.

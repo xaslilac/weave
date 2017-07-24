@@ -18,16 +18,11 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 
 
 
-// TODO: So here are all the things I still need to bring over from Trailer.
-
-// GZip, URL Redirects, URL Cleaning (maybe? but different? configurable?),
-// request:data -> Connection piping, ReadFile with Content-Length***, caching,
-// Last-Modified, and Content-Type. directory.html, directory.json, and
-// directory listings in general? Remember the whole depth === 1 thing.
-// Auto-generate error pages. There's still no way to write to the response
-// without accessing Connection::_NODE_RESPONSE. Should we allow Constant
-// HTTP Headers? Do they need to be written directly to each individual
+// TODO: Here are all the things I still need to bring over from Trailer.
+// URL Redirects, ReadFile with Content-Length***,
+// Should we allow Constant HTTP Headers? Do they need to be written directly to each individual
 // request? How will they be written?
+
 // ***So I've since learned that the Content-Length header is not supposed to be
 // used if the Transfer-Encoding is Chunked. So that's not really something
 // that we need to do, because we always use Transfer-Encoding Chunked. ***
@@ -193,6 +188,9 @@ process.argv.forEach( function arg {
     case "--enable-repl":
       require( './developer-tools/repl' )
       weave.connectREPL( process.stdin, process.stdout )
+      break;
+    case "--enable-web-console":
+      require( './developer-tools/web-console' )
       break;
     case "--enable-web-socket":
       require( './websocket' )

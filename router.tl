@@ -27,7 +27,7 @@ weave.constants.DETAILS = {
 
 weave.Router = function {
   return function connection {
-    var cursor, details, printer, search, reroute;
+    var cursor, location, details, printer, search, reroute;
 
     // We give the printer this details object to let it know what we
     // have found about about the request so far.
@@ -85,9 +85,13 @@ weave.Router = function {
     // cursor points to where ever we're searching for files.
     // If the app location begins with ~, replace it with the users home directory.
     // weave.constants.HOME normalizes the API for Node across different platforms.
-    cursor = path.join(
-      connection.behavior( "location" ).replace( /^~/, weave.constants.HOME ),
-      unescape( connection.url.path ) ),
+    location = connection.behavior( 'location' )
+    if location {
+      cursor = path.join( location.replace( /^~/, weave.constants.HOME ), unescape( connection.url.path ) )
+    } else {
+      console.error( 'No location set for {{connection.url.pathname}}! Cannot route!')
+      return;
+    }
 
     // This function makes depth adjustments, and is called rather than calling
     // search directly if a recursive search is necessary.
@@ -123,7 +127,8 @@ weave.Router = function {
                 path: cursor, stats: stats, type: "file"
               }), connection )
             } else if stats.isDirectory() {
-              if connection.url.depth === 0 && !connection.url.pathname.endsWith("/") {
+              if connection.url.depth === 0 && !connection.behavior( 'disableURLCleaning' )
+              && !connection.url.pathname.endsWith("/") {
                 connection.writeHead( 301, {
                   "Location": connection.url.pathname + "/"
                 }).end()
@@ -131,6 +136,8 @@ weave.Router = function {
                 indexes = connection.behavior( "indexes" )
                 Object.keys( indexes ).someAsync( function index, n, some {
                   if connection.url.depth <= indexes[ index ] {
+                    // TODO: Add code here so that if multiple indexes are
+                    // found, the one with the lowest depth gets served.
                     index = path.join( cursor, index )
                     fs.exists( index, function exists {
                       if exists {
