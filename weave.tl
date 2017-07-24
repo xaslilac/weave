@@ -38,7 +38,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 // # Groundwork - v0.1 (WebSocks)
 // Get the basics in, along with a couple of goodies. Be generally reliable,
 // strong routing features, a base WebSocket implementation, document generation
-// through a server-side DOM tree, basic caching ground work.
+// through a server-side DOM tree for error pages, etc., basic caching ground work.
 
 // # Console/file logging - v0.2
 // Build a robust error and warning backend system with the ability to log to files
@@ -50,7 +50,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 // interface directly with the App collection from a secure, remote, REPL with
 // syntax highlighting, pretty printing, and more.
 
-// # Command Line Interface - v0.4
+// # Command Line Interface - v0.4 (Librarian (Sh))
 // Could be helpful for things like clearing a cache or updating a setting.
 // The main reason this would be important, is it would provide a simple way
 // to actively maintain your server while it is running, without needing to
@@ -101,7 +101,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 module 'crypto', 'http';
 
 module.exports = exports = weave = {
-  version: "0.1.9",
+  version: "0.1.10",
 
   servers: {}, apps: {}, hosts: {}, cache: { wildcardMatches: {} },
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
