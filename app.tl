@@ -31,13 +31,8 @@ weave.App = weave.Class( events.EventEmitter, function appName {
   // TODO: Make this better, configurable.
   // We'll put a lot more effort into this around the version 0.5~0.6
   // time frame, when we implement an actual CLI for managing servers.
-  process.argv.forEach( function arg {
-    switch arg {
-      case "--weave-debug":
-        @debug = true
-        break;
-    }
-  }, @ )
+  // XXX: This might not even be necessary
+  @debug = weave.debug
 
   // The router processes the request, decides what should be done with it,
   // and then passes those details on to the printer for it to generate the
@@ -45,6 +40,7 @@ weave.App = weave.Class( events.EventEmitter, function appName {
   @router = new weave.Router()
   @printer = new weave.Printer()
 
+  // XXX: We'll probably replace these with something else entirely.
   // @error is the function that should be called for all errors
   // relating to a particular app.
   // @warning is used when something isn't going quite as planned,
@@ -54,24 +50,24 @@ weave.App = weave.Class( events.EventEmitter, function appName {
   // These are not prototype methods because in the future they might
   // do something specific to each app.
   // XXX: Actually, these probably still should be prototype methods.
-  @error = function e {
-    console.error.apply( console, arguments )
-    return {
-      type: "error",
-      message: e
-    }
-  }
-  @warning = function e {
-    console.log.apply( console, arguments )
-    return {
-      type: "warning",
-      message: e
-    }
-  }
-  @debug = function e {
-    app.configuration.debug && e && console.log.apply( console, arguments )
-    return app.configuration.debug
-  }
+  // @error = function e {
+  //   console.error.apply( console, arguments )
+  //   return {
+  //     type: "error",
+  //     message: e
+  //   }
+  // }
+  // @warning = function e {
+  //   console.log.apply( console, arguments )
+  //   return {
+  //     type: "warning",
+  //     message: e
+  //   }
+  // }
+  // @debug = function e {
+  //   app.configuration.debug && e && console.log.apply( console, arguments )
+  //   return app.configuration.debug
+  // }
 })
 
 weave.App::listen =
@@ -149,6 +145,8 @@ weave.App::addDirectory = function directory, inherit, configuration {
   // not conflict with previously caches requests.
   @cache.parentDirectories = {}
 
+  directory = directory.replace( /\\/g, '/' )
+
   if !path.isAbsolute( directory ) {
     return @error( "Directories must be absolute!" )
   }
@@ -178,7 +176,7 @@ weave.App::addInterface = function directory, handle {
   // and the configuration? Probably an object that also
   // contains details about what HTTP standards the interface
   // supports, like Upgrades, Cookies, etc.
-  @configuration[ directory ] = handle
+  @configuration[ directory.replace( /\\/g, '/' ) ] = handle
 
   // Return @ from all configuration methods so they can be chained.
   return @

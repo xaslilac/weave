@@ -27,7 +27,7 @@ weave.constants.DETAILS = {
 
 weave.Router = function {
   return function connection {
-    var cursor, location, details, printer, search, reroute;
+    var cursor, location, details, printer, search, reroute, indexes;
 
     // We give the printer this details object to let it know what we
     // have found about about the request so far.
@@ -107,6 +107,8 @@ weave.Router = function {
       }
     }
 
+    indexes = connection.behavior( "indexes" )
+
     // Define our search function
     search = function {
       var indexes;
@@ -132,8 +134,7 @@ weave.Router = function {
                 connection.writeHead( 301, {
                   "Location": connection.url.pathname + "/"
                 }).end()
-              } else {
-                indexes = connection.behavior( "indexes" )
+              } else if indexes {
                 Object.keys( indexes ).someAsync( function index, n, some {
                   if connection.url.depth <= indexes[ index ] {
                     // TODO: Add code here so that if multiple indexes are
@@ -167,6 +168,8 @@ weave.Router = function {
                     }
                   }
                 })
+              } else {
+                reroute()
               }
             }
           })

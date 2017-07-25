@@ -27,7 +27,7 @@ weave.WebSocket = weave.Class( events.EventEmitter, function app, path, listener
 // multiple apps and paths. This might be useful if we can give the event
 // listeners good data on where specifically the message is coming from, but
 // could also be bad and complicate things unnecessarily.
-weave.WebSocket::attach = function app, path {
+weave.WebSocket::attach = function app, socketUrl {
   var socket = @;
 
   if !weave.App.is( app ) {
@@ -36,7 +36,7 @@ weave.WebSocket::attach = function app, path {
     } else throw 'WebSocket: argument app must be an instance of weave.App or string appName'
   }
 
-  app.addInterface( path, function httpConnection {
+  app.addInterface( socketUrl, function httpConnection {
     return new weave.WebSocketConnection( socket, httpConnection )
   })
 }

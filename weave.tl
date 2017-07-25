@@ -6,7 +6,7 @@
 // Strict mode is cool
 "use strict";
 
-var weave;
+var Zen, weave;
 // Some basic utilities, like an asynchronous implemenation of Array::some,
 // an object property setter, and basic universal type detection.
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
@@ -99,6 +99,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 
 // Import all of the modules that we need before we do anything crazy.
 module 'crypto', 'http';
+Zen = require( './utilities/zen' )
 
 module.exports = exports = weave = {
   version: "0.1.10",
@@ -111,6 +112,11 @@ module.exports = exports = weave = {
                STATUS_DESCRIPTIONS: {
                  404: "The file you requested may have been moved or no longer exists."
                } },
+
+  zen: new Zen( 'weave' ),
+
+  configuration: {
+   adminEmail: "foo@bar.com" },
 
   util: {
     SHA1_64: function data {
@@ -165,10 +171,6 @@ module.exports = exports = weave = {
         value: description || weave.constants.STATUS_DESCRIPTIONS[ code ],
         enumerable: true, writable: false, configurable: true }
     })
-  },
-
-  configuration: {
-    //adminEmail: "foo@bar.com"
   }
 }
 
@@ -190,8 +192,8 @@ process.argv.forEach( function arg {
       require( './developer-tools/repl' )
       weave.connectREPL( process.stdin, process.stdout )
       break;
-    case "--enable-web-console":
-      require( './developer-tools/web-console' )
+    case "--enable-web-instruments":
+      require( './developer-tools/web-instruments' )
       break;
     case "--enable-web-socket":
       require( './websocket' )
@@ -199,4 +201,4 @@ process.argv.forEach( function arg {
   }
 })
 
-require( weave.debug ? './' )
+//require( weave.debug ? './' )
