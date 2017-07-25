@@ -2,28 +2,30 @@
 <html>
   <head>
     <title>Web Console</title>
-    <link rel="stylesheet" href="console.css" />
-    <script type="text/javascript" src="console.js"></script>
+    <link rel="stylesheet" type="text/css" href="main.css" />
+    <script type="application/javascript" src="wi.js"></script>
   </head>
   <body>
     <h1>Look a header!</h1>
     <ul id="container"></ul>
     <div id="lower-third">
       <div id="repl">
-        <div id="repl-scroll-box">
-          <div id="repl-output">Hi</div>
-        </div>
+        <div id="repl-scroll-box"><div id="repl-output"></div></div>
         <textarea id="repl-input" type="text" resizable="false" rows="1"></textarea>
+      </div>
+      <div id="log">
+        <div id="log-scroll-box"><div id="log-output"></div></div>
       </div>
 
       <div id="lower-third-footer">
         <ul id="left-footer" class="footer-list">
-          <li id="repl-toggle" class="repl-active" alt="Toggle REPL">></li>
+          <li id="repl-toggle">&gt;</li>
+          <li id="log-toggle">...</li>
         </ul>
         <ul id="right-footer" class="footer-list">
           <!-- Clicking this should bring up a floating list with a location based on
             event.clientX and event.clientY with a list of all apps to select from. -->
-          <li id="showAppList">=</li>
+          <li id="app-list-button">=</li>
         </ul>
       </div>
     </div>
