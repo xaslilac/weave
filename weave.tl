@@ -144,7 +144,7 @@ module.exports = exports = weave = {
     return constructor
   },
 
-  Dictionary: require( './utilities/MIME' ),
+  Dictionary: require( './utilities/MimeDictionary' ),
 
   HTTPError: function code, description {
     if !Number.is( code ) {
@@ -184,6 +184,7 @@ process.argv.forEach( function arg {
       break;
     case "--weave-debug":
       weave.debug = true
+      //require( './debug' )
       break;
     case "--enable-repl":
       require( './developer-tools/repl' )
@@ -197,3 +198,5 @@ process.argv.forEach( function arg {
       break;
   }
 })
+
+require( weave.debug ? './' )
