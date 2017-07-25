@@ -50,12 +50,8 @@ body {
   left: 0px;
 }
 
-#repl-scroll-box {
-  height: 400px;
-}
-
-#log-scroll-box {
-  height: 421px;
+#repl-scroll-box, #log-scroll-box {
+  height: 450px;
 }
 
 #repl {
@@ -63,21 +59,21 @@ body {
 }
 
 #repl-output, #log-output {
-  max-height: 395px;
+  max-height: 425px;
   width: 100%;
   overflow-y: scroll;
 
   position: absolute;
-  margin: 0px;
+  padding: 0px;
 }
 
-#repl-output {
+#repl-output, #log-output {
   margin-bottom: 25px;
   bottom: 0px;
 }
 
 #log {
-  background-color: #062025;
+  background-color: #0d000d;
 }
 
 #repl-output pre, #log-output pre, #repl-input {
@@ -103,6 +99,9 @@ pre.log {
 #repl-input {
   background-color: transparent;
   border: none;
+
+  position: absolute;
+  bottom: 5px;
 
   width: 1000px;
   /*height: 20px;*/
