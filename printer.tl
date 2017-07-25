@@ -3,11 +3,13 @@
 
 // n is a CRLF buffer, z is an end packet buffer.
 var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
-var DOM = require( './utilities/DOM' );
+var DOM, Zen;
 
 
 
 module 'fs', 'path', 'util';
+DOM = require( './utilities/DOM' )
+Zen = require( './utilities/Zen' )
 
 weave.Printer = function {
   return function error, details, connection {

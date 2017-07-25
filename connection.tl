@@ -3,12 +3,13 @@
 
 // n is a CRLF buffer, z is an end packet buffer.
 var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
-var Wildcard;
+var Wildcard, Zen;
 
 
 
 module 'events', 'fs', 'http', 'path', 'util', 'url';
-Wildcard = require( "./utilities/Wildcard" )
+Wildcard = require( './utilities/Wildcard' )
+Zen = require( './utilities/Zen' )
 
 // The Connection class is responsible for determining which App is
 // responsible for handling the ClientRequest and ServerResponse

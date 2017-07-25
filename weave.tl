@@ -99,7 +99,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 
 // Import all of the modules that we need before we do anything crazy.
 module 'crypto', 'http';
-Zen = require( './utilities/zen' )
+Zen = require( './utilities/Zen' )
 
 module.exports = exports = weave = {
   version: "0.1.10",

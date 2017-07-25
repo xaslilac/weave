@@ -3,10 +3,12 @@
 
 // n is a CRLF buffer, z is an end packet buffer.
 var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
+var Zen;
 
 
 
 module 'fs', 'path';
+Zen = require( './utilities/Zen' )
 
 // If you add any kind of "Connection::type" please make sure that you add
 // an "isType" function.
@@ -107,11 +109,10 @@ weave.Router = function {
       }
     }
 
-    indexes = connection.behavior( "indexes" )
+    indexes = connection.behavior( 'indexes' )
 
     // Define our search function
     search = function {
-      var indexes;
       // Check to see if it exists, and if it's a file or a directory.
       // If it doesn't exist, then step up a directory and try again.
       fs.exists( cursor, function exists {

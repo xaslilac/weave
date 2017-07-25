@@ -3,12 +3,13 @@
 
 // n is a CRLF buffer, z is an end packet buffer.
 var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
-var Wildcard;
+var Wildcard, Zen;
 
 
 
 module 'events', 'http', 'path';
-Wildcard = require( "./utilities/Wildcard" )
+Wildcard = require( './utilities/Wildcard' )
+Zen = require( './utilities/Zen' )
 
 // The App class contains configuration data and handles delegation,
 // tracking, and caching of requests.

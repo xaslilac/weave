@@ -3,10 +3,12 @@
 
 // n is a CRLF buffer, z is an end packet buffer.
 var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
+var Zen;
 
 
 
 module 'events';
+Zen = require( './utilities/Zen')
 
 weave.WebSocket = weave.Class( events.EventEmitter, function app, path, listener {
   var socket = @;
