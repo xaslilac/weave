@@ -94,15 +94,14 @@ weave.WebSocketConnection::handshake = function httpConnection, socketConnection
 
 weave.WebSocketConnection::decode = function data {
   // Set up our scope with all the necessary variables.
-  var _ = weave.util,
-  b0 = _.READ_BITS( data[0] ),
-  b1 = _.READ_BITS( data[1] ),
+  var b0 = weave.util.READ_BITS( data[0] ),
+      b1 = weave.util.READ_BITS( data[1] ),
   offset = 0, decoded = [],
   details = {
   masked: b1[0], // 0 if false, 1 if true
   FIN: b0[0], // 0 if partial, 1 if final frame
-  opcode: _.BINARY_UINT( b0.slice( 4, 8 ) ) },
-  payloadLength = _.BINARY_UINT( b1.slice( 1, 8 ) );
+  opcode: weave.util.BINARY_UINT( b0.slice( 4, 8 ) ) },
+  payloadLength = weave.util.BINARY_UINT( b1.slice( 1, 8 ) );
 
   // Check if the frame has an extended payload length,
   // and if it is 16 bit or 64 bit.
@@ -151,7 +150,7 @@ weave.WebSocketConnection::send = function data, opcode {
     } else console.error( "WebSocket data should be a string or a buffer!" )
   }
 
-  var _ = weave.util, prefix = [ Number.is( opcode ) ? 128 + opcode : 129, 0 ], length;
+  var prefix = [ Number.is( opcode ) ? 128 + opcode : 129, 0 ], length;
 
   // Determine if we need an extendedPayloadLength, and if we do, how long.
   // We must add the correct number of spacing 0's to our length string to
@@ -161,11 +160,11 @@ weave.WebSocketConnection::send = function data, opcode {
     if data.length > 65536 {
       prefix[1] += 127,
       length = data.length.toString( 16 )
-      _.times( 16 - length.length, function () { length = "0" + length } )
+      weave.util.times( 16 - length.length, function () { length = "0" + length } )
     } else {
       prefix[1] += 126,
       length = data.length.toString( 16 )
-      _.times( 4 - length.length, function () { length = "0" + length } )
+      weave.util.times( 4 - length.length, function () { length = "0" + length } )
     }
     prefix = Buffer.concat([ Buffer.from( prefix, 'hex'), Buffer.from( length, 'hex' ) ])
   } else {
