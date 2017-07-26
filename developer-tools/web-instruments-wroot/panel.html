@@ -2,25 +2,24 @@
 <html>
   <head>
     <title>Web Console</title>
-    <link rel="stylesheet" type="text/css" href="main.css" />
-    <script type="application/javascript" src="wi.js"></script>
+
+    <meta name="viewport" content="width=device-width" />
+
+    <link rel="stylesheet" type="text/css" href="resources/style/main.css" />
+
+    <script type="application/javascript" src="resources/wi.js"></script>
+    <script type="application/javascript" src="resources/repl.js"></script>
   </head>
   <body>
-    <h1>Look a header!</h1>
-    <ul id="container"></ul>
-    <div id="lower-third">
-      <div id="repl">
-        <div id="repl-scroll-box"><div id="repl-output"></div></div>
-        <textarea id="repl-input" type="text" resizable="false" rows="1"></textarea>
+    <div id="panel">
+      <div id="console">
+        <div id="console-output"></div>
+        <textarea class="input" id="console-input" type="text" resizable="false" rows="1"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
       </div>
-      <div id="log">
-        <div id="log-scroll-box"><div id="log-output"></div></div>
-      </div>
-
-      <div id="lower-third-footer">
+      <div id="footer">
         <ul id="left-footer" class="footer-list">
-          <li id="repl-toggle">&gt;</li>
-          <li id="log-toggle">...</li>
+          <li id="console-toggle">&gt;</li>
         </ul>
         <ul id="right-footer" class="footer-list">
           <!-- Clicking this should bring up a floating list with a location based on

@@ -57,7 +57,7 @@ weave.Printer = function {
                 }
 
                 href = path.join( "/", connection.url.pathname, file )
-                a.setAttribute( 'href', href ), a.innerHTML = './{{file}}'
+                a.setAttribute( 'href', href ), a.innerHTML = '/{{file}}'
                 document.body.appendChild( li ).appendChild( a )
                 some.next()
               } )
