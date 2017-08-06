@@ -2,16 +2,15 @@
 "use strict";
 
 // n is a CRLF buffer, z is an end packet buffer.
-var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
-var Zen;
+weave := require( './weave' )
 
 
 
 module 'events';
-Zen = require( './utilities/Zen')
+Zen := require( './utilities/Zen')
 
 weave.WebSocket = weave.Class( events.EventEmitter, function app, path, listener {
-  var socket = @;
+  socket := @
 
   if app && !weave.App.is( app ) {
     if String.is( app ) && weave.App.is( weave.apps[ app ] ) {
@@ -30,7 +29,7 @@ weave.WebSocket = weave.Class( events.EventEmitter, function app, path, listener
 // listeners good data on where specifically the message is coming from, but
 // could also be bad and complicate things unnecessarily.
 weave.WebSocket::attach = function app, socketUrl {
-  var socket = @;
+  socket := @
 
   if !weave.App.is( app ) {
     if String.is( app ) && weave.App.is( weave.apps[ app ] ) {
@@ -44,7 +43,7 @@ weave.WebSocket::attach = function app, socketUrl {
 }
 
 weave.WebSocketConnection = weave.Class( events.EventEmitter, function socket, httpConnection {
-  var socketConnection = @;
+  socketConnection := @
   @_WEAVE_CONNECTION = httpConnection
   @_NODE_CONNECTION = httpConnection._NODE_CONNECTION
   @readyState = 0
@@ -75,13 +74,13 @@ weave.WebSocketConnection = weave.Class( events.EventEmitter, function socket, h
 })
 
 weave.WebSocketConnection::handshake = function httpConnection, socketConnection {
-  var key, accept, socket = @;
+  socket := @
   // Make sure the client is expecting a WebSocket upgrade, and that it gave us a key.
   if ( httpConnection.get( "connection" ) === "Upgrade" && httpConnection.get( "upgrade" ) === "websocket" ) {
-    key = httpConnection.get( "sec-websocket-key" )
+    key := httpConnection.get( "sec-websocket-key" )
     if key {
       // Compute the sec-websocket-accept header value to complete the handshake.
-      accept = weave.util.SHA1_64( key + weave.constants.WebSocketUUID )
+      accept := weave.util.SHA1_64( key + weave.constants.WebSocketUUID )
       httpConnection.writeHead( 101, {
         "Connection": "Upgrade",
         "Upgrade": "websocket",
@@ -96,14 +95,15 @@ weave.WebSocketConnection::handshake = function httpConnection, socketConnection
 
 weave.WebSocketConnection::decode = function data {
   // Set up our scope with all the necessary variables.
-  var b0 = weave.util.READ_BITS( data[0] ),
-      b1 = weave.util.READ_BITS( data[1] ),
-  offset = 0, decoded = [],
-  details = {
-  masked: b1[0], // 0 if false, 1 if true
-  FIN: b0[0], // 0 if partial, 1 if final frame
-  opcode: weave.util.BINARY_UINT( b0.slice( 4, 8 ) ) },
-  payloadLength = weave.util.BINARY_UINT( b1.slice( 1, 8 ) );
+  b0 := weave.util.READ_BITS( data[0] )
+  b1 := weave.util.READ_BITS( data[1] )
+  offset := 0
+  decoded := []
+  details := {
+    masked: b1[0], // 0 if false, 1 if true
+    FIN: b0[0], // 0 if partial, 1 if final frame
+    opcode: weave.util.BINARY_UINT( b0.slice( 4, 8 ) ) }
+  payloadLength := weave.util.BINARY_UINT( b1.slice( 1, 8 ) );
 
   // Check if the frame has an extended payload length,
   // and if it is 16 bit or 64 bit.
@@ -152,7 +152,7 @@ weave.WebSocketConnection::send = function data, opcode {
     } else console.error( "WebSocket data should be a string or a buffer!" )
   }
 
-  var prefix = [ Number.is( opcode ) ? 128 + opcode : 129, 0 ], length;
+  prefix := [ Number.is( opcode ) ? 128 + opcode : 129, 0 ]
 
   // Determine if we need an extendedPayloadLength, and if we do, how long.
   // We must add the correct number of spacing 0's to our length string to
@@ -161,11 +161,11 @@ weave.WebSocketConnection::send = function data, opcode {
   if data.length > 125 {
     if data.length > 65536 {
       prefix[1] += 127,
-      length = data.length.toString( 16 )
+      length := data.length.toString( 16 )
       weave.util.times( 16 - length.length, function () { length = "0" + length } )
     } else {
       prefix[1] += 126,
-      length = data.length.toString( 16 )
+      length := data.length.toString( 16 )
       weave.util.times( 4 - length.length, function () { length = "0" + length } )
     }
     prefix = Buffer.concat([ Buffer.from( prefix, 'hex'), Buffer.from( length, 'hex' ) ])
@@ -180,12 +180,12 @@ weave.WebSocketConnection::send = function data, opcode {
 }
 
 weave.WebSocketConnection::ping = function callback {
-  var pingBuffer, socketConnection = @;
+  socketConnection := @
 
   // Avoid pinging multiple times at once
   if !@pinging {
     @pinging = true;
-    pingBuffer = Buffer.from( weave.util.RNDM_RG( 0, 0xFFFFFFFF, 16 ), 'hex' )
+    pingBuffer := Buffer.from( weave.util.RNDM_RG( 0, 0xFFFFFFFF, 16 ), 'hex' )
     @send( pingBuffer, 0x9 )
 
     // Verify that the message is correct.
@@ -205,7 +205,7 @@ weave.WebSocketConnection::ping = function callback {
 
 weave.WebSocketConnection::close = function code, reason, message {
   // This defaults the code to 1000
-  var codeBuffer = [ 0x3, 0xe8 ];
+  codeBuffer := [ 0x3, 0xe8 ]
   console.log( @readyState, code, reason, message )
 
   // If the connection is already being closed, this will just be the

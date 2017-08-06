@@ -2,20 +2,21 @@
 "use strict";
 
 // n is a CRLF buffer, z is an end packet buffer.
-var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
-var Wildcard, Zen;
+weave := require( './weave' )
+n := new Buffer('\r\n')
+z := new Buffer('0\r\n\r\n')
 
 
 
 module 'events', 'fs', 'http', 'path', 'util', 'url';
-Wildcard = require( './utilities/Wildcard' )
-Zen = require( './utilities/Zen' )
+Wildcard := require( './utilities/Wildcard' )
+Zen := require( './utilities/Zen' )
 
 // The Connection class is responsible for determining which App is
 // responsible for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
 weave.Connection = weave.Class( events.EventEmitter, function i, o {
-	var app, directory, connection = @;
+	connection := @
 
   // For time tracking and caching purposes, save the time that
   // the connection first began processing. Initialize the state.
@@ -74,7 +75,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   } else if weave.cache.wildcardMatches[ @host ] {
     @app = weave.cache.wildcardMatches[ @host ]
   } else {
-		app = Wildcard.bestMatch(
+		app := Wildcard.bestMatch(
       Object.keys( weave.hosts ).filter( function host {
         return /\*/.test( host )
       }),
@@ -148,8 +149,8 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
 })
 
 weave.Connection::behavior = function name {
-  var behavior,
-  nests = name.split(" ");
+  var behavior;
+  nests := name.split(" ");
 
   // Load in order of priority. If there is a directory configuration then
   // that is the most important. The next most important would be the
@@ -180,8 +181,8 @@ weave.Connection::get =
 weave.Connection::getHeader = function name, asString {
   // Make sure the header name is lowercase, so that it
   // can be case insensitive.
-  var header = @_NODE_REQUEST.headers[ name ],
-	data; name = name.toLowerCase();
+  header := @_NODE_REQUEST.headers[ name ]
+	name = name.toLowerCase()
 
   // If asString is true then the header must be returned as a
   // plain string. If it's not, then we can do some processing
@@ -198,7 +199,7 @@ weave.Connection::getHeader = function name, asString {
       case "cookie":
         // I think this is how we parse cookies but I suck at them???
 				if String.is( header ) {
-					data = {}
+					data := {}
 					header.split(";").forEach( function cookie {
 						cookie = cookie.trim().split( '=' )
 						data[cookie.shift()] = cookie.join( '=' ) || true
@@ -274,7 +275,8 @@ weave.Connection::endHead = function header, value {
 }
 
 weave.Connection::writeHead = function status, headers {
-  var connection = @;
+  connection := @
+
   if Number.is( status ) /*&& Object.is( headers )*/ {
     @status( status )
     Object.keys( headers ).forEach( function key {
@@ -296,8 +298,6 @@ weave.Connection::hasBody = function {
 // TODO: Check before writing the Date header as well. Or disallow anyone else
 // from writing it with a condition in ::writeHeader().
 weave.Connection::write = function content, encoding {
-  var buf;
-
   // If we aren't writing the body yet, right some final headers.
   if @state < 3 {
     if @state < 2 {
@@ -312,7 +312,7 @@ weave.Connection::write = function content, encoding {
 
 		if @hasBody() {
 	    if @isKeepAlive {
-	      buf = Buffer.concat( [
+	      buf := Buffer.concat( [
 	        new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
 	        new Buffer( content, encoding ), n ] )
 
@@ -340,16 +340,32 @@ weave.Connection::end = function {
   @state = 3
 }
 
+weave.Connection::redirect = function location, status {
+	if !Number.is( status ) {
+		if status == null {
+			status = 301
+		} else {
+			// TODO: ERROR HERE!!! Invalid status given.
+			// Give us a number or give us death (undefined).
+			return
+		}
+	}
+
+	@writeHead( status, {
+		"Location": location
+	}).end()
+}
+
 weave.Connection::generateErrorPage = function error {
 	// Create a details object for us to pass to printer.
-	var errorPageName, errorPagePath, cursor, connection = @,
-	details = Object.create( weave.constants.DETAILS, {
+	connection := @
+	details := Object.create( weave.constants.DETAILS, {
 		url: {
 			value: @url,
 			enumerable: true, writable: true, configurable: true } } );
 
 	// Make the printer easier to call in different contexts.
-	print = function more {
+	print := function more {
 		return connection.app.printer( error, Object.extend( details, more ), connection )
 	}
 
@@ -357,16 +373,16 @@ weave.Connection::generateErrorPage = function error {
 	// If the app location begins with ~, replace it with the users home directory.
 	// weave.constants.HOME normalizes the API for Node across different platforms.
 	if connection.behavior( "location" ) {
-		cursor = path.join( connection.behavior( "location" ).replace( /^~/, weave.constants.HOME ) )
+		cursor := path.join( connection.behavior( "location" ).replace( /^~/, weave.constants.HOME ) )
 	} else return print()
 
 	// NOTE: Router and this share a lot of boilerplate code. We should do something
 	// to merge them together maybe?
 
   if weave.HTTPError.is( error ) {
-		errorPageName = @behavior( 'errorPages {{error.status}}' )
+		errorPageName := @behavior( 'errorPages {{error.status}}' )
 		if errorPageName {
-			errorPagePath = path.join( cursor, @behavior( 'errorPages {{error.status}}' ) )
+			errorPagePath := path.join( cursor, @behavior( 'errorPages {{error.status}}' ) )
 			fs.exists( errorPagePath, function exists {
 				if exists {
 					fs.stat( errorPagePath, function serror, stats {

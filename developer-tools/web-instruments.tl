@@ -2,9 +2,9 @@
 "use strict";
 
 // n is a CRLF buffer, z is an end packet buffer.
-var weave = require( '../weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n'),
-$ = function n { return weave.getAppByName( n ) },
-$$ = function n, d { return $(n).configuration[ d || "/" ] };
+weave := require( '../weave' )
+$ := function n { return weave.getAppByName( n ) }
+$$ := function n, d { return $(n).configuration[ d || "/" ] }
 
 
 
@@ -15,8 +15,6 @@ require( './repl' )
 
 
 weave.attachInstruments = function app, instrumentUrl {
-  var socket, logPipe;
-
   if !weave.App.is( app ) {
     if String.is( app ) && weave.App.is( weave.apps[ app ] ) {
       app = weave.apps[ app ]
@@ -37,7 +35,7 @@ weave.attachInstruments = function app, instrumentUrl {
     connection.end("['repl','log']")
   })
 
-  socket = new weave.WebSocket( function connection {
+  socket := new weave.WebSocket( function connection {
     weave.zen('Instruments connected')
     connection.on( 'message', function message {
       message.json = JSON.parse( message.data )
@@ -61,7 +59,7 @@ weave.attachInstruments = function app, instrumentUrl {
       }
     })
 
-    logPipe = function log {
+    logPipe := function log {
       connection.send( JSON.stringify({
         messageType: 'console-log',
         space: log.space,

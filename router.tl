@@ -2,13 +2,12 @@
 "use strict";
 
 // n is a CRLF buffer, z is an end packet buffer.
-var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
-var Zen;
+weave := require( './weave' )
 
 
 
 module 'fs', 'path';
-Zen = require( './utilities/Zen' )
+Zen := require( './utilities/Zen' )
 
 // If you add any kind of "Connection::type" please make sure that you add
 // an "isType" function.
@@ -29,34 +28,43 @@ weave.constants.DETAILS = {
 
 weave.Router = function {
   return function connection {
-    var cursor, location, details, printer, search, reroute, indexes;
+    var cursor, search;
 
     // We give the printer this details object to let it know what we
     // have found about about the request so far.
-  	details = Object.create( weave.constants.DETAILS, {
+  	details := Object.create( weave.constants.DETAILS, {
   		url: {
   			value: @url,
   			enumerable: true, writable: true, configurable: true } } )
 
     // Make the printer easier to call in different contexts.
     // XXX: Should this be more automatic like the version in generateErrorPage?
-    printer = function {
+    printer := function {
       return connection.app.printer.apply( connection.app, arguments )
     }
 
     // If the configuration is a Function, then the request should be handle as
     // an interface type. Call the interface configuration.
     if Function.is( connection.configuration ) {
-      /*return printer.call( connection, undefined, Object.extend( details, {
-        type: "interface", result: connection.configuration( connection )
-      }), connection )*/
+      shouldContinue := false
+
+      details.shouldContinue = function ( configuration ) {
+        if configuration {
+          connection.configuration = configuration
+          return shouldContinue = true
+        } else {
+          // TODO: Not sure what to do here exactly. Need to complain about not
+          // getting a configuration argument.
+        }
+      }
+
       // TODO: This is messy right now. Nothing is being passed the results of the interface.
       Object.extend( details, {
         result: connection.configuration.call( connection.app, connection, details ),
         type: "interface"
       })
 
-      return;
+      if !shouldContinue { return }
     }
 
     // Set the initial depth to 0. Depth is used to keep track of
@@ -87,7 +95,9 @@ weave.Router = function {
     // cursor points to where ever we're searching for files.
     // If the app location begins with ~, replace it with the users home directory.
     // weave.constants.HOME normalizes the API for Node across different platforms.
-    location = connection.behavior( 'location' )
+
+    // TODO: Move .replace(/^~/) to connection.behavior as a special case
+    location := connection.behavior( 'location' )
     if location {
       cursor = path.join( location.replace( /^~/, weave.constants.HOME ), unescape( connection.url.path ) )
     } else {
@@ -97,7 +107,7 @@ weave.Router = function {
 
     // This function makes depth adjustments, and is called rather than calling
     // search directly if a recursive search is necessary.
-    reroute = function {
+    reroute := function {
       // If there's room to step back and keep searching for files then we do so.
       if path.relative( "/", connection.url.path ) {
         connection.url.path = path.join( connection.url.path, ".." ), cursor = path.join( cursor, ".." );
@@ -109,10 +119,10 @@ weave.Router = function {
       }
     }
 
-    indexes = connection.behavior( 'indexes' )
+    indexes := connection.behavior( 'indexes' )
 
     // Define our search function
-    search = function {
+    search := function {
       // Check to see if it exists, and if it's a file or a directory.
       // If it doesn't exist, then step up a directory and try again.
       fs.exists( cursor, function exists {
@@ -132,9 +142,7 @@ weave.Router = function {
             } else if stats.isDirectory() {
               if connection.url.depth === 0 && !connection.behavior( 'disableURLCleaning' )
               && !connection.url.pathname.endsWith("/") {
-                connection.writeHead( 301, {
-                  "Location": connection.url.pathname + "/"
-                }).end()
+                connection.redirect( connection.url.pathname + "/" )
               } else if indexes {
                 Object.keys( indexes ).someAsync( function index, n, some {
                   if connection.url.depth <= indexes[ index ] {

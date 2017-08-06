@@ -6,7 +6,6 @@
 // Strict mode is cool
 "use strict";
 
-var Zen, weave;
 // Some basic utilities, like an asynchronous implemenation of Array::some,
 // an object property setter, and basic universal type detection.
 Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
@@ -99,9 +98,9 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 
 // Import all of the modules that we need before we do anything crazy.
 module 'crypto', 'http';
-Zen = require( './utilities/Zen' )
+Zen := require( './utilities/Zen' )
 
-module.exports = exports = weave = {
+weave := module.exports = exports = {
   version: "0.1.10",
 
   servers: {}, apps: {}, hosts: {}, cache: { wildcardMatches: {} },
