@@ -109,7 +109,7 @@ weave := module.exports = exports = {
                HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/",
                STATUS_CODES: http.STATUS_CODES,
                STATUS_DESCRIPTIONS: {
-                 404: "The file you requested may have been moved or no longer exists."
+                 404: "The file you requested does not exist."
                } },
 
   zen: new Zen( 'weave' ),
@@ -183,9 +183,8 @@ process.argv.forEach( function arg {
     case "--aww-heck-yes":
       console.log( "aww heck yes" )
       break;
-    case "--weave-debug":
-      weave.debug = true
-      //require( './debug' )
+    case "--weave-verbose":
+      weave.verbose = true
       break;
     case "--enable-repl":
       require( './developer-tools/repl' )

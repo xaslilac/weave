@@ -160,11 +160,11 @@ weave.WebSocketConnection::send = function data, opcode {
   // figured out, complete the prefix and make it a Buffer.
   if data.length > 125 {
     if data.length > 65536 {
-      prefix[1] += 127,
+      prefix[1] += 127
       length := data.length.toString( 16 )
       weave.util.times( 16 - length.length, function () { length = "0" + length } )
     } else {
-      prefix[1] += 126,
+      prefix[1] += 126
       length := data.length.toString( 16 )
       weave.util.times( 4 - length.length, function () { length = "0" + length } )
     }

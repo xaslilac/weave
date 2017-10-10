@@ -128,6 +128,10 @@ weave.Router = function {
       fs.exists( cursor, function exists {
         if exists {
           fs.stat( cursor, function error, stats {
+            if error {
+              return console.error( error )
+            }
+
             // If it's a file, then we're done, and we just call the printer.
             // If it's a directory, then check for an index, making sure that
             // is has a fitting depth, that it exists, and is a file. We use a

@@ -15,6 +15,7 @@ Zen := require( './utilities/Zen' )
 // The Connection class is responsible for determining which App is
 // responsible for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
+
 weave.Connection = weave.Class( events.EventEmitter, function i, o {
 	connection := @
 
@@ -238,38 +239,19 @@ weave.Connection::status = function status {
 }
 
 weave.Connection::writeHeader = function header, value {
-	if !String.is( header ) {
-		console.error( 'argument header must be a string' )
-		return @
+	if !String.is( header ) { return console.error( 'argument header must be a string' ) }
+
+  // To write headers we must have a status, and no body.
+	if @state === 0 { return @status( 200 ) }
+  if @state > 1 { return console.log( 'Headers already sent!') }
+
+	// You can't cache an error!
+	if header.toLowerCase() === "last-modified" && @_STATUS >= 300 {
+		console.error( "You can't cache an error!" )
 	}
 
-  // If no body content has been sent yet, check if the status has.
-  // If not, right the status, and then right the header.
-  if @state < 2 {
-    if @state === 0 {
-      @status( 200 )
-    }
-
-		if header.toLowerCase() === "last-modified" && @_STATUS >= 300 {
-			console.error( "You can't cache an error!" )
-		}
-		@_WRITTEN_HEADERS[ header ] = value
-    @_NODE_CONNECTION.write( "{{header}}: {{value + n}}" )
-  } else {
-		console.log( 'Headers already sent! Perharps use a trailer.')
-	}
-
-  return @
-}
-
-weave.Connection::endHead = function header, value {
-  // If there's an actual header to right, then right it.
-  // Then end the header and start righting the body.
-  if header {
-    @writeHeader( header, value )
-  }
-  @_NODE_CONNECTION.write( n )
-  @state = 2
+	@_WRITTEN_HEADERS[ header ] = value
+	@_NODE_CONNECTION.write( "{{header}}: {{value + n}}" )
 
   return @
 }
@@ -289,6 +271,25 @@ weave.Connection::writeHead = function status, headers {
   return @
 }
 
+weave.Connection::endHead = function header, value {
+  // If there's an actual header to right, then right it.
+  // Then end the header and start righting the body.
+  if header {
+    @writeHeader( header, value )
+  }
+
+	// Write required headers and shit
+	@writeHeader( "Date", @date.toUTCString() )
+	@isKeepAlive ?
+		@writeHeader( "Transfer-Encoding", "chunked" ) :
+		@writeHeader( "Content-Length", content.length )
+
+  @_NODE_CONNECTION.write( n )
+  @state = 2
+
+  return @
+}
+
 weave.Connection::hasBody = function {
 	return @method !== "HEAD" && @_STATUS !== 304
 }
@@ -299,31 +300,28 @@ weave.Connection::hasBody = function {
 // from writing it with a condition in ::writeHeader().
 weave.Connection::write = function content, encoding {
   // If we aren't writing the body yet, right some final headers.
-  if @state < 3 {
-    if @state < 2 {
-      // Write required headers and shit
-      @isKeepAlive ?
-				@writeHeader( "Transfer-Encoding", "chunked" ) :
-				@writeHeader( "Content-Length", content.length )
-      @endHead( "Date", @date.toUTCString() )
+  if @state === 3 {
+		return console.error( "request completed" )
+	}
 
-      @state = 2
-    }
-
-		if @hasBody() {
-	    if @isKeepAlive {
-	      buf := Buffer.concat( [
-	        new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
-	        new Buffer( content, encoding ), n ] )
-
-	      @_NODE_CONNECTION.write( buf )
-	    } else {
-				// XXX: I don't know if this is 100%, but I think it is.
-	      @_NODE_CONNECTION.write( content, encoding )
-				@_NODE_CONNECTION.end()
-	    }
-		}
+  if @state < 2 {
+    @endHead()
+    @state = 2
   }
+
+	if @hasBody() {
+    if @isKeepAlive {
+      buf := Buffer.concat( [
+        new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
+        new Buffer( content, encoding ), n ] )
+
+      @_NODE_CONNECTION.write( buf )
+    } else {
+			// XXX: I don't know if this is 100%, but I think it is.
+      @_NODE_CONNECTION.write( content, encoding )
+			@_NODE_CONNECTION.end()
+    }
+	}
 
   return @
 }
@@ -331,6 +329,9 @@ weave.Connection::write = function content, encoding {
 weave.Connection::end = function {
   // Write any data given, and then send the "last chunk"
   if arguments.length > 0 { @write.apply( @, arguments ) }
+	// Firefox will hang on requests if there is no body present,
+	// such as 3xx redirects, so write a blank one.
+	if @state < 2 { @write("") }
 
   // Keep the connection alive or kill it
   @isKeepAlive ?
@@ -346,14 +347,13 @@ weave.Connection::redirect = function location, status {
 			status = 301
 		} else {
 			// TODO: ERROR HERE!!! Invalid status given.
-			// Give us a number or give us death (undefined).
+			// Give us a number or give us undefined.
+			console.log('please dont log this')
 			return
 		}
 	}
 
-	@writeHead( status, {
-		"Location": location
-	}).end()
+	@writeHead( status, { "Location": location } ).end()
 }
 
 weave.Connection::generateErrorPage = function error {
@@ -382,7 +382,9 @@ weave.Connection::generateErrorPage = function error {
   if weave.HTTPError.is( error ) {
 		errorPageName := @behavior( 'errorPages {{error.status}}' )
 		if errorPageName {
-			errorPagePath := path.join( cursor, @behavior( 'errorPages {{error.status}}' ) )
+			// TODO: Make sure this actually works, so that we can have absolute paths.
+			// If it doesn't work, then switch it back to .join for now.
+			errorPagePath := path.resolve( cursor, @behavior( 'errorPages {{error.status}}' ) )
 			fs.exists( errorPagePath, function exists {
 				if exists {
 					fs.stat( errorPagePath, function serror, stats {
