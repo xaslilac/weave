@@ -1,8 +1,10 @@
 // MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
-// n is a CRLF buffer, z is an end packet buffer.
 weave := require( './weave' )
+garden := new weave.Garden( 'weave.Connection' )
+
+// n is a CRLF buffer, z is an end packet buffer.
 n := new Buffer('\r\n')
 z := new Buffer('0\r\n\r\n')
 
@@ -92,6 +94,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
       // We're trying to pretend that there isn't a server connected but
       // is that really a good idea? We should probably tell someone that
       // the server is connected and just not active.
+			garden.warning( "Incoming connection rejected. No app found." )
       return i.connection.destroy()
 		}
 	}
@@ -253,16 +256,15 @@ weave.Connection::writeHeader = function header, value {
 }
 
 weave.Connection::writeHead = function status, headers {
-	if !Number.is( status ) && headers == null {
-		headers = status
-	} else {
-		return console.error( 'writeHead: invalid args', arguments )
+	if !Number.is( status ) {
+		if !@_STATUS { return console.error( 'No status written yet, we need a status!' ) }
+	  headers = status
 	}
 
   connection := @
 	names := Object.keys( headers )
 
-  !@_STATUS@status( status )
+  @status( status )
 
   names.forEach( function name {
     connection.writeHeader( name, headers[ name ] )

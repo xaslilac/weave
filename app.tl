@@ -1,16 +1,16 @@
 // MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
-// n is a CRLF buffer, z is an end packet buffer.
 weave := require( './weave' )
+garden := new weave.Garden( 'weave.App' )
+
+// n is a CRLF buffer, z is an end packet buffer.
 n := new Buffer('\r\n')
 z := new Buffer('0\r\n\r\n')
-g := new weave.Garden( 'weave.App' )
 
-g.log('Hello')
-g.warning('there')
-g.error('sailor!')
-
+garden.log('Hello')
+garden.warning('there')
+garden.error('sailor!')
 
 module 'events', 'http', 'path';
 Wildcard := require( './utilities/Wildcard' )
@@ -19,7 +19,7 @@ Wildcard := require( './utilities/Wildcard' )
 // tracking, and caching of requests.
 weave.App = weave.Class( events.EventEmitter, function appName {
   if weave.apps[ appName ] {
-    return g.warning( "App {{appName}} already exists!" )
+    return garden.warning( "App {{appName}} already exists!" )
   } else weave.apps[ appName ] = @
 
   // Create the initial configuration storage object and use
@@ -38,12 +38,6 @@ weave.App = weave.Class( events.EventEmitter, function appName {
   // time frame, when we implement an actual CLI for managing servers.
   // XXX: This might not even be necessary
   @debug = weave.debug
-
-  // The router processes the request, decides what should be done with it,
-  // and then passes those details on to the printer for it to generate the
-  // actual response.
-  @router = new weave.Router()
-  @printer = new weave.Printer()
 
   // XXX: We'll probably replace these with something else entirely.
   // @error is the function that should be called for all errors

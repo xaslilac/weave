@@ -29,7 +29,7 @@ Garden := module.exports = exports = function ( name ) {
 }
 
 Garden::log = function ( message ) {
-  process.stdout.write( "[{{this.name}}] \033[36m[log]\033[39m      " + util.inspect( message ) + "\n" )
+  process.stdout.write( "[{{this.name}}] \033[36m[log]\033[39m      " +  message + "\n" )
 }
 
 Garden::warning = function ( message ) {
