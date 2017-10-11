@@ -10,7 +10,6 @@ z := new Buffer('0\r\n\r\n')
 
 module 'events', 'fs', 'http', 'path', 'util', 'url';
 Wildcard := require( './utilities/Wildcard' )
-Zen := require( './utilities/Zen' )
 
 // The Connection class is responsible for determining which App is
 // responsible for handling the ClientRequest and ServerResponse
@@ -143,7 +142,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     @app.router( @ )
   } else {
     if !@app.emit( "failed connection", @ ) {
-      @app.error( "No configured directory for requested URL {{@url.pathname}}" )
+      // TODO: Log an error here
       @generateErrorPage( new weave.HTTPError( 501, "No configuration set for requested URL" ) )
     }
   }
@@ -224,26 +223,23 @@ weave.Connection::getHeader = function name, asString {
 })
 
 weave.Connection::status = function status {
-  // If we haven't written the status yet, right it
-  // and start writting headers.
-  if @state === 0 && Number.is( status ) {
-    @_NODE_CONNECTION.write( "HTTP/1.1 {{status}} {{http.STATUS_CODES[status]}}\r\n")
-		@_STATUS = status
-		@_WRITTEN_HEADERS = {}
-    @state = 1
-  } else {
-		console.log( 'Cannot write status {{status}} to HTTP stream, already wrote {{@_STATUS}}!' )
-	}
+  // Check to make sure the status is valid, and has not yet been written.
+  if @state !== 0         { return console.log( 'Cannot write status {{status}} to HTTP stream, already wrote {{@_STATUS}}!' ) }
+	if !Number.is( status ) { return console.error( 'Invalid status!', status ) }
+
+  @_NODE_CONNECTION.write( "HTTP/1.1 {{status}} {{http.STATUS_CODES[status]}}\r\n")
+	@_STATUS = status
+	@_WRITTEN_HEADERS = {}
+  @state = 1
 
   return @
 }
 
 weave.Connection::writeHeader = function header, value {
-	if !String.is( header ) { return console.error( 'argument header must be a string' ) }
-
-  // To write headers we must have a status, and no body.
+	// To write headers we must have a status, no body, and a valid header name.
+	if !String.is( header ) { return console.error( 'Header arugment must be a string' ) }
 	if @state === 0 { return @status( 200 ) }
-  if @state > 1 { return console.log( 'Headers already sent!') }
+  if @state > 1   { return console.log( 'Headers already sent!') }
 
 	// You can't cache an error!
 	if header.toLowerCase() === "last-modified" && @_STATUS >= 300 {
@@ -257,17 +253,21 @@ weave.Connection::writeHeader = function header, value {
 }
 
 weave.Connection::writeHead = function status, headers {
+	if !Number.is( status ) && headers == null {
+		headers = status
+	} else {
+		return console.error( 'writeHead: invalid args', arguments )
+	}
+
   connection := @
+	names := Object.keys( headers )
 
-  if Number.is( status ) /*&& Object.is( headers )*/ {
-    @status( status )
-    Object.keys( headers ).forEach( function key {
-      connection.writeHeader( key, headers[ key ] )
-    })
+  !@_STATUS@status( status )
 
-  } else {
-    @app.error( "writeHead: invalid header", status, headers )
-  }
+  names.forEach( function name {
+    connection.writeHeader( name, headers[ name ] )
+  })
+
   return @
 }
 
@@ -282,7 +282,7 @@ weave.Connection::endHead = function header, value {
 	@writeHeader( "Date", @date.toUTCString() )
 	@isKeepAlive ?
 		@writeHeader( "Transfer-Encoding", "chunked" ) :
-		@writeHeader( "Content-Length", content.length )
+		@writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
 
   @_NODE_CONNECTION.write( n )
   @state = 2
@@ -346,10 +346,8 @@ weave.Connection::redirect = function location, status {
 		if status == null {
 			status = 301
 		} else {
-			// TODO: ERROR HERE!!! Invalid status given.
-			// Give us a number or give us undefined.
-			console.log('please dont log this')
-			return
+			// TODO: Log this error for debugging
+			return connection.generateErrorPage( 500 )
 		}
 	}
 

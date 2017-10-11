@@ -12,65 +12,90 @@ module 'fs', 'path', 'util';
 DOM := require( './utilities/DOM' )
 Zen := require( './utilities/Zen' )
 
+// Might be handy later
+// @end( "{{@host}} {{details.path}}\n\n\n{{@UUID}}\nDetails {{util.inspect(details)}}\n\nConfiguration {{util.inspect(@configuration)}}" )
+
 weave.Printer = function {
   return function error, details, connection {
-    var cacheDate, document;
     if details.path {
       if details.isFile() {
-        cacheDate = connection.get( "if-modified-since" )
+        cacheDate := connection.get( "if-modified-since" )
         // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
         // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
         if !error && cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( details.stats.mtime.getTime() / 1000 ) {
-          connection.status( 304 ).end()
-        } else {
-          fs.readFile( details.path, function ferror, contents {
-            // We may be printing an error page from generateErrorPage
-            // This code *works* fine but for some reason breaks syntax highlighting in Atom.
-            connection.status( weave.HTTPError.is( error ) ? error.status : 200 )
-              .writeHeader( "Content-Type", connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
-
-            if !error { connection.writeHeader( "Last-Modified", details.stats.mtime.toUTCString() ) }
-
-            connection.end( contents )
-          })
+          return connection.status( 304 ).end()
         }
+
+        fs.readFile( details.path, function ferror, contents {
+          // We may be printing an error page from generateErrorPage
+          // This code *works* fine but for some reason breaks syntax highlighting in Atom.
+          connection.status( weave.HTTPError.is( error ) ? error.status : 200 )
+            .writeHeader( "Content-Type", connection.behavior( "mimeTypes {{path.extname( details.path )}}" ) )
+
+          // You can't cache an error!
+          if !error { connection.writeHeader( "Last-Modified", details.stats.mtime.toUTCString() ) }
+
+          connection.end( contents )
+        })
       } else if details.isDirectory() && !connection.behavior( "disableDirectoryListings" ) {
-        if connection.url.description === "directory.json" {
-          fs.readdir( details.path, function error, files {
-            connection.status( error ? 500 : 200 )
+
+        fs.readdir( details.path, function error, files {
+          if error {
+            return connection.generateErrorPage( 500 )
+          }
+
+          if connection.url.description === "directory.json" {
+            connection.status( 200 )
             connection.writeHeader( "Content-Type", "application/json" )
-            connection.end(JSON.stringify(files))
-          })
-        } else {
-          fs.readdir( details.path, function error, files {
-            connection.status( error ? 500 : 200 )
-            connection.writeHeader( "Content-Type", "text/html" )
+            return connection.end(JSON.stringify(files))
+          }
 
-            document = new DOM.HTMLDocument( 'html', 'Contents of {{connection.url.path}}' )
-            files.someAsync( function file, i, some {
-              var href, li = new DOM.Element( 'li' ), a = new DOM.Element( 'a' );
+          // If it's not JSON, it must be HTML.
+          connection.writeHeader( "Content-Type", "text/html" )
 
-              fs.stat( path.join( details.path, file ), function error, stats {
-                if stats.isDirectory() {
-                  file += "/"
-                  li.className = 'directory'
-                  a.setAttribute( 'style', 'color: green;' )
-                }
+          // Basic document setup
+          title := 'Contents of {{connection.url.pathname}}'
+          document := new DOM.HTMLDocument( 'html', title )
+          header := new DOM.Element( 'h1' )
+          header.innerHTML = title
+          document.body.appendChild( header )
 
-                href = path.join( "/", connection.url.pathname, file )
-                a.setAttribute( 'href', href ), a.innerHTML = '/{{file}}'
-                document.body.appendChild( li ).appendChild( a )
-                some.next()
-              } )
+          if ( files.length === 0 ) {
+            document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = "Nothing to see here!"
+
+            connection.end( document.toString() )
+          }
+
+          // TODO: Come up with a better way to run multiple of these at once
+          files.someAsync( function file, i, some {
+            li := new DOM.Element( 'li' )
+            a := new DOM.Element( 'a' )
+
+            fs.stat( path.join( details.path, file ), function error, stats {
+              if error {
+                return connection.generateErrorPage( 500 )
+              }
+
+              // Special formatting for directories.
+              if stats.isDirectory() {
+                file += "/"
+                li.className = 'directory'
+                a.setAttribute( 'style', 'color: #3009c9;' )
+              } else {
+                a.setAttribute( 'style', 'color: #11a9f4;' )
+              }
+
+              href := path.join( "/", connection.url.pathname, file )
+              a.setAttribute( 'href', href ), a.innerHTML = '/{{file}}'
+              document.body.appendChild( li ).appendChild( a )
+              some.next()
+            } )
 
 
-            }, function { connection.end( document.toString() ) })
-
-          })
-        }
+          }, function { connection.end( document.toString() ) })
+        })
       } else {
         // This needs to be moved somewhere else.
-        @end( "{{@host}} {{details.path}}\n\n\n{{@UUID}}\nDetails {{util.inspect(details)}}\n\nConfiguration {{util.inspect(@configuration)}}" )
       }
     } else {
       if weave.HTTPError.is( error ) {

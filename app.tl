@@ -2,20 +2,24 @@
 "use strict";
 
 // n is a CRLF buffer, z is an end packet buffer.
-var weave = require( './weave' ), n = new Buffer('\r\n'), z = new Buffer('0\r\n\r\n');
-var Wildcard, Zen;
+weave := require( './weave' )
+n := new Buffer('\r\n')
+z := new Buffer('0\r\n\r\n')
+g := new weave.Garden( 'weave.App' )
 
+g.log('Hello')
+g.warning('there')
+g.error('sailor!')
 
 
 module 'events', 'http', 'path';
-Wildcard = require( './utilities/Wildcard' )
-Zen = require( './utilities/Zen' )
+Wildcard := require( './utilities/Wildcard' )
 
 // The App class contains configuration data and handles delegation,
 // tracking, and caching of requests.
 weave.App = weave.Class( events.EventEmitter, function appName {
   if weave.apps[ appName ] {
-    throw "App {{appName}} already exists!"
+    return g.warning( "App {{appName}} already exists!" )
   } else weave.apps[ appName ] = @
 
   // Create the initial configuration storage object and use

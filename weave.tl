@@ -98,7 +98,6 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 
 // Import all of the modules that we need before we do anything crazy.
 module 'crypto', 'http';
-Zen := require( './utilities/Zen' )
 
 weave := module.exports = exports = {
   version: "0.1.10",
@@ -112,10 +111,10 @@ weave := module.exports = exports = {
                  404: "The file you requested does not exist."
                } },
 
-  zen: new Zen( 'weave' ),
-
   configuration: {
-   adminEmail: "foo@bar.com" },
+   // adminEmail: String,
+   // logOutput: String,
+  },
 
   util: {
     SHA1_64: function data {
@@ -150,6 +149,7 @@ weave := module.exports = exports = {
   },
 
   Dictionary: require( './utilities/MimeDictionary' ),
+  Garden: require( './utilities/Garden'),
 
   HTTPError: function code, description {
     if !Number.is( code ) {
@@ -198,5 +198,3 @@ process.argv.forEach( function arg {
       break;
   }
 })
-
-//require( weave.debug ? './' )
