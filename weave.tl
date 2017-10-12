@@ -1,6 +1,6 @@
 /* MIT License
-   Created by partheseas (Tyler Washburn)
-   Copyright Tyler Washburn 2015
+   Copyright 2015
+   Created by partheseas
    Weave - Make webs */
 
 // Strict mode is cool
@@ -100,7 +100,7 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 module 'crypto', 'http';
 
 weave := module.exports = exports = {
-  version: "0.1.10",
+  version: "0.1.11",
 
   servers: {}, apps: {}, hosts: {}, cache: { wildcardMatches: {} },
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",

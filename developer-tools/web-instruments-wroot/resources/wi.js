@@ -1,5 +1,5 @@
 var wi = {
-  socket: new WebSocket( 'ws://192.168.0.12/web-instruments/socket'),
+  socket: new WebSocket( `ws://${location.hostname}/web-instruments/socket` ),
   console: { history: [], toggle: function () {
     var container = document.getElementById( 'console' ),
     showing = getComputedStyle( container ).getPropertyValue( 'display' ) === 'block'

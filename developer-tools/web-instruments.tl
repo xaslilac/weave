@@ -3,7 +3,8 @@
 
 // n is a CRLF buffer, z is an end packet buffer.
 weave := require( '../weave' )
-$ := function n { return weave.getAppByName( n ) }
+garden := new weave.Garden( 'weave --enable-web-instruments' )
+$ := function n { return weave.apps[ n ] }
 $$ := function n, d { return $(n).configuration[ d || "/" ] }
 
 
@@ -18,7 +19,7 @@ weave.attachInstruments = function app, instrumentUrl {
   if !weave.App.is( app ) {
     if String.is( app ) && weave.App.is( weave.apps[ app ] ) {
       app = weave.apps[ app ]
-    } else throw 'web-instruments: argument app must be an instance of weave.App or string appName'
+    } else garden.error( 'argument app must be an instance of weave.App or string appName' )
   }
 
   app.addDirectory( instrumentUrl, {
@@ -36,8 +37,9 @@ weave.attachInstruments = function app, instrumentUrl {
   })
 
   socket := new weave.WebSocket( function connection {
-    weave.zen('Instruments connected')
+    garden.log('Instruments connected')
     connection.on( 'message', function message {
+      garden.log( message )
       message.json = JSON.parse( message.data )
       if message.json.messageType === 'console-command' {
         var result;
@@ -49,7 +51,7 @@ weave.attachInstruments = function app, instrumentUrl {
             data: util.inspect( result )
           }) )
         } catch e {
-          weave.zen( e )
+          garden.console.error();( e )
           connection.send( JSON.stringify({
             messageType: 'console-error',
             error: e.name,
@@ -67,10 +69,10 @@ weave.attachInstruments = function app, instrumentUrl {
       }) )
     }
 
-    weave.zen.on( 'log', logPipe )
-    connection.on( 'close', function {
-      weave.zen.events.removeListener( 'log', logPipe )
-    })
+    // weave.zen.on( 'log', logPipe )
+    // connection.on( 'close', function {
+    //   weave.zen.events.removeListener( 'log', logPipe )
+    // })
   })
 
   socket.attach( app, path.join( instrumentUrl, '/socket' ) )

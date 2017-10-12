@@ -43,8 +43,8 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   // Save these here, mainly for internal use with the classes methods.
   // Ideally these wouldn't be used outside of Weave. All interactions
   // with them should be through using methods of the Connection class.
-  @_NODE_REQUEST = i, @_NODE_RESPONSE = o,
-  @_NODE_CONNECTION = i.connection
+  @_NODE_CONNECTION = i.connection,
+  @_NODE_REQUEST = i, @_NODE_RESPONSE = o
 
   // Give each connection a UUID for a little bit of tracing.
   @UUID = weave.util.RNDM_RG(0x10000000,     0xFFFFFFFF,     16) + "-" +
@@ -78,9 +78,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
     @app = weave.cache.wildcardMatches[ @host ]
   } else {
 		app := Wildcard.bestMatch(
-      Object.keys( weave.hosts ).filter( function host {
-        return /\*/.test( host )
-      }),
+      Object.keys( weave.hosts ).filter( host => /\*/.test( host ) ),
     @host )
 
     // Remember which wildcard best matched this host for next time
@@ -107,7 +105,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   if @app.cache.parentDirectories[ @url.pathname ] {
     @directory = @app.cache.parentDirectories[ @url.pathname ]
   } else {
-    Object.keys( @app.configuration ).forEach( function directory {
+    Object.keys( @app.configuration ).forEach( directory => {
       if @app.configuration.hasOwnProperty( directory ) {
         // Check if the directory matches the beginning of the requested URL, and
         // that it is a full directory. The second line avoids some issues, i.e.
@@ -122,7 +120,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
           @directory = @app.cache.parentDirectories[ @url.pathname ] = directory
         }
       }
-    }, @)
+    })
   }
 
   // If we found a matching directory, then we save which configuration
@@ -131,9 +129,16 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
   if @directory {
 		// We check if this connection already has our data event listener to
 		// avoid adding it multiple times if the connection is keep alive.
-		if !@_NODE_CONNECTION._weavePipe {
-			@_NODE_CONNECTION._weavePipe = connection
-		  @_NODE_CONNECTION.on( 'data', function data { connection.emit( 'data', data ) })
+		// TODO: Figure out why this must go through REQUEST, and not CONNECTION
+		if !@_NODE_REQUEST._weavePipe {
+			@_NODE_REQUEST._weavePipe = connection
+			//@_NODE_REQUEST.resume()
+		  @_NODE_REQUEST.on( 'data', function data {
+				connection.emit( 'data', data )
+			})
+			// @_NODE_REQUEST.on( 'close', function () {
+			// 	@_NODE_REQUEST.unpipe( connection )
+			// })
 		}
 
     @configuration = @app.configuration[ @directory ]
@@ -152,7 +157,7 @@ weave.Connection = weave.Class( events.EventEmitter, function i, o {
 })
 
 weave.Connection::behavior = function name {
-  var behavior;
+  let behavior;
   nests := name.split(" ");
 
   // Load in order of priority. If there is a directory configuration then
@@ -174,6 +179,12 @@ weave.Connection::behavior = function name {
         }
       }
   })
+
+	// If the location begins with ~, replace it with the users home directory.
+	// weave.constants.HOME normalizes the API for Node across different platforms.
+	if name === 'location' && String.is( behavior ) {
+		behavior = behavior.replace( /^~/, weave.constants.HOME )
+	}
 
   // Return the matching behavior. If we didn't find one this should
   // still just be undefined.
@@ -203,7 +214,7 @@ weave.Connection::getHeader = function name, asString {
         // I think this is how we parse cookies but I suck at them???
 				if String.is( header ) {
 					data := {}
-					header.split(";").forEach( function cookie {
+					header.split(";").forEach( cookie => {
 						cookie = cookie.trim().split( '=' )
 						data[cookie.shift()] = cookie.join( '=' ) || true
 					})
@@ -219,16 +230,12 @@ weave.Connection::getHeader = function name, asString {
 };
 
 // Create destroy, pause, and resume reference methods.
-['destroy', 'pause', 'resume'].forEach( function name {
-  weave.Connection::[name] = function {
-    @_NODE_CONNECTION[name]()
-  }
-})
+['destroy', 'pause', 'resume'].forEach( name => weave.Connection::[name] = () => @_NODE_CONNECTION[name]() )
 
 weave.Connection::status = function status {
   // Check to make sure the status is valid, and has not yet been written.
-  if @state !== 0         { return console.log( 'Cannot write status {{status}} to HTTP stream, already wrote {{@_STATUS}}!' ) }
-	if !Number.is( status ) { return console.error( 'Invalid status!', status ) }
+  if @state !== 0         { return garden.log( 'Cannot write status {{status}} to HTTP stream, already wrote {{@_STATUS}}!' ) }
+	if !Number.is( status ) { return garden.error( 'Invalid status!', status ) }
 
   @_NODE_CONNECTION.write( "HTTP/1.1 {{status}} {{http.STATUS_CODES[status]}}\r\n")
 	@_STATUS = status
@@ -246,7 +253,7 @@ weave.Connection::writeHeader = function header, value {
 
 	// You can't cache an error!
 	if header.toLowerCase() === "last-modified" && @_STATUS >= 300 {
-		console.error( "You can't cache an error!" )
+		garden.error( "You can't cache an error!" )
 	}
 
 	@_WRITTEN_HEADERS[ header ] = value
@@ -257,17 +264,17 @@ weave.Connection::writeHeader = function header, value {
 
 weave.Connection::writeHead = function status, headers {
 	if !Number.is( status ) {
-		if !@_STATUS { return console.error( 'No status written yet, we need a status!' ) }
+		if !@_STATUS { return garden.error( 'No status written yet, we need a status!' ) }
 	  headers = status
 	}
 
-  connection := @
+	if !headers { return garden.error( 'No headers given to weave.Connection::writeHead!' ) }
 	names := Object.keys( headers )
 
   @status( status )
 
-  names.forEach( function name {
-    connection.writeHeader( name, headers[ name ] )
+  names.forEach( name => {
+    @writeHeader( name, headers[ name ] )
   })
 
   return @
@@ -303,7 +310,7 @@ weave.Connection::hasBody = function {
 weave.Connection::write = function content, encoding {
   // If we aren't writing the body yet, right some final headers.
   if @state === 3 {
-		return console.error( "request completed" )
+		return garden.error( "Cannot write data, response has already been completed." )
 	}
 
   if @state < 2 {
@@ -358,23 +365,18 @@ weave.Connection::redirect = function location, status {
 
 weave.Connection::generateErrorPage = function error {
 	// Create a details object for us to pass to printer.
-	connection := @
 	details := Object.create( weave.constants.DETAILS, {
 		url: {
 			value: @url,
 			enumerable: true, writable: true, configurable: true } } );
 
 	// Make the printer easier to call in different contexts.
-	print := function more {
-		return connection.app.printer( error, Object.extend( details, more ), connection )
-	}
+	print := more => @app.printer( error, Object.extend( details, more ), @ )
+
+	if Number.is( error ) { error = new weave.HTTPError( error ) }
 
 	// cursor points to where ever we're searching for files.
-	// If the app location begins with ~, replace it with the users home directory.
-	// weave.constants.HOME normalizes the API for Node across different platforms.
-	if connection.behavior( "location" ) {
-		cursor := path.join( connection.behavior( "location" ).replace( /^~/, weave.constants.HOME ) )
-	} else return print()
+	cursor := @behavior( "location" )
 
 	// NOTE: Router and this share a lot of boilerplate code. We should do something
 	// to merge them together maybe?
@@ -384,7 +386,9 @@ weave.Connection::generateErrorPage = function error {
 		if errorPageName {
 			// TODO: Make sure this actually works, so that we can have absolute paths.
 			// If it doesn't work, then switch it back to .join for now.
-			errorPagePath := path.resolve( cursor, @behavior( 'errorPages {{error.status}}' ) )
+			errorPagePath := cursor ?
+				path.resolve( cursor, errorPageName ) :
+				errorPageName
 			fs.exists( errorPagePath, function exists {
 				if exists {
 					fs.stat( errorPagePath, function serror, stats {

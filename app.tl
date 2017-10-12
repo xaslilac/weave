@@ -1,4 +1,4 @@
-// MIT License / Copyright Tyler Washburn 2015
+// MIT License / Copyright 2015
 "use strict";
 
 weave := require( './weave' )
@@ -19,7 +19,7 @@ Wildcard := require( './utilities/Wildcard' )
 // tracking, and caching of requests.
 weave.App = weave.Class( events.EventEmitter, function appName {
   if weave.apps[ appName ] {
-    return garden.warning( "App {{appName}} already exists!" )
+    return garden.warning( `App '${appName}' already exists!` )
   } else weave.apps[ appName ] = @
 
   // Create the initial configuration storage object and use
@@ -70,30 +70,29 @@ weave.App = weave.Class( events.EventEmitter, function appName {
 })
 
 weave.App::listen =
-weave.App::linkHost = function {
-  Array::forEach.call( arguments, function host {
+weave.App::linkHost = function ...hosts {
+  hosts.forEach( host => {
     var wildcard, cachedhost, split, hostname, port, server;
 
     // If the argument is just the port, default the host to *
     if !String.is( host ) {
-      if Number.is( host ) { host = "*:{{host}}" }
-      else throw "Host much be a string, or port must be a number."
+      if Number.is( host ) { host = `*:${host}` }
+      else garden.error( "Host much be a string, or a port number." )
     }
     // If the host is already taken, abandon ship.
-    if weave.hosts[ host ] { throw "Host {{host}} already used by {{weave.hosts[host].appName}}." }
+    if weave.hosts[ host ] { garden.error( `Host ${host} already used by ${weave.hosts[host].appName}.` ) }
 
     // If the host is a wildcard then clear all wildcardMatches that match
     // it. If it's a literal, clear wildcardMatches for that literal.
-    // TODO: Eventually we should translate this to Object.keys().forEach
     if /\*/.test( host ) {
       wildcard = new Wildcard( host )
-      for cachedhost in weave.cache.wildcardMatches {
+      Object.keys( weave.cache.wildcardMatches ).forEach( cachedhost => {
         if weave.cache.wildcardMatches.hasOwnProperty( cachedhost ) {
           if wildcard.match( weave.cache.wildcardMatches[ cachedhost ] ) {
             weave.cache.wildcardMatches[ cachedhost ] = false
           }
         }
-      }
+      })
     } else if weave.cache.wildcardMatches[ host ] {
       weave.cache.wildcardMatches[ host ] = false
     }
@@ -119,11 +118,7 @@ weave.App::linkHost = function {
         weave.servers[ port ] = server = http.createServer()
         server.listen( port, '::' );
 
-        ['request', 'upgrade'].forEach( function event {
-          server.on( event, function i, o {
-            new weave.Connection( i, o )
-          })
-        })
+        ['request', 'upgrade'].forEach(e => server.on( e, (i, o) => new weave.Connection( i, o ) ))
 
         // This is a property that will be used by our error system in
         // the future to know if an error is encountered before any servers
@@ -133,8 +128,7 @@ weave.App::linkHost = function {
         weave._ACTIVE = true
       }
     }
-  }, @)
-
+  })
   // Return @ from all configuration methods so they can be chained.
   return @
 }
