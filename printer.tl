@@ -5,8 +5,8 @@
 weave := require( './weave' )
 garden := new weave.Garden( 'weave.App::printer' )
 
-n := new Buffer('\r\n')
-z := new Buffer('0\r\n\r\n')
+const n = new Buffer('\r\n')
+const z = new Buffer('0\r\n\r\n')
 
 
 
@@ -23,7 +23,7 @@ weave.App::printer = function error, details, connection {
     } else {
       // ::generateErrorPage will call us recursively with the correct arguments.
       printError( new weave.HTTPError( 500 ), details, connection )
-      return garden.error( 'Error argument was not a weave.HTTPError or undefined!' )
+      return garden.error( 'Error argument was not a weave.HTTPError or undefined!', error )
     }
   }
 
@@ -62,7 +62,7 @@ printFile := function ( error, details, connection ) {
     return connection.status( 304 ).end()
   }
 
-  fs.readFile( details.path, function ferror, contents {
+  fs.readFile( details.path, ( ferror, contents ) => {
     if ferror {
       return connection.app.printer( new weave.HTTPError( 500 ), {}, connection )
     }
@@ -85,7 +85,7 @@ printDirectory := function ( error, details, connection ) {
     return connection.generateErrorPage( 403 )
   }
 
-  fs.readdir( details.path, function error, files {
+  fs.readdir( details.path, ( error, files ) => {
     if error {
       return connection.generateErrorPage( 500 )
     }
@@ -113,11 +113,11 @@ printDirectory := function ( error, details, connection ) {
     }
 
     // TODO: Come up with a better way to run multiple of these at once
-    files.someAsync( function file, i, some {
+    files.someAsync( ( file, i, some ) => {
       li := new DOM.Element( 'li' )
       a := new DOM.Element( 'a' )
 
-      fs.stat( path.join( details.path, file ), function error, stats {
+      fs.stat( path.join( details.path, file ), ( error, stats ) => {
         if error {
           return connection.generateErrorPage( 500 )
         }
@@ -136,6 +136,6 @@ printDirectory := function ( error, details, connection ) {
         document.body.appendChild( li ).appendChild( a )
         some.next()
       } )
-    }, function { connection.end( document.toString() ) })
+    }, () => connection.end( document.toString() ) )
   })
 }
