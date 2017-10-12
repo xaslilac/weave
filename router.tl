@@ -36,10 +36,7 @@ weave.App::router = function connection {
 			enumerable: true, writable: true, configurable: true } } )
 
   // Make the printer easier to call in different contexts.
-  // XXX: Should this be more automatic like the version in generateErrorPage?
-  printer := function {
-    return connection.app.printer.apply( connection.app, arguments )
-  }
+  print := more => @printer( undefined, Object.extend( details, more ), connection )
 
   // If the configuration is a Function, then the request should be handle as
   // an interface type. Call the interface configuration.
@@ -90,16 +87,9 @@ weave.App::router = function connection {
   //connection.method === "GET" || connection.method === "HEAD" || connection.method === "POST"
 
   // cursor points to where ever we're searching for files.
-  // If the app location begins with ~, replace it with the users home directory.
-  // weave.constants.HOME normalizes the API for Node across different platforms.
-
-  // TODO: Move .replace(/^~/) to connection.behavior as a special case
   location := connection.behavior( 'location' )
-  if location {
-    cursor = path.join( location.replace( /^~/, weave.constants.HOME ), unescape( connection.url.path ) )
-  } else {
-    return garden.error( 'No location set for {{connection.url.pathname}}! Cannot route!')
-  }
+  if !location { return garden.error( 'No location set for {{connection.url.pathname}}! Cannot route!') }
+  cursor = path.join( location, unescape( connection.url.path ) )
 
   // This function makes depth adjustments, and is called rather than calling
   // search directly if a recursive search is necessary.
@@ -136,9 +126,7 @@ weave.App::router = function connection {
           // callback is run when .next() is called but there is not another
           // item to process, so it will only be called if there isn't a match.
           if stats.isFile() {
-            printer( undefined, Object.extend( details, {
-              path: cursor, stats: stats, type: "file"
-            }), connection )
+            print({ path: cursor, stats: stats, type: "file" })
           } else if stats.isDirectory() {
             if connection.url.depth === 0 && !connection.behavior( 'disableURLCleaning' )
             && !connection.url.pathname.endsWith("/") {
@@ -153,9 +141,7 @@ weave.App::router = function connection {
                     if exists {
                       fs.stat( index, function error, stats {
                         if stats.isFile() {
-                          printer( undefined, Object.extend( details, {
-                            path: index, stats: stats, type: "file"
-                          }), connection )
+                          print({ path: index, stats: stats, type: "file" })
                         } else some.next()
                       })
                     } else some.next()
@@ -163,15 +149,11 @@ weave.App::router = function connection {
                 } else some.next()
               }, function {
                 if connection.url.depth === 0 {
-                  printer( undefined, Object.extend( details, {
-                    path: cursor, stats: stats, type: "directory"
-                  }), connection )
+                  print({ path: cursor, stats: stats, type: "directory" })
                 } else {
                   if connection.behavior( "enableJSONDirectoryListings" )
                   && connection.url.depth === 1 && connection.url.description === "directory.json" {
-                    printer( undefined, Object.extend( details, {
-                      path: cursor, stats: stats, type: "directory"
-                    }), connection )
+                    print({ path: cursor, stats: stats, type: "directory" })
                   } else {
                     connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file.") )
                   }
@@ -194,9 +176,7 @@ weave.App::router = function connection {
               if exists {
                 fs.stat( cursor + extension, function error, stats {
                   if stats.isFile() {
-                    printer( undefined, Object.extend( details, {
-                      path: cursor + extension, stats: stats, type: "file"
-                    }), connection )
+                    print({ path: cursor + extension, stats: stats, type: "file" })
                   } else some.next()
                 })
               } else some.next()
