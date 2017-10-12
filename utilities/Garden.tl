@@ -28,28 +28,17 @@ Garden := module.exports = exports = function ( name ) {
   this.name = name
 }
 
-Garden::log = function ( message ) {
-  process.stdout.write( "[{{this.name}}] \033[36m[log]\033[39m      " +  message + "\n" )
+Garden::log = function ( message, ...extra ) {
+  process.stdout.write( "[{{this.name}}] \033[36m[log]\033[39m      " + util.inspect( message ) + "\n" )
+  if extra.length { console.log( ...extra ) }
 }
 
-Garden::warning = function ( message ) {
+Garden::warning = function ( message, ...extra ) {
   process.stdout.write( "[{{this.name}}] \033[36m[warning]\033[39m  \033[33m" + util.inspect( message ) + "\033[39m\n" )
+  if extra.length { console.log( ...extra ) }
 }
 
-Garden::error = function ( message ) {
+Garden::error = function ( message, ...extra ) {
   process.stdout.write( "[{{this.name}}] \033[36m[error]\033[39m    \033[31m" + util.inspect( message ) + "\033[39m\n" )
+  if extra.length { console.log( ...extra ) }
 }
-
-Garden::kill = function () {
-
-}
-
-    // sandbox.colors = [
-    //   "36", "33", "35", "34", "31" ]
-    //
-    // out.write( "\033[" + this.colors[ Math.min( 4, level ) ] + "m" +
-    //   name + "\033[39m  " )
-    //
-    // title && out.write( "\033[4m\033[37m" + title + "\033[39m\033[24m\n" )
-    // out.write( description + "\n" )
-    // point && out.write( "\n" + this.trace( point ) + "\n" )
