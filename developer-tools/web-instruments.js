@@ -2,22 +2,23 @@
 "use strict";
 
 // n is a CRLF buffer, z is an end packet buffer.
-weave := require( '../weave' )
-garden := new weave.Garden( 'weave --enable-web-instruments' )
-$ := function n { return weave.apps[ n ] }
-$$ := function n, d { return $(n).configuration[ d || "/" ] }
+let weave = require( '../weave' )
+let garden = new weave.Garden( 'weave --enable-web-instruments' )
 
+let util=require('util')
+let path=require('path')
 
+let $ = function ( n  ) { return weave.apps[ n ] }
+let $$ = function ( n, d  ) { return $(n).configuration[ d || "/" ] }
 
-module 'util', 'path';
 require( '../websocket' )
 require( './repl' )
 
 
 
-weave.attachInstruments = function app, instrumentUrl {
-  if !weave.App.is( app ) {
-    if String.is( app ) && weave.App.is( weave.apps[ app ] ) {
+weave.attachInstruments = function ( app, instrumentUrl ) {
+  if ( !weave.App.is( app )  ) {
+    if ( String.is( app ) && weave.App.is( weave.apps[ app ] )  ) {
       app = weave.apps[ app ]
     } else garden.error( 'argument app must be an instance of weave.App or string appName' )
   }
@@ -32,16 +33,18 @@ weave.attachInstruments = function app, instrumentUrl {
     }
   })
 
-  app.addInterface( path.join( instrumentUrl, '/enabled-instruments' ), function connection {
+  app.addInterface( path.join( instrumentUrl, '/enabled-instruments' ), function ( connection  ) {
     connection.end("['repl','log']")
   })
 
-  socket := new weave.WebSocket( function connection {
+  let socket = new weave.WebSocket( function ( connection  ) {
     garden.log('Instruments connected')
-    connection.on( 'message', function message {
+    connection.on( 'message', function ( message  ) {
       garden.log( message )
       message.json = JSON.parse( message.data )
-      if message.json.messageType === 'console-command' {
+      if ( message.json.messageType === 'console-command'  ) {
+
+        // TODO: Pipe this to a repl from the native repl module.
         var result;
         try {
           result = eval( message.json.data )
@@ -50,7 +53,7 @@ weave.attachInstruments = function app, instrumentUrl {
             messageType: 'console-print',
             data: util.inspect( result )
           }) )
-        } catch e {
+        } catch ( e  ) {
           garden.console.error();( e )
           connection.send( JSON.stringify({
             messageType: 'console-error',
@@ -61,7 +64,7 @@ weave.attachInstruments = function app, instrumentUrl {
       }
     })
 
-    logPipe := function log {
+    let logPipe = function ( log  ) {
       connection.send( JSON.stringify({
         messageType: 'console-log',
         space: log.space,

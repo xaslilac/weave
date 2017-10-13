@@ -3,15 +3,14 @@
    Created by partheseas
    Weave - Make webs */
 
-// Strict mode is cool
 "use strict";
 
 // Some basic utilities, like an asynchronous implemenation of Array::some,
 // an object property setter, and basic universal type detection.
-Array::someAsync = function f,c {var a=@,i=0,v=!1,t={
-  next:function {i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function {c(!0)}};t.next()}
-Object.extend = function o,e {o!=null&&e!=null&&@keys(e).forEach(function p {o[p]=e[p]});return o}
-Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
+Array.prototype.someAsync = function (f,c){console.log('Depreciated someAsync!');let a=this,i=0,v=!1,t={
+  next:function (){i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function (){c(!0)}};t.next()}
+Object.extend = function (o,e){console.log('Depreciated extend!');o!=null&&e!=null&&this.keys(e).forEach(function (p){o[p]=e[p]});return o}
+Function.prototype.is = function (a){console.log('Depreciated ::is!');return a!=null&&(a.constructor===this.prototype.constructor)}
 
 
 
@@ -97,9 +96,10 @@ Function::is = function a {return a!=null&&(a.constructor===@::constructor)}
 
 
 // Import all of the modules that we need before we do anything crazy.
-module 'crypto', 'http';
+let crypto = require( 'crypto' )
+let http = require( 'http' )
 
-weave := module.exports = exports = {
+let weave = module.exports = exports = {
   version: "0.1.11",
 
   servers: {}, apps: {}, hosts: {}, cache: { wildcardMatches: {} },
@@ -117,12 +117,12 @@ weave := module.exports = exports = {
   },
 
   util: {
-    SHA1_64: function data {
+    SHA1_64: function ( data  ) {
       return crypto.createHash( "sha1" ).update( data ).digest( "base64" ) },
-    RNDM_RG: function min, max, base {
-      var r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
+    RNDM_RG: function ( min, max, base  ) {
+      let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
       return base ? r.toString( base ) : r },
-    READ_BITS: function byte {
+    READ_BITS: function ( byte  ) {
       return [ byte >= 128 ? 1 : 0,
       (byte %= 128) >= 64  ? 1 : 0,
       (byte %= 64)  >= 32  ? 1 : 0,
@@ -131,32 +131,20 @@ weave := module.exports = exports = {
       (byte %= 8)   >= 4   ? 1 : 0,
       (byte %= 4)   >= 2   ? 1 : 0,
       (byte %= 2)   == 1   ? 1 : 0 ] },
-    BINARY_UINT: function binary {
+    BINARY_UINT: function ( binary  ) {
       return Number.parseInt( binary.join(""), 2 ) },
-    times: function times, task {
-      var t = 0; while t++ < times { task() } } },
-
-  Class: function inherit, constructor {
-    constructor:: = Object.create( inherit::, {
-      constructor: {
-        value: constructor,
-        enumerable: false, writable: false, configurable: true },
-      _super: {
-        value: inherit,
-        enumerable: false, writable: true, configurable: true } } )
-
-    return constructor
-  },
+    times: function ( times, task  ) {
+      var t = 0; while ( t++ < times  ) { task() } } },
 
   Dictionary: require( './utilities/MimeDictionary' ),
   Garden: require( './utilities/Garden'),
 
-  HTTPError: function code, description {
-    if !Number.is( code ) {
+  HTTPError: function ( code, description  ) {
+    if ( !Number.is( code )  ) {
       console.error( 'HTTPError requires argument code to be a number!' )
     }
 
-    return Object.create( weave.HTTPError::, {
+    return Object.create( weave.HTTPError.prototype, {
       constructor: {
         value: weave.HTTPError,
         enumerable: false, writable: false, configurable: true },
@@ -178,8 +166,8 @@ require( './connection' )
 require( './router' )
 require( './printer' )
 
-process.argv.forEach( function arg {
-  switch arg {
+process.argv.forEach( function ( arg  ) {
+  switch ( arg  ) {
     case "--aww-heck-yes":
       console.log( "aww heck yes" )
       break;

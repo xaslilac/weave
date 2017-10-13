@@ -1,15 +1,15 @@
-// MIT License / Copyright Tyler Washburn 2015
+var repl, util;// MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
 // n is a CRLF buffer, z is an end packet buffer.
-weave := require( '../weave' )
+var weave = require( '../weave' )
 
 
 
-module 'repl', 'util';
+repl=require('repl');util=require('util');;
 
-weave.connectREPL = function input, output {
-  setTimeout( function {
+weave.connectREPL = function ( input, output  ) {
+  setTimeout( function (  ) {
     // var input = "", prefix = "> ";
     // o.write( prefix )
     // i.on( "data", function data {
@@ -34,7 +34,7 @@ weave.connectREPL = function input, output {
     //   }
     // })
 
-    $ := repl.start( {
+    var $ = repl.start( {
         prompt: '$ ',
         input,
         output

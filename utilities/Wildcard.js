@@ -4,19 +4,19 @@
 
 var Wildcard;
 
-module.exports = exports = Wildcard = function string {
+module.exports = exports = Wildcard = function (string ){
   if ( /^[A-Za-z0-9\*\[\]\.\_\-\:]+$/.test( string ) ) {
-  	@expression = RegExp( "^" +
+  	this.expression = RegExp( "^" +
   		string
   		  .replace( /([\.\[\]])/g, "\\$1" ) // Make sure that special charaters are escaped before creating the expression
   		  .replace( /\*/g, ".+" ) // Turn * wildcards into . wildcards
   	+  "$" )
-  	@string = string
+  	this.string = string
   }
 }
 
-Wildcard::match = function ( string ) {
-  return @expression.exec( string )
+Wildcard.prototype.match = function ( string ) {
+  return this.expression.exec( string )
 }
 
 Wildcard.match = function ( wildcard, string ) {

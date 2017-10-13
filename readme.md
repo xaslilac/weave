@@ -1,6 +1,5 @@
 # Weave
 
-[![Written in Teal](http://img.shields.io/badge/teal-v0.3.1-62eaaa.svg?style=flat)](https://github.com/partheseas/teal)
 ![Weave Version 0.1.11](https://img.shields.io/badge/weave-v0.1.11-5050DD.svg?style=flat)
 ![Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
 
@@ -8,7 +7,7 @@
 
 ### MIT License
 
-Copyright Tyler Washburn 2015
+Copyright Kayla Washburn 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,35 +29,14 @@ SOFTWARE.
 
 ## Overview
 
-Weave is an HTTPD App Server made for Node.js. It takes a unique approach to resolving
+Weave is a very unique server made for Node.js. It takes a different approach to resolving
 file locations and gives you great control over the behavior of the server.
 
-Weave is written in Teal, compiled into JavaScript, and run in Node along side
-your own code to configure and control it.
+Weave runs in Node along side your own code that configures and controls it.
 
 ## Installation
 
-So installing is really weird right now. Eventually we'll get on npm and make everything
-easier but for now this script should work pretty well on UNIX systems.
-
-The basic idea is..
-1. Download Teal from GitHub and install it with NPM as global to access the CLI
-2. Download Weave and compile it to JavaScript using the `take` command
-3. Install Weave with NPM in your usual directory to include in your code.
-
-```Shell
-sudo npm install -g https://github.com/partheseas/teal/tarball/master
-mkdir .tmp
-
-curl -o .tmp/weave.tar.gz -L https://github.com/partheseas/weave/tarball/master
-tar -zxvf .tmp/weave.tar.gz
-DIR="$(ls -d .tmp/*/)"
-take $DIR --output-dir=bin && npm install $DIR
-
-rm .tmp -r
-```
-
-You're good to go! Just use `require()` to load in the newly generated weave.js file.
+Just download a tarball and throw it into a node_modules folder somewhere. You should be good to go.
 
 **I will be publishing weave in the NPM directory eventually. I just want to get a fully functioning product ready first.**
 

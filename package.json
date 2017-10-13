@@ -2,7 +2,7 @@
   "name": "weave",
   "version": "0.0.1",
   "description": "Weave web's",
-  "main": "bin/weave.js",
+  "main": "weave.js",
   "bin": {
     "wv": "cli.js"
   },
