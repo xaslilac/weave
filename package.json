@@ -1,10 +1,10 @@
 {
   "name": "weave",
-  "version": "0.0.1",
-  "description": "Weave web's",
+  "version": "0.1.11",
+  "description": "A super duper good Node.js server!",
   "main": "weave.js",
   "bin": {
-    "wv": "cli.js"
+    "wv": "bin/wv.js"
   },
   "repository": {
     "type": "git",

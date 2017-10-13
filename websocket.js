@@ -28,9 +28,9 @@ weave.WebSocket = class WebSocket extends events.EventEmitter {
 // multiple apps and paths. This might be useful if we can give the event
 // listeners good data on where specifically the message is coming from, but
 // could also be bad and complicate things unnecessarily.
-weave.WebSocket.prototype.attach = function ( app, socketUrl  ) {
+weave.WebSocket.prototype.attach = function ( app, socketUrl ) {
   if ( !weave.App.is( app )  ) {
-    if ( String.is( app ) && weave.App.is( weave.apps[ app ] )  ) {
+    if ( String.is( app ) && weave.App.is( weave.apps[ app ] ) ) {
       app = weave.apps[ app ]
     } else return garden.error( 'argument app must be an instance of weave.App or string appName' )
   }

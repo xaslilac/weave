@@ -71,10 +71,10 @@ weave.App = class App extends events.EventEmitter {
         // Accept incoming requests on the server
         ['request', 'upgrade'].forEach(e => server.on( e, (i, o) => new weave.Connection( i, o ) ))
         // Used to determine if any servers are active yet when an error is encountered.
-        server.on( 'listening', () => { weave._ACTIVE = true; @emit( 'listening' ) } )
+        server.on( 'listening', () => { weave._ACTIVE = true; this.emit( 'listening' ) } )
         server.listen( port, '::' )
       } else {
-        @emit( 'listening' )
+        this.emit( 'listening' )
       }
     })
 
@@ -82,7 +82,7 @@ weave.App = class App extends events.EventEmitter {
     return this
   }
 
-  addDirectory( directory, inherit, configuration  ) {
+  addDirectory( directory, inherit, configuration ) {
     // Clear the cache so that the configuration can be modified and
     // not conflict with previously caches requests.
     this.cache.parentDirectories = {}

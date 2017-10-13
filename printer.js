@@ -36,8 +36,8 @@ weave.App.prototype.printer = function ( error, details, connection ) {
 }
 
 let printError = function ( error, details, connection ) {
-  document = new DOM.HTMLDocument( 'html', error.status+' '+weave.constants.STATUS_CODES[ error.status ] )
-  document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = error.status+' '+error.statusCode
+  document = new DOM.HTMLDocument( 'html', `${error.status} ${weave.constants.STATUS_CODES[ error.statusCode ]}` )
+  document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
   if ( error.description  ) {
     document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = error.description
   }

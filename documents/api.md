@@ -50,7 +50,7 @@ httpError.description: description | longStatusDescription
 new weave.App( appName ) -> app
 app.link( str 'hostname:port' | num port ) -> app
 app#listening()
-app.addDirectory( dirName[, superDirName], dirBehaviors ) -> app
+app.addDirectory( dirName[, superDirName | superDirBehaviors], dirBehaviors ) -> app
 app.addInterface( dirName, func ) -> app
 app#configured( dirName, dirConf, appConf )
 app#connection( connection )                                                     Automatically calls app.router

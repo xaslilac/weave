@@ -117,12 +117,12 @@ let weave = module.exports = exports = {
   },
 
   util: {
-    SHA1_64: function ( data  ) {
+    SHA1_64: function ( data ) {
       return crypto.createHash( "sha1" ).update( data ).digest( "base64" ) },
-    RNDM_RG: function ( min, max, base  ) {
+    RNDM_RG: function ( min, max, base ) {
       let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
       return base ? r.toString( base ) : r },
-    READ_BITS: function ( byte  ) {
+    READ_BITS: function ( byte ) {
       return [ byte >= 128 ? 1 : 0,
       (byte %= 128) >= 64  ? 1 : 0,
       (byte %= 64)  >= 32  ? 1 : 0,
@@ -131,7 +131,7 @@ let weave = module.exports = exports = {
       (byte %= 8)   >= 4   ? 1 : 0,
       (byte %= 4)   >= 2   ? 1 : 0,
       (byte %= 2)   == 1   ? 1 : 0 ] },
-    BINARY_UINT: function ( binary  ) {
+    BINARY_UINT: function ( binary ) {
       return Number.parseInt( binary.join(""), 2 ) },
     times: function ( times, task  ) {
       var t = 0; while ( t++ < times  ) { task() } } },
@@ -139,7 +139,7 @@ let weave = module.exports = exports = {
   Dictionary: require( './utilities/MimeDictionary' ),
   Garden: require( './utilities/Garden'),
 
-  HTTPError: function ( code, description  ) {
+  HTTPError: function ( code, description ) {
     if ( !Number.is( code )  ) {
       console.error( 'HTTPError requires argument code to be a number!' )
     }
@@ -149,10 +149,10 @@ let weave = module.exports = exports = {
         value: weave.HTTPError,
         enumerable: false, writable: false, configurable: true },
       status: {
-        value: code,
+        value: weave.constants.STATUS_CODES[ code ],
         enumerable: true, writable: false, configurable: true },
       statusCode: {
-        value: weave.constants.STATUS_CODES[ code ],
+        value: code,
         enumerable: true, writable: false, configurable: true },
       description: {
         value: description || weave.constants.STATUS_DESCRIPTIONS[ code ],
@@ -166,8 +166,8 @@ require( './connection' )
 require( './router' )
 require( './printer' )
 
-process.argv.forEach( function ( arg  ) {
-  switch ( arg  ) {
+process.argv.forEach( function ( arg ) {
+  switch ( arg ) {
     case "--aww-heck-yes":
       console.log( "aww heck yes" )
       break;

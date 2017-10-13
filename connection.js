@@ -1,4 +1,4 @@
-var events, fs, http, path, util, url;// MIT License / Copyright Tyler Washburn 2015
+// MIT License / Copyright 2015
 "use strict";
 
 let weave = require( './weave' )
@@ -20,16 +20,6 @@ const z = new Buffer('0\r\n\r\n')
 // for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
 weave.Connection = class Connection extends events.EventEmitter {
-	static generateUUID() {
-		return weave.util.RNDM_RG(0x10000000,     0xFFFFFFFF,     16) + "-" +
-	         weave.util.RNDM_RG(0x1000,         0xFFFF,         16) + "-" +
-	         weave.util.RNDM_RG(0x4000,         0x4FFF,         16) + "-" +
-	         weave.util.RNDM_RG(0x8000,         0xBFFF,         16) + "-" +
-	         weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16) + // The last range has to be split into
-	         weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16)   // two calls because it has more digits
-		 																															  // than Math.random() generates
-	}
-
 	constructor( i, o ) {
 		// Make it an EventEmitter
 		super()
@@ -90,7 +80,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 			if ( !app ) {
 	      // If there isn't an app listening end the connection.
 	      // XXX: Should we really do this silently? Or should we report?
-	      // We're trying to pretend that there isn't a server connected but
+      	// We're trying to pretend that there isn't a server connected but
 	      // is that really a good idea? We should probably tell someone that
 	      // the server is connected and just not active. Maybe a 501.
 				garden.warning( "Incoming connection rejected. No app found." )
@@ -157,37 +147,43 @@ weave.Connection = class Connection extends events.EventEmitter {
 	    }
 	  }
 	}
+
+	static generateUUID() {
+		return weave.util.RNDM_RG(0x10000000,     0xFFFFFFFF,     16) + "-" +
+					 weave.util.RNDM_RG(0x1000,         0xFFFF,         16) + "-" +
+					 weave.util.RNDM_RG(0x4000,         0x4FFF,         16) + "-" +
+					 weave.util.RNDM_RG(0x8000,         0xBFFF,         16) + "-" +
+					 weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16) + // The last range has to be split into
+					 weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16)   // two calls because it has more digits
+																																		// than Math.random() generates
+	}
+
+
 }
 
 weave.Connection.prototype.behavior = function ( name ) {
   let behavior;
   let nests = name.split(" ");
 
-  // Load in order of priority. If there is a directory configuration then
-  // that is the most important. The next most important would be the
-  // configuration that our directory is inheriting from. Next is the general
-  // app configuration and our last resort is weave's global configuration.
-  // If we find a high priority match first, don't bother checking for a low
-  // priority match. Just return the behavior.
+  // Load in order of priority. Check the most relevant configurations first.
   [ this.configuration, this.configuration._super,
-    this.app.configuration, weave.configuration ].some( function ( cursor  ) {
+    this.app.configuration, weave.configuration ].some( cursor => {
       // Make sure the cursor actually exists, in case
       // @configuration._super isn't defined.
-      if ( cursor  ) {
+      if ( cursor ) {
         // If the cursor follows all the way to the requested property
         // then set the behavior and return true to stop checking.
-        if ( nests.every( function ( nest  ) { return cursor = cursor[ nest ] } ) ) {
+        if ( nests.every( nest => cursor = cursor[ nest ] ) ) {
           behavior = cursor
           return true;
         }
       }
-  })
+  } )
 
 	// If the location begins with ~, replace it with the users home directory.
 	// weave.constants.HOME normalizes the API for Node across different platforms.
-	if ( name === 'location' && String.is( behavior ) ) {
+	if ( name === 'location' && String.is( behavior ) )
 		behavior = behavior.replace( /^~/, weave.constants.HOME )
-	}
 
   // Return the matching behavior. If we didn't find one this should
   // still just be undefined.
@@ -200,22 +196,18 @@ weave.Connection.prototype.detail = function ( name, untampered ) {
 	name = name.toLowerCase()
   let header = this._NODE_REQUEST.headers[ name ]
 
-  // If asString is true then the header must be returned as a
+  // If untampered is true then the header must be returned as a
   // plain string. If it's not, then we can do some processing
   // to make it more useful than a string.
   if ( !untampered  ) {
-    switch ( name  ) {
-      // TODO: When case gets implemented in Teal 0.4,
-      // make sure this gets updated.
-      // case "if-modified-since" {
-      // }
+    switch ( name ) {
       case "if-modified-since":
-        if ( header  ) { return new Date( header ) }
+        if ( header ) { return new Date( header ) }
         break;
       case "cookie":
         // I think this is how we parse cookies but I suck at them???
 				if ( String.is( header )  ) {
-					var data = {}
+					let data = {}
 					header.split(";").forEach( cookie => {
 						cookie = cookie.trim().split( '=' )
 						data[cookie.shift()] = cookie.join( '=' ) || true
