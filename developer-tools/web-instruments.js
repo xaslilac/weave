@@ -16,14 +16,15 @@ require( './repl' )
 
 
 
-weave.attachInstruments = function ( app, instrumentUrl ) {
+weave.attachInstruments = function ( app, instrumentsUrl ) {
   if ( !weave.App.is( app )  ) {
     if ( String.is( app ) && weave.App.is( weave.apps[ app ] )  ) {
       app = weave.apps[ app ]
     } else garden.error( 'argument app must be an instance of weave.App or string appName' )
   }
 
-  app.addDirectory( instrumentUrl, {
+  app.addDirectory( instrumentsUrl, {
+    // TODO: FIX THIS
     'location': '~/OneDrive/Source/weave/developer-tools/web-instruments-wroot',
     'favoredExtensions': [ '.html' ],
     'mimeTypes': {
@@ -33,7 +34,7 @@ weave.attachInstruments = function ( app, instrumentUrl ) {
     }
   })
 
-  app.addInterface( path.join( instrumentUrl, '/enabled-instruments' ), function ( connection  ) {
+  app.addInterface( path.join( instrumentsUrl, '/enabled-instruments' ), function ( connection  ) {
     connection.end("['repl','log']")
   })
 
@@ -64,7 +65,7 @@ weave.attachInstruments = function ( app, instrumentUrl ) {
       }
     })
 
-    let logPipe = function ( log  ) {
+    let logPipe = function ( log ) {
       connection.send( JSON.stringify({
         messageType: 'console-log',
         space: log.space,
@@ -78,5 +79,5 @@ weave.attachInstruments = function ( app, instrumentUrl ) {
     // })
   })
 
-  socket.attach( app, path.join( instrumentUrl, '/socket' ) )
+  socket.attach( app, path.join( instrumentsUrl, '/socket' ) )
 }

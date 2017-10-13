@@ -1,14 +1,12 @@
 var fs = require( "fs" ), MimeDictionary;
 
-MimeDictionary = function (map ){
+MimeDictionary = function ( map ) {
   this.dictionary = {}
 
   if ( String.is( map ) ) {
     this.fromApacheFile( map )
   } else if ( Array.is( map ) ) {
-    map.forEach( function ( ind ) {
-      this.fromApacheFile( ind )
-    }, this )
+    map.forEach( ind => this.fromApacheFile( ind ) )
   } else {
     this.define.apply( this, arguments )
   }
@@ -34,10 +32,10 @@ MimeDictionary.prototype.define = function (type, extensions ){
   }
 }
 
-MimeDictionary.prototype.fromApacheFile = function (path, encoding, callback ){
+MimeDictionary.prototype.fromApacheFile = function ( path, encoding, callback ) {
   var dictionary = this;
 
-  fs.readFile( path, encoding || "UTF-8", function (error, content ){
+  fs.readFile( path, encoding || "UTF-8", function ( error, content ) {
     var type, extensions;
 
     if (error ){

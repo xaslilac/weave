@@ -1,44 +1,41 @@
-var events, util;// MIT License / Copyright Tyler Washburn 2017
+// MIT License / Copyright Tyler Washburn 2017
+
+// TODO: Octal escapes aren't allowed in strict mode. Try to find a work around?
 "use strict";
 
 
 
-events=require('events');util=require('util');;
+let events = require( 'events' )
+let util = require( 'util' );
 
-// Zen := module.exports = exports = function space {
-//   zen := function {
-//     zen.events.emit( 'log', { space: space, data: arguments } )
-//     return console.log.apply( console, [ '[{{space}}]' ].concat( Array.from( arguments ) ) )
-//   }
-//
-//   zen.space = space
-//   zen.events = new events.EventEmitter()
-//
-//   zen.log = zen
-//   zen.on = function { return zen.events.on.apply( zen.events, arguments ) }
-//
-//   return zen
-// }
-
-var Garden = module.exports = exports = function ( name ) {
-  if ( !this instanceof Garden ) {
-    return new Garden()
+let Garden = module.exports = exports = class Garden extends events.EventEmitter {
+  constructor( name ) {
+    // Make it an EventEmitter
+    super()
+    this.name = name
   }
 
-  this.name = name
+  log( message, ...extra ) {
+    process.stdout.write( `[${this.name}] \u001b[36m[log]\u001b[39m      ${format( message )} ` )
+    print( extra )
+  }
+
+  warning( message, ...extra ) {
+    process.stdout.write( `[${this.name}] \u001b[36m[warning]\u001b[39m  \u001b[33m${format( message )}\u001b[39m ` )
+    print( extra )
+  }
+
+  error( message, ...extra ) {
+    process.stdout.write( `[${this.name}] \u001b[36m[error]\u001b[39m    \u001b[31m${format( message )}\u001b[39m ` )
+    print( extra )
+  }
 }
 
-Garden.prototype.log = function ( message, ...extra ) {
-  process.stdout.write( "["+this.name+"] \033[36m[log]\033[39m      " + util.inspect( message ) + "\n" )
-  if ( extra.length  ) { console.log( ...extra ) }
+let format = function ( message ) {
+  return typeof message === 'string' ? message : util.inspect( message )
 }
 
-Garden.prototype.warning = function ( message, ...extra ) {
-  process.stdout.write( "["+this.name+"] \033[36m[warning]\033[39m  \033[33m" + util.inspect( message ) + "\033[39m\n" )
-  if ( extra.length  ) { console.log( ...extra ) }
-}
-
-Garden.prototype.error = function ( message, ...extra ) {
-  process.stdout.write( "["+this.name+"] \033[36m[error]\033[39m    \033[31m" + util.inspect( message ) + "\033[39m\n" )
-  if ( extra.length  ) { console.log( ...extra ) }
+let print = function ( extra ) {
+  if ( extra.length ) console.log( ...extra )
+  else process.stdout.write( '\n' )
 }

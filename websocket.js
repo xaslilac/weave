@@ -7,7 +7,7 @@ let garden = new weave.Garden( 'weave.WebSocket' )
 let events = require( 'events' )
 
 weave.WebSocket = class WebSocket extends events.EventEmitter {
-  constructor( app, path, listener ) {
+  constructor( app, url, listener ) {
     // Make it an EventEmitter
     super()
 
@@ -19,7 +19,7 @@ weave.WebSocket = class WebSocket extends events.EventEmitter {
       } else throw 'WebSocket: argument app must be an instance of weave.App or string appName'
     }
 
-    if ( app && path  ) { this.attach( app, path ) }
+    if ( app && path ) { this.attach( app, url ) }
     if ( Function.is( listener ) ) this.on( 'connection', listener )
   }
 }
@@ -29,17 +29,15 @@ weave.WebSocket = class WebSocket extends events.EventEmitter {
 // listeners good data on where specifically the message is coming from, but
 // could also be bad and complicate things unnecessarily.
 weave.WebSocket.prototype.attach = function ( app, socketUrl  ) {
-  var socket = this
-
   if ( !weave.App.is( app )  ) {
     if ( String.is( app ) && weave.App.is( weave.apps[ app ] )  ) {
       app = weave.apps[ app ]
     } else return garden.error( 'argument app must be an instance of weave.App or string appName' )
   }
 
-  app.addInterface( socketUrl, function ( httpConnection ) {
-    return new weave.WebSocketConnection( socket, httpConnection )
-  })
+  app.addInterface( socketUrl, httpConnection => new weave.WebSocketConnection( this, httpConnection ) )
+
+  return this
 }
 
 weave.WebSocketConnection = class WebSocketConnection extends events.EventEmitter {
@@ -97,8 +95,9 @@ weave.WebSocketConnection.prototype.handshake = function ( httpConnection, socke
   }
 }
 
-weave.WebSocketConnection.prototype.decode = function ( data  ) {
+weave.WebSocketConnection.prototype.decode = function ( data ) {
   // Set up our scope with all the necessary variables.
+  // TODO: Find a way to use binary literals? 0b0010101010101 etc.
   var b0 = weave.util.READ_BITS( data[0] )
   var b1 = weave.util.READ_BITS( data[1] )
   var offset = 0

@@ -1,37 +1,35 @@
-var events, http, path;// MIT License / Copyright 2015
+// MIT License / Copyright 2015
+// weave.App is weaves main entry point, and it's file format should be used as
+// a template for all other .js source files.
 "use strict";
 
 let weave = require( './weave' )
 let garden = new weave.Garden( 'weave.App' )
 
+let events = require( 'events' )
+let http = require( 'http' )
+let path = require( 'path' )
+let Wildcard = require( './utilities/Wildcard' )
+
 // n is a CRLF buffer, z is an end packet buffer.
 const n = new Buffer('\r\n')
 const z = new Buffer('0\r\n\r\n')
 
-garden.log('Hello')
-garden.warning('there')
-garden.error('sailor!')
-
-events=require('events');http=require('http');path=require('path');;
-let Wildcard = require( './utilities/Wildcard' )
-
 weave.App = class App extends events.EventEmitter {
   constructor( appName ) {
+    // Make it an EventEmitter
     super()
 
-    garden.warning( 'New app created!', appName )
-    if ( weave.apps[ appName ]  ) {
-      return garden.warning( `App '${appName}' already exists!` )
-    } else weave.apps[ appName ] = this
+    if ( weave.apps[ appName ] ) return garden.warning( `App names must be unique! App '${appName}' already exists!` )
 
-    // Create the initial configuration storage object and use
-    // resetCache() to create the initial empty cache.
     this.appName = appName,
     this.configuration = {}
     this.cache = {
       parentDirectories: {},
       resolvedPaths: {}
     }
+
+    weave.apps[ appName ] = this
   }
 
   link( ...hosts ) {
@@ -69,14 +67,14 @@ weave.App = class App extends events.EventEmitter {
       // to listen on all interfaces ('::') for IPv4 and IPv6.
       // TODO: Maybe we should make this configurable?
       if ( !weave.servers[ port ]  ) {
-        let server = weave.servers[ port ] = http.createServer()
-        server.listen( port, '::' );
-
+        let server = weave.servers[ port ] = http.createServer();
         // Accept incoming requests on the server
         ['request', 'upgrade'].forEach(e => server.on( e, (i, o) => new weave.Connection( i, o ) ))
-
         // Used to determine if any servers are active yet when an error is encountered.
-        server.on( 'listening', () => weave._ACTIVE = true )
+        server.on( 'listening', () => { weave._ACTIVE = true; @emit( 'listening' ) } )
+        server.listen( port, '::' )
+      } else {
+        @emit( 'listening' )
       }
     })
 
@@ -89,11 +87,10 @@ weave.App = class App extends events.EventEmitter {
     // not conflict with previously caches requests.
     this.cache.parentDirectories = {}
 
+    // Keep things consistent on Windows with other platforms
     directory = directory.replace( /\\/g, '/' )
 
-    if ( !path.isAbsolute( directory ) ) {
-      return garden.error( "Directories must be absolute!" )
-    }
+    if ( !path.isAbsolute( directory ) ) return garden.error( "Directories must be absolute!" )
 
     // If we only have two arguments then inherit is actually going to be the
     // configuration. If we have three arguments, then we set the inheritance.
@@ -108,7 +105,7 @@ weave.App = class App extends events.EventEmitter {
     // The main reason this event is important is for 3rd party modules
     // that might alter the configuration, or that need to clear caches
     // for anything that is based off of a configurable property.
-    this.emit( "configured", directory, configuration, this.configuration, this )
+    this.emit( 'configured', directory, configuration, this.configuration )
     this.configuration[ directory ] = configuration
 
     // Return this from all configuration methods so they can be chained.

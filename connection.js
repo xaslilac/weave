@@ -4,19 +4,21 @@ var events, fs, http, path, util, url;// MIT License / Copyright Tyler Washburn 
 let weave = require( './weave' )
 let garden = new weave.Garden( 'weave.Connection' )
 
+let events = require('events')
+let fs = require( 'fs' )
+let http = require( 'http' )
+let path = require( 'path' )
+let util = require( 'util' )
+let url = require( 'url' )
+let Wildcard = require( './utilities/Wildcard' )
+
 // n is a CRLF buffer, z is an end packet buffer.
 const n = new Buffer('\r\n')
 const z = new Buffer('0\r\n\r\n')
 
-
-
-events=require('events');fs=require('fs');http=require('http');path=require('path');util=require('util');url=require('url');;
-let Wildcard = require( './utilities/Wildcard' )
-
-// The Connection class is responsible for determining which App is
-// responsible for handling the ClientRequest and ServerResponse
+// The Connection class determines which App is responsible
+// for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
-
 weave.Connection = class Connection extends events.EventEmitter {
 	static generateUUID() {
 		return weave.util.RNDM_RG(0x10000000,     0xFFFFFFFF,     16) + "-" +
@@ -149,7 +151,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	    this.app.emit( "connection", this )
 	    this.app.router( this )
 	  } else {
-	    if ( !this.app.emit( "failed connection", this )  ) {
+	    if ( !this.app.emit( "unconfigurable connection", this )  ) {
 	      // TODO: Log an error here
 	      this.generateErrorPage( new weave.HTTPError( 501, "No configuration set for requested URL" ) )
 	    }
@@ -192,8 +194,7 @@ weave.Connection.prototype.behavior = function ( name ) {
   return behavior
 }
 
-weave.Connection.prototype.get =
-weave.Connection.prototype.getHeader = function ( name, asString ) {
+weave.Connection.prototype.detail = function ( name, untampered ) {
   // Make sure the header name is lowercase, so that it
   // can be case insensitive.
 	name = name.toLowerCase()
@@ -202,7 +203,7 @@ weave.Connection.prototype.getHeader = function ( name, asString ) {
   // If asString is true then the header must be returned as a
   // plain string. If it's not, then we can do some processing
   // to make it more useful than a string.
-  if ( !asString  ) {
+  if ( !untampered  ) {
     switch ( name  ) {
       // TODO: When case gets implemented in Teal 0.4,
       // make sure this gets updated.
@@ -225,7 +226,7 @@ weave.Connection.prototype.getHeader = function ( name, asString ) {
     }
   }
 
-  // If something else hasn't already been returned, or if asString
+  // If something else hasn't already been returned, or if untampered
   // is true then just return the header as a normal string.
   return header
 };
@@ -343,6 +344,7 @@ weave.Connection.prototype.end = function (  ) {
     this._NODE_CONNECTION.end()
 
   this.state = 3
+	return this
 }
 
 weave.Connection.prototype.redirect = function ( location, status  ) {
@@ -355,12 +357,12 @@ weave.Connection.prototype.redirect = function ( location, status  ) {
 		}
 	}
 
-	this.writeHead( status, { "Location": location } ).end()
+	return this.writeHead( status, { "Location": location } ).end()
 }
 
-weave.Connection.prototype.generateErrorPage = function ( error  ) {
+weave.Connection.prototype.generateErrorPage = function ( error ) {
 	// Create a details object for us to pass to printer.
-	var details = Object.create( weave.constants.DETAILS, {
+	let details = Object.create( weave.constants.DETAILS, {
 		url: {
 			value: this.url,
 			enumerable: true, writable: true, configurable: true } } );

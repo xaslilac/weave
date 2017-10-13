@@ -1,12 +1,13 @@
-var fs, path;// MIT License / Copyright Tyler Washburn 2015
+// MIT License / Copyright 2015
 "use strict";
 
-var weave = require( './weave' )
-var garden = new weave.Garden( 'weave.App::router' )
+let weave = require( './weave' )
+let garden = new weave.Garden( 'weave.App::router' )
 
 
 
-fs=require('fs');path=require('path');;
+let fs = require( 'fs' )
+let path = require( 'path' )
 
 // If you add any kind of "Connection::type" please make sure that you add
 // an "isType" function.
@@ -21,11 +22,11 @@ weave.constants.DETAILS = {
   // stats: fs.stat,
   // type: "directory"|"file"|"interface"|"na",
   // url: connection.url
-};
+}
 
 
 
-weave.App.prototype.router = function ( connection  ) {
+weave.App.prototype.router = function ( connection ) {
   var cursor;
 
   // We give the printer this details object to let it know what we
