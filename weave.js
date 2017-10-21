@@ -12,10 +12,6 @@ Array.prototype.someAsync = function (f,c){
   let a=this,i=0,v=!1,t={
   next:function (){i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function (){c(!0)}};t.next()
 }
-Object.extend = function (o,e){
-  console.log('Depreciated extend!');
-  o!=null&&e!=null&&this.keys(e).forEach(function (p){o[p]=e[p]});return o
-}
 Function.prototype.is = function (a){
   // console.log('Depreciated ::is!');
   return a!=null&&(a.constructor===this.prototype.constructor)

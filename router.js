@@ -8,8 +8,6 @@ let fs = require( 'fs' )
 let path = require( 'path' )
 
 weave.App.prototype.router = function ( connection ) {
-  var cursor;
-
   // We give the printer this details object to let it know what we
   // have found about about the request so far.
 	let manifest = new weave.Manifest( { url: connection.url } )
@@ -69,7 +67,7 @@ weave.App.prototype.router = function ( connection ) {
   // cursor points to where ever we're searching for files.
   var location = connection.behavior( 'location' )
   if ( !location ) { return garden.error( 'No location set for '+connection.url.pathname+'! Cannot route!') }
-  cursor = path.join( location, unescape( connection.url.path ) )
+  let cursor = path.join( location, unescape( connection.url.path ) )
 
   // This function makes depth adjustments, and is called rather than calling
   // search directly if a recursive search is necessary.
@@ -126,23 +124,19 @@ weave.App.prototype.router = function ( connection ) {
           && !connection.url.pathname.endsWith("/") ) {
             connection.redirect( connection.url.pathname + "/" )
           } else if ( indexes ) {
-            Object.keys( indexes ).someAsync( function ( index, n, some ) {
-              if ( connection.url.depth <= indexes[ index ] ) {
-                // TODO: Add code here so that if multiple indexes are
-                // found, the one with the lowest depth gets served.
-                index = path.join( cursor, index )
-                fs.access( index, error => {
-                  if ( !error ) {
-                    fs.stat( index, function ( error, stats ) {
-                      if ( stats.isFile() ) {
-                        print({ path: index, stats: stats, type: "file" })
-                      } else some.next()
-                    })
-                  } else some.next()
-                })
-              } else some.next()
-            }, function () {
-              if ( connection.url.depth === 0 ) {
+            Promise.all( Object.keys( indexes ).map( index => {
+              return new Promise( ( next, print ) => {
+                if ( connection.url.depth <= indexes[ index ] ) {
+                  index = path.join( cursor, index )
+
+                  fs.stat( index, function ( error, stats ) {
+                    if ( error || !stats.isFile() ) return next()
+                    print({ path: index, stats: stats, type: "file" })
+                  })
+                } else next()
+              })
+            }) ).then( () => {
+              if ( connection.url.depth === 0 && !connection.behavior( 'disableDirectoryListings' ) ) {
                 print({ path: cursor, stats: stats, type: 'directory' })
               } else {
                 // TODO: Make the manifest descriptive enough that this check can be done in printer. Maybe?
@@ -153,7 +147,7 @@ weave.App.prototype.router = function ( connection ) {
                   connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file.") )
                 }
               }
-            })
+            }).catch( print )
           } else {
             print({ path: cursor, stats: stats, type: 'directory' })
           }
