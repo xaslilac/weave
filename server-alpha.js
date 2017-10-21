@@ -2,7 +2,7 @@
 "use strict";
 
 var weave = require( './weave' )
-var garden = new weave.Garden( 'weave.App' )
+var garden = new weave.Garden( 'weave.Server--ALPHA' )
 
 events=require('events');net=require('net');path=require('path');;
 let Wildcard = require( './utilities/Wildcard' )
