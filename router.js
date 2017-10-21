@@ -12,17 +12,18 @@ weave.App.prototype.router = function ( connection ) {
 
   // We give the printer this details object to let it know what we
   // have found about about the request so far.
-	let manifest = new weave.Manifest( { url: this.url } )
+	let manifest = new weave.Manifest( { url: connection.url } )
+  garden.debug( this.appName, connection.url )
 
   // Make the printer easier to call in different contexts.
   let print = more => this.printer( undefined, manifest.extend( more ), connection )
 
   // If the configuration is a Function, then the request should be handle as
   // an interface type. Call the interface configuration.
-  if ( Function.is( connection.configuration )  ) {
+  if ( connection.configuration.type === 'interface' ) {
     let shouldContinue = false
 
-    details.shouldContinue = function ( configuration ) {
+    manifest.shouldContinue = function ( configuration ) {
       if ( configuration ) {
         connection.configuration = configuration
         return shouldContinue = true
@@ -33,9 +34,9 @@ weave.App.prototype.router = function ( connection ) {
     }
 
     // TODO: This is messy right now. Nothing is being passed the results of the interface.
-    Object.extend( details, {
-      result: connection.configuration.call( connection.app, connection, details ),
-      type: "interface"
+    manifest.extend({
+      result: connection.configuration.interface.call( connection.app, connection, manifest ),
+      type: 'interface'
     })
 
     if ( !shouldContinue ) return
@@ -49,7 +50,7 @@ weave.App.prototype.router = function ( connection ) {
   // Upgrades are only supported via interfaces.
   // TODO: Let's emit an upgrade event here as one last attempt
   // at saving the connection before we destroy it.
-  if ( connection.isUpgrade  ) {
+  if ( connection.isUpgrade ) {
     connection.destroy()
     return connection.generateErrorPage( new weave.HTTPError( 501, "Cannot Upgrade" ) )
   }
@@ -58,7 +59,7 @@ weave.App.prototype.router = function ( connection ) {
   // handle it. But should we really disconnect? Code 405 let's them know that
   // we can't handle the request, instead of just confusing the client as to
   // why they didn't ever recieve anything in return to the request.
-  if ( connection.method !== "GET" && connection.method !== "HEAD" && connection.method !== "POST"  ) {
+  if ( connection.method !== "GET" && connection.method !== "HEAD" && connection.method !== "POST" ) {
     return connection.generateErrorPage( new weave.HTTPError( 405, "Only GET, HEAD, and POST methods are supported." ) )
   }
   // These both do the exact same thing, just different ways. Which is better?
@@ -67,14 +68,14 @@ weave.App.prototype.router = function ( connection ) {
 
   // cursor points to where ever we're searching for files.
   var location = connection.behavior( 'location' )
-  if ( !location  ) { return garden.error( 'No location set for '+connection.url.pathname+'! Cannot route!') }
+  if ( !location ) { return garden.error( 'No location set for '+connection.url.pathname+'! Cannot route!') }
   cursor = path.join( location, unescape( connection.url.path ) )
 
   // This function makes depth adjustments, and is called rather than calling
   // search directly if a recursive search is necessary.
-  var reroute = function (  ) {
+  var reroute = function ( ) {
     // If there's room to step back and keep searching for files then we do so.
-    if ( path.relative( "/", connection.url.path )  ) {
+    if ( path.relative( "/", connection.url.path ) ) {
       connection.url.path = path.join( connection.url.path, ".." ), cursor = path.join( cursor, ".." );
       connection.url.description = path.relative( connection.url.path, connection.url.pathname );
       connection.url.depth++, search()
@@ -84,77 +85,25 @@ weave.App.prototype.router = function ( connection ) {
     }
   }
 
-  var indexes = connection.behavior( 'indexes' )
+  let indexes = connection.behavior( 'indexes' )
 
   // Define our search function
-  var search = function (  ) {
+  var search = function () {
     // Check to see if it exists, and if it's a file or a directory.
     // If it doesn't exist, then step up a directory and try again.
-    fs.exists( cursor, function ( exists  ) {
-      if ( exists  ) {
-        fs.stat( cursor, function ( error, stats  ) {
-          if ( error  ) {
-            return console.error( error )
-          }
-
-          // If it's a file, then we're done, and we just call the printer.
-          // If it's a directory, then check for an index, making sure that
-          // is has a fitting depth, that it exists, and is a file. We use a
-          // customized Array::some function that you can use with asynchronous
-          // functions, since you tell it when to go to the next item. The
-          // callback is run when .next() is called but there is not another
-          // item to process, so it will only be called if there isn't a match.
-          if ( stats.isFile()  ) {
-            print({ path: cursor, stats: stats, type: "file" })
-          } else if ( stats.isDirectory()  ) {
-            if ( connection.url.depth === 0 && !connection.behavior( 'disableURLCleaning' )
-            && !connection.url.pathname.endsWith("/")  ) {
-              connection.redirect( connection.url.pathname + "/" )
-            } else if ( indexes  ) {
-              Object.keys( indexes ).someAsync( function ( index, n, some  ) {
-                if ( connection.url.depth <= indexes[ index ]  ) {
-                  // TODO: Add code here so that if multiple indexes are
-                  // found, the one with the lowest depth gets served.
-                  index = path.join( cursor, index )
-                  fs.exists( index, function ( exists  ) {
-                    if ( exists  ) {
-                      fs.stat( index, function ( error, stats  ) {
-                        if ( stats.isFile()  ) {
-                          print({ path: index, stats: stats, type: "file" })
-                        } else some.next()
-                      })
-                    } else some.next()
-                  })
-                } else some.next()
-              }, function (  ) {
-                if ( connection.url.depth === 0  ) {
-                  print({ path: cursor, stats: stats, type: "directory" })
-                } else {
-                  if ( connection.behavior( "enableJSONDirectoryListings" )
-                  && connection.url.depth === 1 && connection.url.description === "directory.json"  ) {
-                    print({ path: cursor, stats: stats, type: "directory" })
-                  } else {
-                    connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file.") )
-                  }
-                }
-              })
-            } else {
-              reroute()
-            }
-          }
-        })
-      } else {
+    fs.stat( cursor, function ( error, stats ) {
+      if ( error ) {
         // Search for any files with favored extensions.
         // Favored extensions only work on a depth of 0, and if the url ends in
         // a character that would be valid in a filename.
         if ( connection.url.depth === 0
         && Array.isArray( connection.behavior( "favoredExtensions" ) )
-        && connection.url.pathname.charAt( connection.url.pathname.length - 1 ).match( /[A-Za-z0-9\-\_]/ )  ) {
-          connection.behavior( "favoredExtensions" ).someAsync( function ( extension, i, some  ) {
-            fs.exists( cursor + extension, function ( exists  ) {
-              if ( exists  ) {
-                fs.stat( cursor + extension, function ( error, stats  ) {
-                  if ( stats.isFile()  ) {
+        && connection.url.pathname.charAt( connection.url.pathname.length - 1 ).match( /[A-Za-z0-9\-\_]/ ) ) {
+          connection.behavior( "favoredExtensions" ).someAsync( function ( extension, i, some ) {
+            fs.exists( cursor + extension, function ( exists ) {
+              if ( exists ) {
+                fs.stat( cursor + extension, function ( error, stats ) {
+                  if ( stats.isFile() ) {
                     print({ path: cursor + extension, stats: stats, type: "file" })
                   } else some.next()
                 })
@@ -162,6 +111,53 @@ weave.App.prototype.router = function ( connection ) {
             })
           }, reroute)
         } else reroute()
+      } else {
+        // If it's a file, then we're done, and we just call the printer.
+        // If it's a directory, then check for an index, making sure that
+        // is has a fitting depth, that it exists, and is a file. We use a
+        // customized Array::some function that you can use with asynchronous
+        // functions, since you tell it when to go to the next item. The
+        // callback is run when .next() is called but there is not another
+        // item to process, so it will only be called if there isn't a match.
+        if ( stats.isFile() ) {
+          print({ path: cursor, stats: stats, type: "file" })
+        } else if ( stats.isDirectory() ) {
+          if ( connection.url.depth === 0 && !connection.behavior( 'disableURLCleaning' )
+          && !connection.url.pathname.endsWith("/") ) {
+            connection.redirect( connection.url.pathname + "/" )
+          } else if ( indexes ) {
+            Object.keys( indexes ).someAsync( function ( index, n, some ) {
+              if ( connection.url.depth <= indexes[ index ] ) {
+                // TODO: Add code here so that if multiple indexes are
+                // found, the one with the lowest depth gets served.
+                index = path.join( cursor, index )
+                fs.access( index, error => {
+                  if ( !error ) {
+                    fs.stat( index, function ( error, stats ) {
+                      if ( stats.isFile() ) {
+                        print({ path: index, stats: stats, type: "file" })
+                      } else some.next()
+                    })
+                  } else some.next()
+                })
+              } else some.next()
+            }, function () {
+              if ( connection.url.depth === 0 ) {
+                print({ path: cursor, stats: stats, type: 'directory' })
+              } else {
+                // TODO: Make the manifest descriptive enough that this check can be done in printer. Maybe?
+                if ( connection.behavior( "enableJSONDirectoryListings" )
+                && connection.url.depth === 1 && connection.url.description === "directory.json" ) {
+                  print({ path: cursor, stats: stats, type: 'directory'})
+                } else {
+                  connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file.") )
+                }
+              }
+            })
+          } else {
+            print({ path: cursor, stats: stats, type: 'directory' })
+          }
+        }
       }
     })
   };

@@ -12,9 +12,11 @@ let Garden = module.exports = exports = class Garden extends events.EventEmitter
   constructor( name, verbose ) {
     // Make it an EventEmitter
     super()
-    
+
     this.name = name
     this.verbose = verbose
+
+    Garden.list.push( this )
   }
 
   debug( message, ...extra ) {
@@ -32,7 +34,13 @@ let Garden = module.exports = exports = class Garden extends events.EventEmitter
   error( message, ...extra ) {
     print( this.name, 'error', `\u001b[31m${format( message )}\u001b[39m`, extra )
   }
+
+  static enableDebug() {
+    this.list.forEach( garden => garden.verbose = true )
+  }
 }
+
+Garden.list = []
 
 let format = function ( message ) {
   return typeof message === 'string' ? message : util.inspect( message )

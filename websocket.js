@@ -11,10 +11,10 @@ weave.WebSocket = class WebSocket extends events.EventEmitter {
     // Make it an EventEmitter
     super()
 
-    if ( app && !weave.App.is( app )  ) {
-      if ( String.is( app ) && weave.App.is( weave.apps[ app ] )  ) {
+    if ( app && !weave.App.is( app ) ) {
+      if ( String.is( app ) && weave.App.is( weave.apps[ app ] ) ) {
         app = weave.apps[ app ]
-      } else if ( Function.is( app ) && url == undefined && listener == undefined  ) {
+      } else if ( Function.is( app ) && url == undefined && listener == undefined ) {
         listener = app
       } else throw 'WebSocket: argument app must be an instance of weave.App or string appName'
     }
@@ -29,7 +29,7 @@ weave.WebSocket = class WebSocket extends events.EventEmitter {
 // listeners good data on where specifically the message is coming from, but
 // could also be bad and complicate things unnecessarily.
 weave.WebSocket.prototype.attach = function ( app, socketUrl ) {
-  if ( !weave.App.is( app )  ) {
+  if ( !weave.App.is( app ) ) {
     if ( String.is( app ) && weave.App.is( weave.apps[ app ] ) ) {
       app = weave.apps[ app ]
     } else return garden.error( 'argument app must be an instance of weave.App or string appName' )
@@ -58,17 +58,17 @@ weave.WebSocketConnection = class WebSocketConnection extends events.EventEmitte
 
     httpConnection.on( 'data', data => {
       var message = this.decode( data );
-      if ( this.readyState === 1  ) {
-        if ( message.opcode <= 0x2  ) {
+      if ( this.readyState === 1 ) {
+        if ( message.opcode <= 0x2 ) {
           this.emit( 'message', message )
-        } else if ( message.opcode === 0x8  ) {
+        } else if ( message.opcode === 0x8 ) {
           this.close( null, null, message )
           garden.log( 'received close frame')
-        } else if ( message.opcode === 0x9  ) {
+        } else if ( message.opcode === 0x9 ) {
           garden.log( "pong ping" ) // TEMPORARY
           this.emit( 'ping', message )
           this.send( message.buffer, 0xA )
-        } else if ( message.opcode === 0xA  ) {
+        } else if ( message.opcode === 0xA ) {
           this.emit( 'pong', message )
         }
       }
@@ -111,14 +111,14 @@ weave.WebSocketConnection.prototype.decode = function ( data ) {
 
   // Check if the frame has an extended payload length,
   // and if it is 16 bit or 64 bit.
-  if ( payloadLength === 126  ) {
+  if ( payloadLength === 126 ) {
     details.length = Number.parseInt( data[2].toString(16) + data[3].toString(16), 16 )
     offset = 2
-  } else if ( payloadLength === 127 && data[2] < 128  ) {
+  } else if ( payloadLength === 127 && data[2] < 128 ) {
     // For 64 bit lengths, the most significant bit must be 0
-    if ( data[2] < 128  ) {
+    if ( data[2] < 128 ) {
       details.length = ""
-      data.slice( 2, 10 ).forEach( function ( l  ) { details.length += l.toString(16) })
+      data.slice( 2, 10 ).forEach( function ( l ) { details.length += l.toString(16) })
       details.length = Number.parseInt( details.length, 16 )
       offset = 8
     } else {
@@ -126,18 +126,18 @@ weave.WebSocketConnection.prototype.decode = function ( data ) {
     }
   } else details.length = payloadLength
 
-  if ( details.masked  ) {
+  if ( details.masked ) {
     details.maskingKey = data.slice( 2 + offset, 6 + offset )
 
     // Unmask all the data
-    data.slice( 6 + offset, details.length + 6 + offset ).forEach( function ( byte, index  ) {
+    data.slice( 6 + offset, details.length + 6 + offset ).forEach( function ( byte, index ) {
       decoded[ index ] = byte ^ details.maskingKey[ index % 4 ] })
     details.buffer = Buffer.from( decoded )
 
     // If the data is identified as text, then convert it to a string
-    if ( details.opcode === 0x1  ) {
+    if ( details.opcode === 0x1 ) {
       details.data = details.buffer.toString( 'utf-8' )
-    } else if ( details.opcode === 0x8  ) {
+    } else if ( details.opcode === 0x8 ) {
       details.code = Number.parseInt( details.buffer.slice( 0, 2 ).toString( 'hex' ), 16 )
       details.reason = details.buffer.slice( 2 ).toString( 'utf-8' )
     }
@@ -149,9 +149,9 @@ weave.WebSocketConnection.prototype.decode = function ( data ) {
   return details
 }
 
-weave.WebSocketConnection.prototype.send = function ( data, opcode  ) {
-  if ( !Buffer.isBuffer( data )  ) {
-    if ( String.is( data )  ) {
+weave.WebSocketConnection.prototype.send = function ( data, opcode ) {
+  if ( !Buffer.isBuffer( data ) ) {
+    if ( String.is( data ) ) {
       data = Buffer.from( data )
     } else console.error( "WebSocket data should be a string or a buffer!" )
   }
@@ -162,8 +162,8 @@ weave.WebSocketConnection.prototype.send = function ( data, opcode  ) {
   // We must add the correct number of spacing 0's to our length string to
   // get a buffer of the exact length that we need. When we have the length
   // figured out, complete the prefix and make it a Buffer.
-  if ( data.length > 125  ) {
-    if ( data.length > 65536  ) {
+  if ( data.length > 125 ) {
+    if ( data.length > 65536 ) {
       prefix[1] += 127
       var length = data.length.toString( 16 )
       weave.util.times( 16 - length.length, function () { length = "0" + length } )
@@ -183,19 +183,19 @@ weave.WebSocketConnection.prototype.send = function ( data, opcode  ) {
   return true
 }
 
-weave.WebSocketConnection.prototype.ping = function ( callback  ) {
+weave.WebSocketConnection.prototype.ping = function ( callback ) {
   var socketConnection = this
 
   // Avoid pinging multiple times at once
-  if ( !this.pinging  ) {
+  if ( !this.pinging ) {
     this.pinging = true;
     var pingBuffer = Buffer.from( weave.util.RNDM_RG( 0, 0xFFFFFFFF, 16 ), 'hex' )
     this.send( pingBuffer, 0x9 )
 
     // Verify that the message is correct.
-    this.once( 'pong', function ( message, socketConnection  ) {
+    this.once( 'pong', function ( message, socketConnection ) {
       socketConnection.pinging = false
-      if ( message.buffer.equals( pingBuffer )  ) {
+      if ( message.buffer.equals( pingBuffer ) ) {
         Function.is( callback ) && callback.call( socketConnection, true )
       } else {
         socketConnection._NODE_CONNECTION.destroy()
@@ -207,22 +207,22 @@ weave.WebSocketConnection.prototype.ping = function ( callback  ) {
   } return false
 }
 
-weave.WebSocketConnection.prototype.close = function ( code, reason, message  ) {
+weave.WebSocketConnection.prototype.close = function ( code, reason, message ) {
   // This defaults the code to 1000
   var codeBuffer = [ 0x3, 0xe8 ]
   console.log( this.readyState, code, reason, message )
 
   // If the connection is already being closed, this will just be the
   // client returning a close frame, so we finish closing the connection.
-  if ( this.readyState === 2  ) {
+  if ( this.readyState === 2 ) {
     console.log( 'closing connection', this )
     this.readyState = 3
     //@_NODE_CONNECTION.close()
     this.emit( 'close', message )
-  } else if ( this.readyState < 2  ) {
+  } else if ( this.readyState < 2 ) {
     // If we have processed a message, then the client is requesting we close
     // the connection. If there is no message, then it is us closing it.
-    if ( message  ) {
+    if ( message ) {
       console.log( 'closing connection..' )
       this.readyState = 3
       this.send( message.buffer, 0x8 )
@@ -230,15 +230,15 @@ weave.WebSocketConnection.prototype.close = function ( code, reason, message  ) 
       this.emit( 'close', message )
     } else {
       this.readyState = 2
-      if ( Number.is( code ) && code < 65535  ) {
+      if ( Number.is( code ) && code < 65535 ) {
         codeBuffer[1] = code % 256
         codeBuffer[0] = ( code - codeBuffer[1] ) / 256
       }
 
       codeBuffer = Buffer.from( codeBuffer, 'hex' )
 
-      if ( reason != null && !Buffer.isBuffer( reason )  ) {
-        if ( String.is( reason )  ) {
+      if ( reason != null && !Buffer.isBuffer( reason ) ) {
+        if ( String.is( reason ) ) {
           reason = Buffer.from( reason )
         } else console.error( "WebSocket data should be a string or a buffer!" )
       }

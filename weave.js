@@ -78,7 +78,7 @@ Function.prototype.is = function (a){
 // Enable the ability to stream a video file from a certain time stamp, to
 // resume a disrupted download at a later time, and to accept user uploads.
 
-// # Standalone operation - v0.7 (Independant Black Spider)
+// # Standalone operation - v0.7
 // Polish the CLI enough to be able to run entirely from the command line.
 
 // # SPDY Protocol / GZip / HTTP 2.0 / HTTPS support - v0.8
@@ -97,16 +97,16 @@ Function.prototype.is = function (a){
 // and ensuring that any and all errors are incredibly tracable to make debugging
 // quick and painless.
 
-// # Release - v1.0 (Free from the Web)
+// # Release - v1.0
 // All desired features polished and in place for the world to see!
 
 
 
 
 
-// Import all of the modules that we need before we do anything crazy.
 let crypto = require( 'crypto' )
 let http = require( 'http' )
+let path = require( 'path' )
 
 let weave = module.exports = exports = {
   version: "0.1.11",
@@ -121,6 +121,7 @@ let weave = module.exports = exports = {
                } },
 
   configuration: {
+    location: path.join( __dirname, 'http/default' )
    // adminEmail: String,
    // logOutput: String,
   },
@@ -141,15 +142,15 @@ let weave = module.exports = exports = {
       (byte %= 4)   >= 2   ? 1 : 0,
       (byte %= 2)   == 1   ? 1 : 0 ] },
     BINARY_UINT: function ( binary ) {
-      return Number.parseInt( binary.join(""), 2 ) },
-    times: function ( times, task  ) {
-      var t = 0; while ( t++ < times  ) { task() } } },
+      return Number.parseInt( binary.join(''), 2 ) },
+    times: function ( times, task ) {
+      var t = 0; while ( t++ < times ) { task() } } },
 
   Dictionary: require( './utilities/MimeDictionary' ),
   Garden: require( './utilities/Garden'),
 
   HTTPError: function ( code, description ) {
-    if ( !Number.is( code )  ) {
+    if ( !Number.is( code ) ) {
       console.error( 'HTTPError requires argument code to be a number!' )
     }
 
@@ -178,14 +179,14 @@ process.argv.forEach( function ( arg ) {
       console.log( "aww heck yes" )
       break;
     case "--weave-verbose":
-      weave.verbose = true
+      weave.Garden.enableDebug()
       break;
     case "--enable-repl":
-      require( './developer-tools/repl' )
+      require( './developer/repl' )
       weave.connectREPL( process.stdin, process.stdout )
       break;
     case "--enable-web-instruments":
-      require( './developer-tools/web-instruments' )
+      require( './developer/instruments' )
       break;
     case "--enable-web-socket":
       require( './websocket' )

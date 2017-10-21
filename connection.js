@@ -67,9 +67,9 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  // Check for a direct host match, or a cached wildcard match.
 	  // If there isn't one, check against wildcards, filtering out hosts
 	  // that don't contain at least one wildcard since they won't match.
-	  if ( weave.hosts[ this.host ]  ) {
+	  if ( weave.hosts[ this.host ] ) {
 	    this.app = weave.hosts[ this.host ].app
-	  } else if ( weave.cache.wildcardMatches[ this.host ]  ) {
+	  } else if ( weave.cache.wildcardMatches[ this.host ] ) {
 	    this.app = weave.cache.wildcardMatches[ this.host ]
 	  } else {
 			let app = Wildcard.bestMatch(
@@ -96,11 +96,11 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  // matches the URL we're processing and cache it. If there are multiple
 	  // matches we check it against the longest match to see if it's longer.
 	  // The longest match should always be the most specific configuration.
-	  if ( this.app.cache.parentDirectories[ this.url.pathname ]  ) {
+	  if ( this.app.cache.parentDirectories[ this.url.pathname ] ) {
 	    this.directory = this.app.cache.parentDirectories[ this.url.pathname ]
 	  } else {
 	    Object.keys( this.app.configuration ).forEach( directory => {
-	      if ( this.app.configuration.hasOwnProperty( directory )  ) {
+	      if ( this.app.configuration.hasOwnProperty( directory ) ) {
 	        // Check if the directory matches the beginning of the requested URL, and
 	        // that it is a full directory. The second line avoids some issues, i.e.
 	        // if you have a configuration for /abc/ but the file requested is /abc.html
@@ -110,7 +110,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	        && ( this.url.path === directory
 	          || this.url.path.charAt( directory.length ) === "/"
 	          || this.url.path.charAt( directory.length - 1 ) === "/" )
-	        && directory.length > this.directory.length  ) {
+	        && directory.length > this.directory.length ) {
 	          this.directory = this.app.cache.parentDirectories[ this.url.pathname ] = directory
 	        }
 	      }
@@ -121,7 +121,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  // is handling the connection, and shorten the URL relative to the
 	  // directory. If we didn't find a match then report a 501 (Not Implemented).
 	  if ( !this.directory ) {
-			if ( !this.app.emit( "unconfigurable connection", this )  ) {
+			if ( !this.app.emit( "unconfigurable connection", this ) ) {
 				// TODO: Log an error here
 				this.generateErrorPage( new weave.HTTPError( 501, "No configuration set for requested URL" ) )
 			}
@@ -130,7 +130,9 @@ weave.Connection = class Connection extends events.EventEmitter {
 		// We check if this connection already has our data event listener to
 		// avoid adding it multiple times if the connection is keep alive.
 		// TODO: Figure out why this must go through REQUEST, and not CONNECTION
-		if ( !this._NODE_CONNECTION._weavePipe  ) {
+		// XXX: This is an absolute mess, but one that the native HTTP module forced
+		// upon us. We should write our own HTTP parser and use it instead, because fuck Node.
+		if ( !this._NODE_CONNECTION._weavePipe ) {
 			this._NODE_CONNECTION._weavePipe = this
 			//@_NODE_REQUEST.resume()
 		  this._NODE_CONNECTION.on( 'data', data => this.emit( 'data', data ) )
@@ -138,13 +140,14 @@ weave.Connection = class Connection extends events.EventEmitter {
 			// 	@_NODE_REQUEST.unpipe( connection )
 			// })
 		}
+		// this._NODE_REQUEST.on( 'data', data => this.emit( 'data', data ) )
 
     this.configuration = this.app.configuration[ this.directory ]
-    this.url.path = path.join( "/", path.relative( this.directory, this.url.path ) )
+    this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
 
     // Emit the connection event to so that the connection can be handed to
     // the router and any other user code.
-    this.app.emit( "connection", this )
+    this.app.emit( 'connection', this )
     this.app.router( this )
 	}
 
@@ -199,14 +202,14 @@ weave.Connection.prototype.detail = function ( name, untampered ) {
   // If untampered is true then the header must be returned as a
   // plain string. If it's not, then we can do some processing
   // to make it more useful than a string.
-  if ( !untampered  ) {
+  if ( !untampered ) {
     switch ( name ) {
       case "if-modified-since":
         if ( header ) { return new Date( header ) }
         break;
       case "cookie":
         // I think this is how we parse cookies but I suck at them???
-				if ( String.is( header )  ) {
+				if ( String.is( header ) ) {
 					let data = {}
 					header.split(";").forEach( cookie => {
 						cookie = cookie.trim().split( '=' )
@@ -228,8 +231,8 @@ weave.Connection.prototype.detail = function ( name, untampered ) {
 
 weave.Connection.prototype.status = function ( status ) {
   // Check to make sure the status is valid, and has not yet been written.
-  if ( this.state !== 0          ) { return garden.log( 'Cannot write status '+status+' to HTTP stream, already wrote '+this._STATUS+'!' ) }
-	if ( !Number.is( status )  ) { return garden.error( 'Invalid status!', status ) }
+  if ( this.state !== 0     ) { return garden.log( 'Cannot write status '+status+' to HTTP stream, already wrote '+this._STATUS+'!' ) }
+	if ( !Number.is( status ) ) { return garden.error( 'Invalid status!', status ) }
 
   this._NODE_CONNECTION.write( "HTTP/1.1 "+status+" "+http.STATUS_CODES[status]+"\r\n")
 	this._STATUS = status
@@ -241,12 +244,12 @@ weave.Connection.prototype.status = function ( status ) {
 
 weave.Connection.prototype.writeHeader = function ( header, value = true ) {
 	// To write headers we must have a status, no body, and a valid header name.
-	if ( !String.is( header )  ) { return garden.error( 'Header arugment must be a string' ) }
-	if ( this.state === 0  ) { return this.status( 200 ) }
-  if ( this.state > 1    ) { return garden.log( 'Headers already sent!') }
+	if ( !String.is( header ) ) { return garden.error( 'Header arugment must be a string' ) }
+	if ( this.state === 0 ) { return this.status( 200 ) }
+  if ( this.state > 1 ) { return garden.log( 'Headers already sent!') }
 
 	// You can't cache an error!
-	if ( header.toLowerCase() === "last-modified" && this._STATUS >= 300  ) {
+	if ( header.toLowerCase() === "last-modified" && this._STATUS >= 300 ) {
 		garden.error( "You can't cache an error!" )
 	}
 
@@ -258,7 +261,7 @@ weave.Connection.prototype.writeHeader = function ( header, value = true ) {
 
 weave.Connection.prototype.writeHead = function ( status, headers ) {
 	if ( !Number.is( status ) ) {
-		if ( !this._STATUS  ) return garden.error( 'No status written yet, we need a status!' )
+		if ( !this._STATUS ) return garden.error( 'No status written yet, we need a status!' )
 	  headers = status
 	}
 
@@ -295,19 +298,19 @@ weave.Connection.prototype.hasBody = function () {
 // TODO: Check before assuming Transfer-encoding: chunked
 // TODO: Check before writing the Date header as well. Or disallow anyone else
 // from writing it with a condition in ::writeHeader().
-weave.Connection.prototype.write = function ( content, encoding  ) {
+weave.Connection.prototype.write = function ( content, encoding ) {
   // If we aren't writing the body yet, right some final headers.
-  if ( this.state === 3  ) {
+  if ( this.state === 3 ) {
 		return garden.error( "Cannot write data, response has already been completed." )
 	}
 
-  if ( this.state < 2  ) {
+  if ( this.state < 2 ) {
     this.endHead()
     this.state = 2
   }
 
-	if ( this.hasBody()  ) {
-    if ( this.isKeepAlive  ) {
+	if ( this.hasBody() ) {
+    if ( this.isKeepAlive ) {
       var buf = Buffer.concat( [
         new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
         new Buffer( content, encoding ), n ] )
@@ -323,12 +326,12 @@ weave.Connection.prototype.write = function ( content, encoding  ) {
   return this
 }
 
-weave.Connection.prototype.end = function (  ) {
+weave.Connection.prototype.end = function ( ) {
   // Write any data given, and then send the "last chunk"
-  if ( arguments.length > 0  ) { this.write.apply( this, arguments ) }
+  if ( arguments.length > 0 ) { this.write.apply( this, arguments ) }
 	// Firefox will hang on requests if there is no body present,
 	// such as 3xx redirects, so write a blank one.
-	if ( this.state < 2  ) { this.write("") }
+	if ( this.state < 2 ) { this.write("") }
 
   // Keep the connection alive or kill it
   this.isKeepAlive ?
@@ -339,9 +342,9 @@ weave.Connection.prototype.end = function (  ) {
 	return this
 }
 
-weave.Connection.prototype.redirect = function ( location, status  ) {
-	if ( !Number.is( status )  ) {
-		if ( status == null  ) {
+weave.Connection.prototype.redirect = function ( location, status ) {
+	if ( !Number.is( status ) ) {
+		if ( status == null ) {
 			status = 301
 		} else {
 			// TODO: Log this error for debugging
@@ -367,21 +370,19 @@ weave.Connection.prototype.generateErrorPage = function ( error ) {
 	// NOTE: Router and this share a lot of boilerplate code. We should do something
 	// to merge them together maybe?
 
-  if ( weave.HTTPError.is( error )  ) {
-		let errorPageName = this.behavior( `errorPages ${error.status}` )
+  if ( weave.HTTPError.is( error ) ) {
+		let errorPageName = this.behavior( `errorPages ${error.statusCode}` )
+		garden.debug( errorPageName )
 		if ( errorPageName ) {
 			// TODO: Make sure this actually works, so that we can have absolute paths.
 			// If it doesn't work, then switch it back to .join for now.
 			let errorPagePath = cursor ?
 				path.resolve( cursor, errorPageName ) :
 				errorPageName
-			fs.exists( errorPagePath, function ( exists ) {
-				if ( exists ) {
-					fs.stat( errorPagePath, function ( serror, stats ) {
-						if ( !serror && stats.isFile()  ) {
-							print({ path: errorPagePath, stats: stats, type: "file" })
-						}
-					})
+
+			fs.stat( errorPagePath, function ( serror, stats ) {
+				if ( !serror && stats.isFile() ) {
+					print({ path: errorPagePath, stats: stats, type: "file" })
 				} else return print()
 			})
 		} else return print()

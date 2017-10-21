@@ -8,8 +8,8 @@ var weave = require( '../weave' )
 
 repl=require('repl');util=require('util');;
 
-weave.connectREPL = function ( input, output  ) {
-  setTimeout( function (  ) {
+weave.connectREPL = function ( input, output ) {
+  setTimeout( function () {
     // var input = "", prefix = "> ";
     // o.write( prefix )
     // i.on( "data", function data {
@@ -41,7 +41,7 @@ weave.connectREPL = function ( input, output  ) {
     } )
 
     $.context.weave = weave
-    $.context.$ = n => weave.apps[n]
-    $.context.$$ = ( n, d ) => weave.apps[n].configuration[ d || "/" ]
+    $.context.$ = n => weave.apps[ n ]
+    $.context.$$ = ( n, d ) => weave.apps[ n ].configuration[ d || "/" ]
   }, 400 )
 }

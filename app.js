@@ -67,16 +67,16 @@ weave.App = class App extends events.EventEmitter {
       // If there isn't a server on this port yet, then create one. Assign it
       // to listen on all interfaces ('::') for IPv4 and IPv6.
       // TODO: Maybe we should make this configurable?
-      if ( !weave.servers[ port ]  ) {
-        let server = weave.servers[ port ] = http.createServer();
-        // Accept incoming requests on the server
-        ['request', 'upgrade'].forEach(e => server.on( e, (i, o) => new weave.Connection( i, o ) ))
-        // Used to determine if any servers are active yet when an error is encountered.
-        server.on( 'listening', () => { weave._ACTIVE = true; this.emit( 'listening' ) } )
-        server.listen( port, '::' )
-      } else {
-        this.emit( 'listening' )
+      if ( weave.servers[ port ] ) {
+        return this.emit( 'listening' )
       }
+
+      let server = weave.servers[ port ] = http.createServer();
+      // Accept incoming requests on the server
+      ['request', 'upgrade'].forEach(e => server.on( e, (i, o) => new weave.Connection( i, o ) ))
+      // Used to determine if any servers are active yet when an error is encountered.
+      server.on( 'listening', () => { weave._ACTIVE = true; this.emit( 'listening' ) } )
+      server.listen( port, '::' )
     })
 
     // Return this from all configuration methods so they can be chained.

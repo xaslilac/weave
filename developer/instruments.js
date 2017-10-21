@@ -3,13 +3,13 @@
 
 // n is a CRLF buffer, z is an end packet buffer.
 let weave = require( '../weave' )
-let garden = new weave.Garden( 'weave --enable-web-instruments' )
+let garden = new weave.Garden( 'weave developer/instruments' )
 
-let util=require('util')
-let path=require('path')
+let util = require( 'util' )
+let path = require( 'path' )
 
-let $ = function ( n  ) { return weave.apps[ n ] }
-let $$ = function ( n, d  ) { return $(n).configuration[ d || "/" ] }
+let $ = n => weave.apps[ n ]
+let $$ = ( n, d ) => weave.apps[ n ].configuration[ d || "/" ]
 
 require( '../websocket' )
 require( './repl' )
@@ -17,15 +17,14 @@ require( './repl' )
 
 
 weave.attachInstruments = function ( app, instrumentsUrl ) {
-  if ( !weave.App.is( app )  ) {
-    if ( String.is( app ) && weave.App.is( weave.apps[ app ] )  ) {
+  if ( !weave.App.is( app ) ) {
+    if ( String.is( app ) && weave.App.is( weave.apps[ app ] ) ) {
       app = weave.apps[ app ]
     } else garden.error( 'argument app must be an instance of weave.App or string appName' )
   }
 
   app.subdirectory( instrumentsUrl, {
-    // TODO: FIX THIS
-    'location': '~/OneDrive/Source/weave/developer-tools/web-instruments-wroot',
+    'location': path.join( __dirname, '../http/instruments' ),
     'favoredExtensions': [ '.html' ],
     'mimeTypes': {
       '.html': 'text/html',
@@ -34,14 +33,14 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
     }
   })
 
-  app.interface( path.join( instrumentsUrl, '/enabled-instruments' ), function ( connection  ) {
+  app.interface( path.join( instrumentsUrl, '/enabled-instruments' ), function ( connection ) {
     connection.end("['repl','log']")
   })
 
   let socket = new weave.WebSocket( function ( connection ) {
     connection.on( 'message', function ( message ) {
       message.json = JSON.parse( message.data )
-      if ( message.json.messageType === 'console-command'  ) {
+      if ( message.json.messageType === 'console-command' ) {
 
         // TODO: Pipe this to a repl from the native repl module.
         try {
