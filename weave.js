@@ -171,7 +171,7 @@ let weave = module.exports = exports = {
   }
 };
 
-[ 'app', 'connection', 'router', 'manifest', 'printer' ].forEach( module => require( `./${module}` ) )
+[ 'app', 'connection', 'router', 'manifest', 'printer', 'websocket' ].forEach( module => require( `./${module}` ) )
 
 process.argv.forEach( function ( arg ) {
   switch ( arg ) {
@@ -187,9 +187,6 @@ process.argv.forEach( function ( arg ) {
       break;
     case "--enable-web-instruments":
       require( './developer/instruments' )
-      break;
-    case "--enable-web-socket":
-      require( './websocket' )
       break;
   }
 })

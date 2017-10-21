@@ -11,7 +11,6 @@ let path = require( 'path' )
 let $ = n => weave.apps[ n ]
 let $$ = ( n, d ) => weave.apps[ n ].configuration[ d || "/" ]
 
-require( '../websocket' )
 require( './repl' )
 
 
