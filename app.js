@@ -20,7 +20,8 @@ weave.App = class App extends events.EventEmitter {
     // Make it an EventEmitter
     super()
 
-    if ( weave.apps[ appName ] ) return garden.warning( `App names must be unique! App '${appName}' already exists!` )
+    if ( !appName ) return garden.error( 'No app name given!' )
+    if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! App '${appName}' already exists!` )
 
     this.appName = appName,
     this.configuration = {}
@@ -82,7 +83,14 @@ weave.App = class App extends events.EventEmitter {
     return this
   }
 
-  addDirectory( directory, inherit, configuration ) {
+  configure( configuration ) {
+    this.subdirectory( '/', configuration )
+
+    // Return this from all configuration methods so they can be chained.
+    return this
+  }
+
+  subdirectory( directory, inherit, configuration ) {
     // Clear the cache so that the configuration can be modified and
     // not conflict with previously caches requests.
     this.cache.parentDirectories = {}
@@ -96,29 +104,50 @@ weave.App = class App extends events.EventEmitter {
     // configuration. If we have three arguments, then we set the inheritance.
     // Connection::bahavior will load inheritance from @configuration._super,
     // followed by app.configuration, followed by weave.configuration.
-    configuration ?
-      configuration._super = String.is( inherit ) ?
-        this.configuration[ inherit ] :
-        inherit :
-      configuration = inherit
+    configuration
+      ? configuration._super = String.is( inherit )
+        ? this.configuration[ inherit ]
+        : inherit
+      : configuration = inherit
+
+    configuration.type = 'directory'
+
+    if ( this.configuration[ directory ] ) Object.extend( this.configuration[ directory ], configuration )
+    else this.configuration[ directory ] = configuration
 
     // The main reason this event is important is for 3rd party modules
     // that might alter the configuration, or that need to clear caches
     // for anything that is based off of a configurable property.
     this.emit( 'configured', directory, configuration, this.configuration )
-    this.configuration[ directory ] = configuration
 
     // Return this from all configuration methods so they can be chained.
     return this
   }
 
+  setBehavior( name, value ) {
+    if ( typeof name !== 'string' ) return garden.error( `Behavior name '${name}' is not a string!` )
+    let nests = name.split(' ')
+    let prop = nests.pop()
+    let cursor = this.configuration
 
-  addInterface( directory, handle ) {
+    nests.forEach( nest => {
+      if ( typeof cursor[ nest ] !== 'object' ) cursor[ nest ] = {}
+    } )
+
+    cursor[ prop ] = value
+
+    return this
+  }
+
+  interface( directory, handle ) {
     // XXX: Should there be a wrapper between the interface
     // and the configuration? Probably an object that also
     // contains details about what HTTP standards the interface
     // supports, like Upgrades, Cookies, etc.
-    this.configuration[ directory.replace( /\\/g, '/' ) ] = handle
+    this.configuration[ directory.replace( /\\/g, '/' ) ] = {
+      type: 'interface',
+      interface: handle
+    }
 
     // Return this from all configuration methods so they can be chained.
     return this

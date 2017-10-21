@@ -58,7 +58,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  this.url.protocol = "http:"
 	  this.url.slashes = "//"
 	  // hostname should never have the port, but the host header sometimes will.
-		this.url.hostname = this.get( 'host' ).match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1]
+		this.url.hostname = this.detail( 'host' ).match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1]
 	  this.url.port = i.connection.localPort
 	  // host should always have the port, so apply it
 		// Also make a shortcut to be lazy with
@@ -120,32 +120,32 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  // If we found a matching directory, then we save which configuration
 	  // is handling the connection, and shorten the URL relative to the
 	  // directory. If we didn't find a match then report a 501 (Not Implemented).
-	  if ( this.directory ) {
-			// We check if this connection already has our data event listener to
-			// avoid adding it multiple times if the connection is keep alive.
-			// TODO: Figure out why this must go through REQUEST, and not CONNECTION
-			if ( !this._NODE_REQUEST._weavePipe  ) {
-				this._NODE_REQUEST._weavePipe = this
-				//@_NODE_REQUEST.resume()
-			  this._NODE_REQUEST.on( 'data', data => this.emit( 'data', data ) )
-				// @_NODE_REQUEST.on( 'close', function () {
-				// 	@_NODE_REQUEST.unpipe( connection )
-				// })
+	  if ( !this.directory ) {
+			if ( !this.app.emit( "unconfigurable connection", this )  ) {
+				// TODO: Log an error here
+				this.generateErrorPage( new weave.HTTPError( 501, "No configuration set for requested URL" ) )
 			}
+		}
 
-	    this.configuration = this.app.configuration[ this.directory ]
-	    this.url.path = path.join( "/", path.relative( this.directory, this.url.path ) )
+		// We check if this connection already has our data event listener to
+		// avoid adding it multiple times if the connection is keep alive.
+		// TODO: Figure out why this must go through REQUEST, and not CONNECTION
+		if ( !this._NODE_CONNECTION._weavePipe  ) {
+			this._NODE_CONNECTION._weavePipe = this
+			//@_NODE_REQUEST.resume()
+		  this._NODE_CONNECTION.on( 'data', data => this.emit( 'data', data ) )
+			// @_NODE_REQUEST.on( 'close', function () {
+			// 	@_NODE_REQUEST.unpipe( connection )
+			// })
+		}
 
-	    // Emit the connection event to so that the connection can be handed to
-	    // the router and any other user code.
-	    this.app.emit( "connection", this )
-	    this.app.router( this )
-	  } else {
-	    if ( !this.app.emit( "unconfigurable connection", this )  ) {
-	      // TODO: Log an error here
-	      this.generateErrorPage( new weave.HTTPError( 501, "No configuration set for requested URL" ) )
-	    }
-	  }
+    this.configuration = this.app.configuration[ this.directory ]
+    this.url.path = path.join( "/", path.relative( this.directory, this.url.path ) )
+
+    // Emit the connection event to so that the connection can be handed to
+    // the router and any other user code.
+    this.app.emit( "connection", this )
+    this.app.router( this )
 	}
 
 	static generateUUID() {
@@ -162,7 +162,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 }
 
 weave.Connection.prototype.behavior = function ( name ) {
-  let behavior;
+  let behavior
   let nests = name.split(" ");
 
   // Load in order of priority. Check the most relevant configurations first.
@@ -354,33 +354,30 @@ weave.Connection.prototype.redirect = function ( location, status  ) {
 
 weave.Connection.prototype.generateErrorPage = function ( error ) {
 	// Create a details object for us to pass to printer.
-	let details = Object.create( weave.constants.DETAILS, {
-		url: {
-			value: this.url,
-			enumerable: true, writable: true, configurable: true } } );
+	let manifest = new weave.Manifest( { url: this.url } )
 
 	// Make the printer easier to call in different contexts.
-	var print = more => this.app.printer( error, Object.extend( details, more ), this )
+	let print = more => this.app.printer( error, manifest.extend( more ), this )
 
-	if ( Number.is( error )  ) { error = new weave.HTTPError( error ) }
+	if ( Number.is( error ) ) { error = new weave.HTTPError( error ) }
 
 	// cursor points to where ever we're searching for files.
-	var cursor = this.behavior( "location" )
+	let cursor = this.behavior( "location" )
 
 	// NOTE: Router and this share a lot of boilerplate code. We should do something
 	// to merge them together maybe?
 
   if ( weave.HTTPError.is( error )  ) {
-		var errorPageName = this.behavior( 'errorPages '+error.status )
-		if ( errorPageName  ) {
+		let errorPageName = this.behavior( `errorPages ${error.status}` )
+		if ( errorPageName ) {
 			// TODO: Make sure this actually works, so that we can have absolute paths.
 			// If it doesn't work, then switch it back to .join for now.
-			var errorPagePath = cursor ?
+			let errorPagePath = cursor ?
 				path.resolve( cursor, errorPageName ) :
 				errorPageName
-			fs.exists( errorPagePath, function ( exists  ) {
-				if ( exists  ) {
-					fs.stat( errorPagePath, function ( serror, stats  ) {
+			fs.exists( errorPagePath, function ( exists ) {
+				if ( exists ) {
+					fs.stat( errorPagePath, function ( serror, stats ) {
 						if ( !serror && stats.isFile()  ) {
 							print({ path: errorPagePath, stats: stats, type: "file" })
 						}

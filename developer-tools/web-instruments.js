@@ -23,7 +23,7 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
     } else garden.error( 'argument app must be an instance of weave.App or string appName' )
   }
 
-  app.addDirectory( instrumentsUrl, {
+  app.subdirectory( instrumentsUrl, {
     // TODO: FIX THIS
     'location': '~/OneDrive/Source/weave/developer-tools/web-instruments-wroot',
     'favoredExtensions': [ '.html' ],
@@ -34,28 +34,25 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
     }
   })
 
-  app.addInterface( path.join( instrumentsUrl, '/enabled-instruments' ), function ( connection  ) {
+  app.interface( path.join( instrumentsUrl, '/enabled-instruments' ), function ( connection  ) {
     connection.end("['repl','log']")
   })
 
-  let socket = new weave.WebSocket( function ( connection  ) {
-    garden.log('Instruments connected')
-    connection.on( 'message', function ( message  ) {
-      garden.log( message )
+  let socket = new weave.WebSocket( function ( connection ) {
+    connection.on( 'message', function ( message ) {
       message.json = JSON.parse( message.data )
       if ( message.json.messageType === 'console-command'  ) {
 
         // TODO: Pipe this to a repl from the native repl module.
-        var result;
         try {
-          result = eval( message.json.data )
+          let result = eval( message.json.data )
 
           connection.send( JSON.stringify({
             messageType: 'console-print',
             data: util.inspect( result )
           }) )
-        } catch ( e  ) {
-          garden.console.error();( e )
+        } catch ( e ) {
+          garden.error( e )
           connection.send( JSON.stringify({
             messageType: 'console-error',
             error: e.name,

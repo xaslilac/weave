@@ -9,25 +9,28 @@ let events = require( 'events' )
 let util = require( 'util' );
 
 let Garden = module.exports = exports = class Garden extends events.EventEmitter {
-  constructor( name ) {
+  constructor( name, verbose ) {
     // Make it an EventEmitter
     super()
+    
     this.name = name
+    this.verbose = verbose
+  }
+
+  debug( message, ...extra ) {
+    this.verbose && print( this.name, 'debug', format( message ), extra )
   }
 
   log( message, ...extra ) {
-    process.stdout.write( `[${this.name}] \u001b[36m[log]\u001b[39m      ${format( message )} ` )
-    print( extra )
+    print( this.name, 'log', format( message ), extra )
   }
 
   warning( message, ...extra ) {
-    process.stdout.write( `[${this.name}] \u001b[36m[warning]\u001b[39m  \u001b[33m${format( message )}\u001b[39m ` )
-    print( extra )
+    print( this.name, 'warning', `\u001b[33m${format( message )}\u001b[39m`, extra )
   }
 
   error( message, ...extra ) {
-    process.stdout.write( `[${this.name}] \u001b[36m[error]\u001b[39m    \u001b[31m${format( message )}\u001b[39m ` )
-    print( extra )
+    print( this.name, 'error', `\u001b[31m${format( message )}\u001b[39m`, extra )
   }
 }
 
@@ -35,7 +38,7 @@ let format = function ( message ) {
   return typeof message === 'string' ? message : util.inspect( message )
 }
 
-let print = function ( extra ) {
-  if ( extra.length ) console.log( ...extra )
-  else process.stdout.write( '\n' )
+let print = function ( name, type, message, extra ) {
+  process.stdout.write( `[${name}] \u001b[36m[${type}]\u001b[39m  ${message} ` )
+  extra.length ? console.log( ...extra ) : process.stdout.write( '\n' )
 }

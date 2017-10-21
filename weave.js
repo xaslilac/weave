@@ -7,10 +7,19 @@
 
 // Some basic utilities, like an asynchronous implemenation of Array::some,
 // an object property setter, and basic universal type detection.
-Array.prototype.someAsync = function (f,c){console.log('Depreciated someAsync!');let a=this,i=0,v=!1,t={
-  next:function (){i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function (){c(!0)}};t.next()}
-Object.extend = function (o,e){console.log('Depreciated extend!');o!=null&&e!=null&&this.keys(e).forEach(function (p){o[p]=e[p]});return o}
-Function.prototype.is = function (a){console.log('Depreciated ::is!');return a!=null&&(a.constructor===this.prototype.constructor)}
+Array.prototype.someAsync = function (f,c){
+  // console.log('Depreciated someAsync!');
+  let a=this,i=0,v=!1,t={
+  next:function (){i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function (){c(!0)}};t.next()
+}
+Object.extend = function (o,e){
+  console.log('Depreciated extend!');
+  o!=null&&e!=null&&this.keys(e).forEach(function (p){o[p]=e[p]});return o
+}
+Function.prototype.is = function (a){
+  // console.log('Depreciated ::is!');
+  return a!=null&&(a.constructor===this.prototype.constructor)
+}
 
 
 
@@ -159,12 +168,9 @@ let weave = module.exports = exports = {
         enumerable: true, writable: false, configurable: true }
     })
   }
-}
+};
 
-require( './app' )
-require( './connection' )
-require( './router' )
-require( './printer' )
+[ 'app', 'connection', 'router', 'manifest', 'printer' ].forEach( module => require( `./${module}` ) )
 
 process.argv.forEach( function ( arg ) {
   switch ( arg ) {

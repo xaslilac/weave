@@ -14,12 +14,12 @@ weave.WebSocket = class WebSocket extends events.EventEmitter {
     if ( app && !weave.App.is( app )  ) {
       if ( String.is( app ) && weave.App.is( weave.apps[ app ] )  ) {
         app = weave.apps[ app ]
-      } else if ( Function.is( app ) && path == undefined && listener == undefined  ) {
+      } else if ( Function.is( app ) && url == undefined && listener == undefined  ) {
         listener = app
       } else throw 'WebSocket: argument app must be an instance of weave.App or string appName'
     }
 
-    if ( app && path ) { this.attach( app, url ) }
+    if ( app && url ) { this.attach( app, url ) }
     if ( Function.is( listener ) ) this.on( 'connection', listener )
   }
 }
@@ -35,7 +35,7 @@ weave.WebSocket.prototype.attach = function ( app, socketUrl ) {
     } else return garden.error( 'argument app must be an instance of weave.App or string appName' )
   }
 
-  app.addInterface( socketUrl, httpConnection => new weave.WebSocketConnection( this, httpConnection ) )
+  app.interface( socketUrl, httpConnection => new weave.WebSocketConnection( this, httpConnection ) )
 
   return this
 }
@@ -78,11 +78,12 @@ weave.WebSocketConnection = class WebSocketConnection extends events.EventEmitte
 
 weave.WebSocketConnection.prototype.handshake = function ( httpConnection, socketConnection ) {
   // Make sure the client is expecting a WebSocket upgrade, and that it gave us a key.
-  if ( httpConnection.get( "connection" ) === "Upgrade" && httpConnection.get( "upgrade" ) === "websocket" ) {
-    var key = httpConnection.get( "sec-websocket-key" )
-    if ( key  ) {
+  // TIL: The Connection header can have more than just an upgrade request in it
+  if ( ~httpConnection.detail( "connection" ).indexOf( "Upgrade" ) && httpConnection.detail( "upgrade" ) === "websocket" ) {
+    let key = httpConnection.detail( "sec-websocket-key" )
+    if ( key ) {
       // Compute the sec-websocket-accept header value to complete the handshake.
-      var accept = weave.util.SHA1_64( key + weave.constants.WebSocketUUID )
+      let accept = weave.util.SHA1_64( key + weave.constants.WebSocketUUID )
       httpConnection.writeHead( 101, {
         "Connection": "Upgrade",
         "Upgrade": "websocket",

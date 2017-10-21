@@ -36,17 +36,17 @@ weave.App.prototype.printer = function ( error, details, connection ) {
 }
 
 let printError = function ( error, details, connection ) {
-  document = new DOM.HTMLDocument( 'html', `${error.status} ${weave.constants.STATUS_CODES[ error.statusCode ]}` )
+  let document = new DOM.HTMLDocument( 'html', `${error.status} ${weave.constants.STATUS_CODES[ error.statusCode ]}` )
   document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
   if ( error.description  ) {
     document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = error.description
   }
   // Generate an error page programatically.
-  return connection.status( error.status ).end( document.toString() )
+  return connection.status( error.statusCode ).end( document.toString() )
 }
 
 let printFile = function ( error, details, connection ) {
-  let cacheDate = connection.get( "if-modified-since" )
+  let cacheDate = connection.detail( "if-modified-since" )
   // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
   // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
   if ( !error && cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( details.stats.mtime.getTime() / 1000 )  )
@@ -57,7 +57,9 @@ let printFile = function ( error, details, connection ) {
 
     // We may be printing an error page from generateErrorPage
     connection.status( error ? error.status : 200 )
-      .writeHeader( "Content-Type", connection.behavior( `mimeTypes ${+path.extname( details.path )}` ) )
+      .writeHeader( "Content-Type", connection.behavior( `mimeTypes ${path.extname( details.path )}` ) )
+
+    // garden.log( connection.behavior( `mimeTypes ${path.extname( details.path )}` ) )
 
     // You can't cache an error!
     if ( !error ) connection.writeHeader( "Last-Modified", details.stats.mtime.toUTCString() )
@@ -86,8 +88,10 @@ let printDirectory = function ( error, details, connection ) {
     // Basic document setup
     let document = new DOM.HTMLDocument( 'html', `Contents of ${connection.url.pathname}` )
     let header = new DOM.Element( 'h1' )
+    let list = new DOM.Element( 'ul' )
     header.innerHTML = document.title
     document.body.appendChild( header )
+    document.body.appendChild( list )
 
     if ( files.length === 0 ) {
       document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = "Nothing to see here!"
@@ -112,7 +116,7 @@ let printDirectory = function ( error, details, connection ) {
 
         let href = path.join( "/", connection.url.pathname, file )
         a.setAttribute( 'href', href ), a.innerHTML = `/${file}`
-        document.body.appendChild( li ).appendChild( a )
+        list.appendChild( li ).appendChild( a )
         some.next()
       } )
     }, () => connection.end( document.toString() ) )

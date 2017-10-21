@@ -4,48 +4,26 @@
 let weave = require( './weave' )
 let garden = new weave.Garden( 'weave.App::router' )
 
-
-
 let fs = require( 'fs' )
 let path = require( 'path' )
-
-// If you add any kind of "Connection::type" please make sure that you add
-// an "isType" function.
-weave.constants.DETAILS = {
-  isDirectory: function (  ) { return this.type === "directory" },
-  isFile:      function (  ) { return this.type === "file" },
-  isInterface: function (  ) { return this.type === "interface" },
-  isNA:        function (  ) { return this.type === "na" } // Not applicable.
-                                                  // This might not be the best name though.
-  // path: resolved path,
-  // result: the return value of the interface if isInterface is true,
-  // stats: fs.stat,
-  // type: "directory"|"file"|"interface"|"na",
-  // url: connection.url
-}
-
-
 
 weave.App.prototype.router = function ( connection ) {
   var cursor;
 
   // We give the printer this details object to let it know what we
   // have found about about the request so far.
-	var details = Object.create( weave.constants.DETAILS, {
-		url: {
-			value: this.url,
-			enumerable: true, writable: true, configurable: true } } )
+	let manifest = new weave.Manifest( { url: this.url } )
 
   // Make the printer easier to call in different contexts.
-  var print = more => this.printer( undefined, Object.extend( details, more ), connection )
+  let print = more => this.printer( undefined, manifest.extend( more ), connection )
 
   // If the configuration is a Function, then the request should be handle as
   // an interface type. Call the interface configuration.
   if ( Function.is( connection.configuration )  ) {
-    var shouldContinue = false
+    let shouldContinue = false
 
     details.shouldContinue = function ( configuration ) {
-      if ( configuration  ) {
+      if ( configuration ) {
         connection.configuration = configuration
         return shouldContinue = true
       } else {
@@ -60,7 +38,7 @@ weave.App.prototype.router = function ( connection ) {
       type: "interface"
     })
 
-    if ( !shouldContinue  ) { return }
+    if ( !shouldContinue ) return
   }
 
   // Set the initial depth to 0. Depth is used to keep track of

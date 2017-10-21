@@ -49,5 +49,6 @@ Just download a tarball and throw it into a node_modules folder somewhere. You s
 
 ### Coming soon...
 - An easy to use and robust command line interface
+- Uses Promises API
 - A simple web interface to control remotely or locally monitor internal data
 - SPDY & HTTP 2.0 support eventually maybe

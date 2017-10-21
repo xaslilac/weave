@@ -23,7 +23,7 @@ weave.constants.Separator: '/' | '\'
 weave.constants.HOME: userHomeDir
 weave.constants.STATUS_CODES: { statusCode: statusName.. }
 weave.constants.STATUS_DESCRIPTIONS: { statusCode: longStatusDescription.. }
-weave.configuration: { confProp: confValue }
+weave.configuration: { confProp: confValue.. }
 weave.util.SHA1_64( data ) -> sha1Hash
 weave.util.RNDM_RG( min, min, base ) -> randomNum
 weave.util.READ_BITS( byte ) [ bool.. ]
