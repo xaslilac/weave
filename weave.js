@@ -109,11 +109,10 @@ let http = require( 'http' )
 let path = require( 'path' )
 
 let weave = module.exports = exports = {
-  version: "0.1.11",
+  version: '0.1.11',
 
   servers: {}, apps: {}, hosts: {}, cache: { wildcardMatches: {} },
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
-               Separator: process.env.OS === "Windows_NT" ? "\\" : "/",
                HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/",
                STATUS_CODES: http.STATUS_CODES,
                STATUS_DESCRIPTIONS: {
@@ -171,7 +170,7 @@ let weave = module.exports = exports = {
   }
 };
 
-[ 'app', 'connection', 'router', 'manifest', 'printer', 'websocket' ].forEach( module => require( `./${module}` ) )
+[ 'app', 'cache', 'connection', 'router', 'manifest', 'printer', 'websocket' ].forEach( module => require( `./${module}` ) )
 
 process.argv.forEach( function ( arg ) {
   switch ( arg ) {
