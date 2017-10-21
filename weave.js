@@ -180,11 +180,11 @@ process.argv.forEach( function ( arg ) {
     case "--weave-verbose":
       weave.Garden.enableDebug()
       break;
-    case "--enable-repl":
+    case "--enable-weave-repl":
       require( './developer/repl' )
       weave.connectREPL( process.stdin, process.stdout )
       break;
-    case "--enable-web-instruments":
+    case "--enable-weave-instruments":
       require( './developer/instruments' )
       break;
   }
