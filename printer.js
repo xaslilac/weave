@@ -39,10 +39,8 @@ weave.App.prototype.printer = function ( error, details, connection ) {
 let printError = function ( error, details, connection ) {
   let document = new DOM.HTMLDocument( 'html', `${error.status} ${weave.constants.STATUS_CODES[ error.statusCode ]}` )
   document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
-  if ( error.description ) {
-    document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = error.description
-  }
-  // Generate an error page programatically.
+  if ( error.description ) document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = error.description
+
   return connection.status( error.statusCode ).end( document.toString() )
 }
 
@@ -80,7 +78,7 @@ let printDirectory = function ( error, details, connection ) {
     if ( connection.url.description === "directory.json" ) {
       connection.status( 200 )
       connection.writeHeader( "Content-Type", "application/json" )
-      return connection.end(JSON.stringify(files))
+      return connection.end( JSON.stringify(files) )
     }
 
     // If it's not JSON, it must be HTML.
@@ -94,32 +92,46 @@ let printDirectory = function ( error, details, connection ) {
     document.body.appendChild( header )
     document.body.appendChild( list )
 
+    // Style stuff
+    let style = new DOM.Element( 'style' )
+    style.innerHTML = `.directory a { color: #3009c9 }
+                       .file a { color: #11a9f4 }`
+    document.head.appendChild( style )
+
+    // Don't waste out time with empty directories
     if ( files.length === 0 ) {
       document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = "Nothing to see here!"
       connection.end( document.toString() )
     }
 
-    // TODO: Come up with a better way to run multiple of these at once
-    files.someAsync( ( file, i, some ) => {
-      let li = new DOM.Element( 'li' )
-      let a = new DOM.Element( 'a' )
+    Promise.all( files.map( file => {
+      return new Promise( ( yes, no ) => {
+        fs.stat( path.join( details.path, file ), ( error, stats ) => {
+          if ( error ) return no()
 
-      fs.stat( path.join( details.path, file ), ( error, stats ) => {
-        if ( error ) return connection.generateErrorPage( 500 )
+          let isDir = stats.isDirectory()
+          let name = isDir ? `/${file}/` : `/${file}`
 
-        // Special formatting for directories.
-        if ( stats.isDirectory() ) {
-          file += "/"
-          li.className = 'directory'
-          a.setAttribute( 'style', 'color: #3009c9;' )
-        } else
-          a.setAttribute( 'style', 'color: #11a9f4;' )
-
-        let href = path.join( "/", connection.url.pathname, file )
-        a.setAttribute( 'href', href ), a.innerHTML = `/${file}`
+          yes({
+            type: isDir ? 'directory' : 'file',
+            href: path.join( "/", connection.url.pathname, name ),
+            name: name
+          })
+        } )
+      })
+    }) ).then( dir => {
+      dir.forEach( file => {
+        let li = new DOM.Element( 'li' )
+        let a = new DOM.Element( 'a' )
+        li.className = file.type
+        a.href = file.href
+        a.innerHTML = file.name
         list.appendChild( li ).appendChild( a )
-        some.next()
-      } )
-    }, () => connection.end( document.toString() ) )
+      })
+
+      connection.end( document.toString() )
+    }).catch( () => {
+      connection.generateErrorPage( 500 )
+    })
   })
 }

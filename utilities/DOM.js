@@ -55,7 +55,16 @@ let DOM = module.exports = exports = {
           return e.attributes[ 'class' ]
         },
         set: function ( value ) {
-          return e.attributes[ 'class' ] = value
+          e.attributes[ 'class' ] = value
+        }
+      },
+
+      href: {
+        get: function () {
+          return e.attributes[ 'href' ]
+        },
+        set: function ( value ) {
+          e.attributes[ 'href' ] = value
         }
       }
     } )
