@@ -117,14 +117,11 @@ weave.Connection = class Connection extends events.EventEmitter {
 	    })
 	  }
 
-	  // If we found a matching directory, then we save which configuration
-	  // is handling the connection, and shorten the URL relative to the
-	  // directory. If we didn't find a match then report a 501 (Not Implemented).
-	  if ( !this.directory ) {
-			if ( !this.app.emit( "unconfigurable connection", this ) ) {
-				// TODO: Log an error here
-				this.generateErrorPage( new weave.HTTPError( 501, "No configuration set for requested URL" ) )
-			}
+	  // If we found a matching directory, then we save which configuration is
+	  // handling the connection, and shorten the URL relative to the directory.
+	  if ( this.directory ) {
+			this.configuration = this.app.configuration[ this.directory ]
+	    this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
 		}
 
 		// We check if this connection already has our data event listener to
@@ -141,9 +138,6 @@ weave.Connection = class Connection extends events.EventEmitter {
 			// })
 		}
 		// this._NODE_REQUEST.on( 'data', data => this.emit( 'data', data ) )
-
-    this.configuration = this.app.configuration[ this.directory ]
-    this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
 
     // Emit the connection event to so that the connection can be handed to
     // the router and any other user code.
@@ -172,7 +166,7 @@ weave.Connection.prototype.behavior = function ( name ) {
   [ this.configuration, this.configuration._super,
     this.app.configuration, weave.configuration ].some( cursor => {
       // Make sure the cursor actually exists, in case
-      // @configuration._super isn't defined.
+      // this.configuration or ._super isn't defined.
       if ( cursor ) {
         // If the cursor follows all the way to the requested property
         // then set the behavior and return true to stop checking.
