@@ -97,17 +97,14 @@ weave.App.prototype.router = function ( connection ) {
         if ( connection.url.depth === 0
         && Array.isArray( connection.behavior( "favoredExtensions" ) )
         && connection.url.pathname.charAt( connection.url.pathname.length - 1 ).match( /[A-Za-z0-9\-\_]/ ) ) {
-          connection.behavior( "favoredExtensions" ).someAsync( function ( extension, i, some ) {
-            fs.exists( cursor + extension, function ( exists ) {
-              if ( exists ) {
-                fs.stat( cursor + extension, function ( error, stats ) {
-                  if ( stats.isFile() ) {
-                    print({ path: cursor + extension, stats: stats, type: "file" })
-                  } else some.next()
-                })
-              } else some.next()
+          Promise.all( connection.behavior( 'favoredExtensions' ).map( extension => {
+            return new Promise( ( next, print ) => {
+              fs.stat( cursor + extension, ( error, stats ) => {
+                if ( error || !stats.isFile() ) return next()
+                print({ path: cursor + extension, stats: stats, type: 'file' })
+              })
             })
-          }, reroute)
+          }) ).then( reroute ).catch( print )
         } else reroute()
       } else {
         // If it's a file, then we're done, and we just call the printer.

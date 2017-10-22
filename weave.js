@@ -7,11 +7,6 @@
 
 // Some basic utilities, like an asynchronous implemenation of Array::some,
 // an object property setter, and basic universal type detection.
-Array.prototype.someAsync = function (f,c){
-  // console.log('Depreciated someAsync!');
-  let a=this,i=0,v=!1,t={
-  next:function (){i<a.length?f.call(t,a[i],i++,t)&&(v=!0):c(v)},done:function (){c(!0)}};t.next()
-}
 Function.prototype.is = function (a){
   // console.log('Depreciated ::is!');
   return a!=null&&(a.constructor===this.prototype.constructor)
