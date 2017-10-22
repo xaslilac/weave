@@ -11,10 +11,6 @@ let http = require( 'http' )
 let path = require( 'path' )
 let Wildcard = require( './utilities/Wildcard' )
 
-// n is a CRLF buffer, z is an end packet buffer.
-const n = new Buffer('\r\n')
-const z = new Buffer('0\r\n\r\n')
-
 weave.App = class App extends events.EventEmitter {
   constructor( appName ) {
     // Make it an EventEmitter
@@ -84,7 +80,7 @@ weave.App = class App extends events.EventEmitter {
   }
 
   configure( configuration ) {
-    this.subdirectory( '/', configuration )
+    Object.extend( this.configuration, configuration )
 
     // Return this from all configuration methods so they can be chained.
     return this
