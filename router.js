@@ -138,9 +138,8 @@ weave.App.prototype.router = function ( connection ) {
               } else if ( connection.behavior( 'jsonDirectoryListings' )
               && connection.url.depth === 1 && connection.url.description === 'directory.json' ) {
                   print({ path: cursor, stats: stats, type: 'directory'})
-                } else {
-                  connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file." ) )
-                }
+              } else {
+                connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file." ) )
               }
             }).catch( print )
           } else {

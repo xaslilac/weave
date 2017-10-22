@@ -5,12 +5,10 @@
 
 "use strict";
 
-// Basic universal type detection.
+// Basic universal type detection and property setting.
 Function.prototype.check = function (a) { return a!=null&&(a.constructor===this.prototype.constructor) }
-Function.prototype.is = function (a) {
-  console.log('Depreciated ::is!');
-  return this.check( a )
-}
+Function.prototype.is = function (a) { console.log('Depreciated ::is!'); return this.check(a) }
+Object.extend = function (o,e) {o!=null&&e!=null&&Object.keys(e).forEach(p => o[p]=e[p]);return o}
 
 
 
