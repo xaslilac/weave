@@ -100,7 +100,7 @@ let path = require( 'path' )
 let weave = module.exports = exports = {
   version: '0.1.11',
 
-  servers: {}, apps: {}, hosts: {}, cache: { wildcardMatches: {} },
+  servers: {}, apps: {}, hosts: {},
   constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
                HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/",
                STATUS_CODES: http.STATUS_CODES,
@@ -109,7 +109,12 @@ let weave = module.exports = exports = {
                } },
 
   configuration: {
-    location: path.join( __dirname, 'http/default' )
+    'location': path.join( __dirname, 'http/default' ),
+
+    'cache': {
+      maxCacheSize: 500*1024, // 500*1024 is 500MB
+      maxCachedFileSize: 5*1024 // 5*1024 is 5MB
+    }
    // adminEmail: String,
    // logOutput: String,
   },
