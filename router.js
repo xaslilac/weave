@@ -18,7 +18,7 @@ weave.App.prototype.router = function ( connection ) {
 
   // If the configuration is a Function, then the request should be handle as
   // an interface type. Call the interface configuration.
-  if ( connection.configuration.type === 'interface' ) {
+  if ( connection.configuration && connection.configuration.type === 'interface' ) {
     let shouldContinue = false
 
     manifest.shouldContinue = function ( configuration ) {

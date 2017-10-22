@@ -160,13 +160,13 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 weave.Connection.prototype.behavior = function ( name ) {
   let behavior
-  let nests = name.split(" ");
+  let nests = name.split(" ")
+	let scopes = this.configuration ? [ this.configuration, this.configuration._super ] : []
 
   // Load in order of priority. Check the most relevant configurations first.
-  [ this.configuration, this.configuration._super,
-    this.app.configuration, weave.configuration ].some( cursor => {
+  scopes.concat([ this.app.configuration, weave.configuration ]).some( cursor => {
       // Make sure the cursor actually exists, in case
-      // this.configuration or ._super isn't defined.
+      // this.configuration._super isn't defined.
       if ( cursor ) {
         // If the cursor follows all the way to the requested property
         // then set the behavior and return true to stop checking.
