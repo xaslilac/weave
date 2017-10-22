@@ -118,8 +118,8 @@ weave.App.prototype.router = function ( connection ) {
           print({ path: cursor, stats: stats, type: "file" })
         } else if ( stats.isDirectory() ) {
           if ( connection.url.depth === 0 && !connection.behavior( 'disableURLCleaning' )
-          && !connection.url.pathname.endsWith("/") ) {
-            connection.redirect( connection.url.pathname + "/" )
+          && !connection.url.pathname.endsWith('/') ) {
+            connection.redirect( connection.url.pathname + '/' )
           } else if ( indexes ) {
             Promise.all( Object.keys( indexes ).map( index => {
               return new Promise( ( next, print ) => {
@@ -128,20 +128,18 @@ weave.App.prototype.router = function ( connection ) {
 
                   fs.stat( index, function ( error, stats ) {
                     if ( error || !stats.isFile() ) return next()
-                    print({ path: index, stats: stats, type: "file" })
+                    print({ path: index, stats: stats, type: 'file' })
                   })
                 } else next()
               })
             }) ).then( () => {
-              if ( connection.url.depth === 0 && !connection.behavior( 'disableDirectoryListings' ) ) {
+              if ( connection.url.depth === 0 && connection.behavior( 'htmlDirectoryListings' ) ) {
                 print({ path: cursor, stats: stats, type: 'directory' })
-              } else {
-                // TODO: Make the manifest descriptive enough that this check can be done in printer. Maybe?
-                if ( connection.behavior( "enableJSONDirectoryListings" )
-                && connection.url.depth === 1 && connection.url.description === "directory.json" ) {
+              } else if ( connection.behavior( 'jsonDirectoryListings' )
+              && connection.url.depth === 1 && connection.url.description === 'directory.json' ) {
                   print({ path: cursor, stats: stats, type: 'directory'})
                 } else {
-                  connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file.") )
+                  connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file." ) )
                 }
               }
             }).catch( print )

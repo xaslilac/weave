@@ -5,11 +5,11 @@
 
 "use strict";
 
-// Some basic utilities, like an asynchronous implemenation of Array::some,
-// an object property setter, and basic universal type detection.
-Function.prototype.is = function (a){
-  // console.log('Depreciated ::is!');
-  return a!=null&&(a.constructor===this.prototype.constructor)
+// Basic universal type detection.
+Function.prototype.check = function (a) { return a!=null&&(a.constructor===this.prototype.constructor) }
+Function.prototype.is = function (a) {
+  console.log('Depreciated ::is!');
+  return this.check( a )
 }
 
 

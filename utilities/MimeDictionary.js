@@ -3,9 +3,9 @@ var fs = require( "fs" ), MimeDictionary;
 MimeDictionary = function ( map ) {
   this.dictionary = {}
 
-  if ( String.is( map ) ) {
+  if ( String.check( map ) ) {
     this.fromApacheFile( map )
-  } else if ( Array.is( map ) ) {
+  } else if ( Array.check( map ) ) {
     map.forEach( ind => this.fromApacheFile( ind ) )
   } else {
     this.define.apply( this, arguments )
@@ -14,9 +14,9 @@ MimeDictionary = function ( map ) {
 
 MimeDictionary.prototype.define = function (type, extensions ){
   // We're defining a single type
-  if ( String.is( type ) ) {
+  if ( String.check( type ) ) {
     // With multiple extensions
-    if ( Array.is( extensions ) ) {
+    if ( Array.check( extensions ) ) {
       extensions.forEach( function ( extension ) {
         this.dictionary[extension] = type
       }, this)
@@ -38,8 +38,8 @@ MimeDictionary.prototype.fromApacheFile = function ( path, encoding, callback ) 
   fs.readFile( path, encoding || "UTF-8", function ( error, content ) {
     var type, extensions;
 
-    if (error ){
-      if (callback ){ callback( error ) }
+    if ( error ) {
+      if ( callback ) { callback( error ) }
       else throw error
     } else {
       // Remove all empty lines and comments and then split the file into lines.

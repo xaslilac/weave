@@ -6,7 +6,7 @@
 
 
 let events = require( 'events' )
-let util = require( 'util' );
+let util = require( 'util' )
 
 let Garden = module.exports = exports = class Garden extends events.EventEmitter {
   constructor( name, verbose ) {

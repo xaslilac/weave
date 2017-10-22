@@ -1,7 +1,6 @@
 // MIT License / Copyright Tyler Washburn 2015
 "use strict";
 
-// n is a CRLF buffer, z is an end packet buffer.
 let weave = require( './weave' )
 let garden = new weave.Garden( 'weave.App::printer' )
 
@@ -9,9 +8,6 @@ let fs = require( 'fs' )
 let path = require( 'path' )
 let util = require( 'util' )
 let DOM = require( './utilities/DOM' )
-
-const n = new Buffer('\r\n')
-const z = new Buffer('0\r\n\r\n')
 
 weave.App.prototype.printer = function ( error, details, connection ) {
   garden.debug( error, details )
@@ -36,7 +32,7 @@ weave.App.prototype.printer = function ( error, details, connection ) {
   else                              printError( new weave.HTTPError( 500 ), details, connection )
 }
 
-let printError = function ( error, details, connection ) {
+function printError( error, details, connection ) {
   let document = new DOM.HTMLDocument( 'html', `${error.status} ${weave.constants.STATUS_CODES[ error.statusCode ]}` )
   document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
   if ( error.description ) document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = error.description
@@ -44,7 +40,7 @@ let printError = function ( error, details, connection ) {
   return connection.status( error.statusCode ).end( document.toString() )
 }
 
-let printFile = function ( error, details, connection ) {
+function printFile( error, details, connection ) {
   let cacheDate = connection.detail( "if-modified-since" )
   // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
   // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
@@ -67,18 +63,14 @@ let printFile = function ( error, details, connection ) {
   })
 }
 
-let printDirectory = function ( error, details, connection ) {
-  if ( connection.behavior( "disableDirectoryListings" ) )
-    // Forbidden!!!
-    return connection.generateErrorPage( 403 )
-
+function printDirectory( error, details, connection ) {
   fs.readdir( details.path, ( error, files ) => {
     if ( error ) { return connection.generateErrorPage( 500 ) }
 
-    if ( connection.url.description === "directory.json" ) {
+    if ( connection.url.description === 'directory.json' ) {
       connection.status( 200 )
       connection.writeHeader( "Content-Type", "application/json" )
-      return connection.end( JSON.stringify(files) )
+      return connection.end( JSON.stringify( files ) )
     }
 
     // If it's not JSON, it must be HTML.
@@ -114,7 +106,7 @@ let printDirectory = function ( error, details, connection ) {
 
           yes({
             type: isDir ? 'directory' : 'file',
-            href: path.join( "/", connection.url.pathname, name ),
+            href: path.join( '/', connection.url.pathname, name ),
             name: name
           })
         } )
