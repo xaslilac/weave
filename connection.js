@@ -155,232 +155,227 @@ weave.Connection = class Connection extends events.EventEmitter {
 																																		// than Math.random() generates
 	}
 
+	behavior( name ) {
+	  let behavior
+	  let nests = name.split(" ")
+		let scopes = this.configuration ? [ this.configuration, this.configuration._super ] : []
 
+	  // Load in order of priority. Check the most relevant configurations first.
+	  scopes.concat([ this.app.configuration, weave.configuration ]).some( cursor => {
+	      // Make sure the cursor actually exists, in case
+	      // this.configuration._super isn't defined.
+	      if ( cursor ) {
+	        // If the cursor follows all the way to the requested property
+	        // then set the behavior and return true to stop checking.
+	        if ( nests.every( nest => cursor = cursor[ nest ] ) ) {
+	          behavior = cursor
+	          return true;
+	        }
+	      }
+	  } )
+
+		// If the location begins with ~, replace it with the users home directory.
+		// weave.constants.HOME normalizes the API for Node across different platforms.
+		if ( name === 'location' && String.is( behavior ) )
+			behavior = behavior.replace( /^~/, weave.constants.HOME )
+
+	  // Return the matching behavior. If we didn't find one this should
+	  // still just be undefined.
+	  return behavior
+	}
+
+	detail( name, untampered ) {
+	  // Make sure the header name is lowercase, so that it
+	  // can be case insensitive.
+		name = name.toLowerCase()
+	  let header = this._NODE_REQUEST.headers[ name ]
+
+	  // If untampered is true then the header must be returned as a
+	  // plain string. If it's not, then we can do some processing
+	  // to make it more useful than a string.
+	  if ( !untampered ) {
+	    switch ( name ) {
+	      case "if-modified-since":
+	        if ( header ) { return new Date( header ) }
+	        break;
+	      case "cookie":
+	        // I think this is how we parse cookies but I suck at them???
+					if ( String.is( header ) ) {
+						let data = {}
+						header.split(";").forEach( cookie => {
+							cookie = cookie.trim().split( '=' )
+							data[cookie.shift()] = cookie.join( '=' ) || true
+						})
+						return data
+					}
+	        break;
+	    }
+	  }
+
+	  // If something else hasn't already been returned, or if untampered
+	  // is true then just return the header as a normal string.
+	  return header
+	}
+
+	status( status ) {
+	  // Check to make sure the status is valid, and has not yet been written.
+	  if ( this.state !== 0     ) { return garden.log( 'Cannot write status '+status+' to HTTP stream, already wrote '+this._STATUS+'!' ) }
+		if ( !Number.is( status ) ) { return garden.error( 'Invalid status!', status ) }
+
+	  this._NODE_CONNECTION.write( "HTTP/1.1 "+status+" "+http.STATUS_CODES[status]+"\r\n")
+		this._STATUS = status
+		this._WRITTEN_HEADERS = {}
+	  this.state = 1
+
+	  return this
+	}
+
+	writeHeader( header, value = true ) {
+		// To write headers we must have a status, no body, and a valid header name.
+		if ( !String.is( header ) ) { return garden.error( 'Header arugment must be a string' ) }
+		if ( this.state === 0 ) { return this.status( 200 ) }
+	  if ( this.state > 1 ) { return garden.log( 'Headers already sent!') }
+
+		// You can't cache an error!
+		if ( header.toLowerCase() === "last-modified" && this._STATUS >= 300 ) {
+			garden.error( "You can't cache an error!" )
+		}
+
+		this._WRITTEN_HEADERS[ header ] = value
+		this._NODE_CONNECTION.write( `${header}: ${value}${n}` )
+
+	  return this
+	}
+
+	writeHead( status, headers ) {
+		if ( !Number.is( status ) ) {
+			if ( !this._STATUS ) return garden.error( 'No status written yet, we need a status!' )
+		  headers = status
+		}
+
+		if ( !headers ) return garden.error( 'No headers given to weave.Connection::writeHead!' )
+
+	  this.status( status )
+	  Object.keys( headers ).forEach( name => this.writeHeader( name, headers[ name ] ) )
+
+	  return this
+	}
+
+	endHead( header, value ) {
+	  // If there's an actual header to right, then right it.
+	  // Then end the header and start righting the body.
+	  if ( header ) this.writeHeader( header, value )
+
+		// Write required headers and shit
+		this.writeHeader( "Date", this.date.toUTCString() )
+		this.isKeepAlive ?
+			this.writeHeader( "Transfer-Encoding", "chunked" ) :
+			this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
+
+	  this._NODE_CONNECTION.write( n )
+	  this.state = 2
+
+	  return this
+	}
+
+	hasBody() {
+		return this.method !== "HEAD" && this._STATUS !== 304
+	}
+
+	// XXX: Is the connection keep-alive or close?
+	// TODO: Check before assuming Transfer-encoding: chunked
+	// TODO: Check before writing the Date header as well. Or disallow anyone else
+	// from writing it with a condition in ::writeHeader().
+	write( content, encoding ) {
+	  // If we aren't writing the body yet, right some final headers.
+	  if ( this.state === 3 ) {
+			return garden.error( "Cannot write data, response has already been completed." )
+		}
+
+	  if ( this.state < 2 ) {
+	    this.endHead()
+	    this.state = 2
+	  }
+
+		if ( this.hasBody() ) {
+	    if ( this.isKeepAlive ) {
+	      let buf = Buffer.concat( [
+	        new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
+	        new Buffer( content, encoding ), n ] )
+
+	      this._NODE_CONNECTION.write( buf )
+	    } else {
+				// XXX: I don't know if this is 100%, but I think it is.
+	      this._NODE_CONNECTION.write( content, encoding )
+				this._NODE_CONNECTION.end()
+	    }
+		}
+
+	  return this
+	}
+
+	end( ...args ) {
+	  // Write any data given, and then send the "last chunk"
+	  if ( args.length > 0 ) this.write( ...args )
+		// Firefox will hang on requests if there is no body present,
+		// such as 3xx redirects, so write a blank one.
+		if ( this.state < 2 ) this.write('')
+
+	  // Keep the connection alive or kill it
+	  this.isKeepAlive
+	    ? this._NODE_CONNECTION.write( z )
+	    : this._NODE_CONNECTION.end()
+
+	  this.state = 3
+		return this
+	}
+
+	redirect( location, status = 301 ) {
+		if ( !String.check( location ) ) return garden.error( 'Invalid redirect location!' ) && connection.generateErrorPage( 500 )
+		if ( !Number.check( status ) || status < 300 || status > 399 ) return garden.error( 'Invalid redirect status!') && connection.generateErrorPage( 500 )
+
+		return this.writeHead( status, { 'Location': location } ).end()
+	}
+
+	generateErrorPage( error ) {
+		// Create a details object for us to pass to printer.
+		let manifest = new weave.Manifest( { url: this.url } )
+
+		// Make the printer easier to call in different contexts.
+		let print = more => this.app.printer( error, manifest.extend( more ), this )
+
+		if ( Number.is( error ) ) { error = new weave.HTTPError( error ) }
+
+		// cursor points to where ever we're searching for files.
+		let cursor = this.behavior( "location" )
+
+		// NOTE: Router and this share a lot of boilerplate code. We should do something
+		// to merge them together maybe?
+
+	  if ( weave.HTTPError.is( error ) ) {
+			let errorPageName = this.behavior( `errorPages ${error.statusCode}` )
+			if ( errorPageName ) {
+				// TODO: Make sure this actually works, so that we can have absolute paths.
+				// If it doesn't work, then switch it back to .join for now.
+				let errorPagePath = cursor
+					? path.resolve( cursor, errorPageName )
+					: errorPageName
+
+				fs.stat( errorPagePath, ( serror, stats ) => {
+					if ( !serror && stats.isFile() ) {
+						print({ path: errorPagePath, stats: stats, type: "file" })
+					} else return print()
+				})
+			} else return print()
+		} else {
+			console.error( "Connection::generateErrorPage requires argument weave.HTTPError!" )
+		}
+	}
 }
 
-weave.Connection.prototype.behavior = function ( name ) {
-  let behavior
-  let nests = name.split(" ")
-	let scopes = this.configuration ? [ this.configuration, this.configuration._super ] : []
 
-  // Load in order of priority. Check the most relevant configurations first.
-  scopes.concat([ this.app.configuration, weave.configuration ]).some( cursor => {
-      // Make sure the cursor actually exists, in case
-      // this.configuration._super isn't defined.
-      if ( cursor ) {
-        // If the cursor follows all the way to the requested property
-        // then set the behavior and return true to stop checking.
-        if ( nests.every( nest => cursor = cursor[ nest ] ) ) {
-          behavior = cursor
-          return true;
-        }
-      }
-  } )
 
-	// If the location begins with ~, replace it with the users home directory.
-	// weave.constants.HOME normalizes the API for Node across different platforms.
-	if ( name === 'location' && String.is( behavior ) )
-		behavior = behavior.replace( /^~/, weave.constants.HOME )
 
-  // Return the matching behavior. If we didn't find one this should
-  // still just be undefined.
-  return behavior
-}
-
-weave.Connection.prototype.detail = function ( name, untampered ) {
-  // Make sure the header name is lowercase, so that it
-  // can be case insensitive.
-	name = name.toLowerCase()
-  let header = this._NODE_REQUEST.headers[ name ]
-
-  // If untampered is true then the header must be returned as a
-  // plain string. If it's not, then we can do some processing
-  // to make it more useful than a string.
-  if ( !untampered ) {
-    switch ( name ) {
-      case "if-modified-since":
-        if ( header ) { return new Date( header ) }
-        break;
-      case "cookie":
-        // I think this is how we parse cookies but I suck at them???
-				if ( String.is( header ) ) {
-					let data = {}
-					header.split(";").forEach( cookie => {
-						cookie = cookie.trim().split( '=' )
-						data[cookie.shift()] = cookie.join( '=' ) || true
-					})
-					return data
-				}
-        break;
-    }
-  }
-
-  // If something else hasn't already been returned, or if untampered
-  // is true then just return the header as a normal string.
-  return header
-};
 
 // Create destroy, pause, and resume reference methods.
 ['destroy', 'pause', 'resume'].forEach( name => weave.Connection.prototype[name] = () => this._NODE_CONNECTION[name]() )
-
-weave.Connection.prototype.status = function ( status ) {
-  // Check to make sure the status is valid, and has not yet been written.
-  if ( this.state !== 0     ) { return garden.log( 'Cannot write status '+status+' to HTTP stream, already wrote '+this._STATUS+'!' ) }
-	if ( !Number.is( status ) ) { return garden.error( 'Invalid status!', status ) }
-
-  this._NODE_CONNECTION.write( "HTTP/1.1 "+status+" "+http.STATUS_CODES[status]+"\r\n")
-	this._STATUS = status
-	this._WRITTEN_HEADERS = {}
-  this.state = 1
-
-  return this
-}
-
-weave.Connection.prototype.writeHeader = function ( header, value = true ) {
-	// To write headers we must have a status, no body, and a valid header name.
-	if ( !String.is( header ) ) { return garden.error( 'Header arugment must be a string' ) }
-	if ( this.state === 0 ) { return this.status( 200 ) }
-  if ( this.state > 1 ) { return garden.log( 'Headers already sent!') }
-
-	// You can't cache an error!
-	if ( header.toLowerCase() === "last-modified" && this._STATUS >= 300 ) {
-		garden.error( "You can't cache an error!" )
-	}
-
-	this._WRITTEN_HEADERS[ header ] = value
-	this._NODE_CONNECTION.write( `${header}: ${value}${n}` )
-
-  return this
-}
-
-weave.Connection.prototype.writeHead = function ( status, headers ) {
-	if ( !Number.is( status ) ) {
-		if ( !this._STATUS ) return garden.error( 'No status written yet, we need a status!' )
-	  headers = status
-	}
-
-	if ( !headers ) return garden.error( 'No headers given to weave.Connection::writeHead!' )
-
-  this.status( status )
-  Object.keys( headers ).forEach( name => this.writeHeader( name, headers[ name ] ) )
-
-  return this
-}
-
-weave.Connection.prototype.endHead = function ( header, value ) {
-  // If there's an actual header to right, then right it.
-  // Then end the header and start righting the body.
-  if ( header ) this.writeHeader( header, value )
-
-	// Write required headers and shit
-	this.writeHeader( "Date", this.date.toUTCString() )
-	this.isKeepAlive ?
-		this.writeHeader( "Transfer-Encoding", "chunked" ) :
-		this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
-
-  this._NODE_CONNECTION.write( n )
-  this.state = 2
-
-  return this
-}
-
-weave.Connection.prototype.hasBody = function () {
-	return this.method !== "HEAD" && this._STATUS !== 304
-}
-
-// XXX: Is the connection keep-alive or close?
-// TODO: Check before assuming Transfer-encoding: chunked
-// TODO: Check before writing the Date header as well. Or disallow anyone else
-// from writing it with a condition in ::writeHeader().
-weave.Connection.prototype.write = function ( content, encoding ) {
-  // If we aren't writing the body yet, right some final headers.
-  if ( this.state === 3 ) {
-		return garden.error( "Cannot write data, response has already been completed." )
-	}
-
-  if ( this.state < 2 ) {
-    this.endHead()
-    this.state = 2
-  }
-
-	if ( this.hasBody() ) {
-    if ( this.isKeepAlive ) {
-      var buf = Buffer.concat( [
-        new Buffer( Buffer.byteLength( content, encoding ).toString( 16 ) ), n,
-        new Buffer( content, encoding ), n ] )
-
-      this._NODE_CONNECTION.write( buf )
-    } else {
-			// XXX: I don't know if this is 100%, but I think it is.
-      this._NODE_CONNECTION.write( content, encoding )
-			this._NODE_CONNECTION.end()
-    }
-	}
-
-  return this
-}
-
-weave.Connection.prototype.end = function ( ) {
-  // Write any data given, and then send the "last chunk"
-  if ( arguments.length > 0 ) { this.write.apply( this, arguments ) }
-	// Firefox will hang on requests if there is no body present,
-	// such as 3xx redirects, so write a blank one.
-	if ( this.state < 2 ) { this.write("") }
-
-  // Keep the connection alive or kill it
-  this.isKeepAlive ?
-    this._NODE_CONNECTION.write( z ) :
-    this._NODE_CONNECTION.end()
-
-  this.state = 3
-	return this
-}
-
-weave.Connection.prototype.redirect = function ( location, status ) {
-	if ( !Number.is( status ) ) {
-		if ( status == null ) {
-			status = 301
-		} else {
-			// TODO: Log this error for debugging
-			return connection.generateErrorPage( 500 )
-		}
-	}
-
-	return this.writeHead( status, { "Location": location } ).end()
-}
-
-weave.Connection.prototype.generateErrorPage = function ( error ) {
-	// Create a details object for us to pass to printer.
-	let manifest = new weave.Manifest( { url: this.url } )
-
-	// Make the printer easier to call in different contexts.
-	let print = more => this.app.printer( error, manifest.extend( more ), this )
-
-	if ( Number.is( error ) ) { error = new weave.HTTPError( error ) }
-
-	// cursor points to where ever we're searching for files.
-	let cursor = this.behavior( "location" )
-
-	// NOTE: Router and this share a lot of boilerplate code. We should do something
-	// to merge them together maybe?
-
-  if ( weave.HTTPError.is( error ) ) {
-		let errorPageName = this.behavior( `errorPages ${error.statusCode}` )
-		garden.debug( errorPageName )
-		if ( errorPageName ) {
-			// TODO: Make sure this actually works, so that we can have absolute paths.
-			// If it doesn't work, then switch it back to .join for now.
-			let errorPagePath = cursor ?
-				path.resolve( cursor, errorPageName ) :
-				errorPageName
-
-			fs.stat( errorPagePath, function ( serror, stats ) {
-				if ( !serror && stats.isFile() ) {
-					print({ path: errorPagePath, stats: stats, type: "file" })
-				} else return print()
-			})
-		} else return print()
-	} else {
-		console.error( "Connection::generateErrorPage requires argument weave.HTTPError!" )
-	}
-}

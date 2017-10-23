@@ -87,14 +87,15 @@ weave.App = class App extends events.EventEmitter {
   }
 
   subdirectory( directory, inherit, configuration ) {
+    if ( !String.check( directory ) ) return garden.error( 'Argument directory must be a string!')
+    if ( !path.isAbsolute( directory ) ) return garden.error( 'Argument directory must be absolute!' )
+    if ( directory.length < 2 ) return garden.error( 'Argument directory cannot be root!')
     // Clear the cache so that the configuration can be modified and
     // not conflict with previously caches requests.
     this.cache.parentDirectories = {}
 
     // Keep things consistent on Windows with other platforms
     directory = directory.replace( /\\/g, '/' )
-
-    if ( !path.isAbsolute( directory ) ) return garden.error( "Directories must be absolute!" )
 
     // If we only have two arguments then inherit is actually going to be the
     // configuration. If we have three arguments, then we set the inheritance.

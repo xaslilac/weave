@@ -23,6 +23,6 @@ weave.cache = {
   retrieveEntry: function ( path, stats ) {
     // Maybe this should be our main API to retrieve things from the file system to print
     // Do we really need an addEntry API to be public? Maybe we should just add things in here
-    // if we don't already have them and uses a Promise to tell printer when we have the content
+    // if we don't already have them and use a Promise to tell printer when we have the content
   }
 }

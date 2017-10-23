@@ -111,7 +111,7 @@ Object.assign( weave, {
 
   configuration: {
     'location': path.join( __dirname, 'http/default' ),
-
+    'urlCleaning': true,
     'cache': {
       maxCacheSize: 500*1024, // 500*1024 is 500MB
       maxCachedFileSize: 5*1024 // 5*1024 is 5MB
