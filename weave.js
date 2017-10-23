@@ -8,7 +8,6 @@
 // Basic universal type detection and property setting.
 Function.prototype.check = function (a) { return a!=null&&(a.constructor===this.prototype.constructor) }
 Function.prototype.is = function (a) { console.log('Depreciated ::is!'); return this.check(a) }
-Object.extend = function (o,e) {o!=null&&e!=null&&Object.keys(e).forEach(p => o[p]=e[p]);return o}
 
 
 
@@ -97,12 +96,14 @@ let crypto = require( 'crypto' )
 let http = require( 'http' )
 let path = require( 'path' )
 
-let weave = module.exports = exports = {
+let weave = module.exports = exports = (...args) => new weave.App(...args)
+
+Object.assign( weave, {
   version: '0.1.11',
 
-  servers: {}, apps: {}, hosts: {},
-  constants: { WebSocketUUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
-               HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || "/",
+  servers: {}, apps: { anonymous: [] }, hosts: {},
+  constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
+               HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || '/',
                STATUS_CODES: http.STATUS_CODES,
                STATUS_DESCRIPTIONS: {
                  404: "The file you requested does not exist."
@@ -120,24 +121,20 @@ let weave = module.exports = exports = {
   },
 
   util: {
-    SHA1_64: function ( data ) {
-      return crypto.createHash( "sha1" ).update( data ).digest( "base64" ) },
+    SHA1_64: data => crypto.createHash( 'sha1' ).update( data ).digest( 'base64' ),
     RNDM_RG: function ( min, max, base ) {
       let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
       return base ? r.toString( base ) : r },
-    READ_BITS: function ( byte ) {
-      return [ byte >= 128 ? 1 : 0,
-      (byte %= 128) >= 64  ? 1 : 0,
-      (byte %= 64)  >= 32  ? 1 : 0,
-      (byte %= 32)  >= 16  ? 1 : 0,
-      (byte %= 16)  >= 8   ? 1 : 0,
-      (byte %= 8)   >= 4   ? 1 : 0,
-      (byte %= 4)   >= 2   ? 1 : 0,
-      (byte %= 2)   == 1   ? 1 : 0 ] },
-    BINARY_UINT: function ( binary ) {
-      return Number.parseInt( binary.join(''), 2 ) },
-    times: function ( times, task ) {
-      var t = 0; while ( t++ < times ) { task() } } },
+    READ_BITS: byte => [ byte >= 128 ? 1 : 0,
+                        (byte %= 128) >= 64  ? 1 : 0,
+                        (byte %= 64)  >= 32  ? 1 : 0,
+                        (byte %= 32)  >= 16  ? 1 : 0,
+                        (byte %= 16)  >= 8   ? 1 : 0,
+                        (byte %= 8)   >= 4   ? 1 : 0,
+                        (byte %= 4)   >= 2   ? 1 : 0,
+                        (byte %= 2)   == 1   ? 1 : 0 ],
+    BINARY_UINT: binary => Number.parseInt( binary.join(''), 2 ),
+    times: ( times, task ) => { for ( let t = 0; t < times; t++ ) task() } },
 
   Dictionary: require( './utilities/MimeDictionary' ),
   Garden: require( './utilities/Garden'),
@@ -162,7 +159,7 @@ let weave = module.exports = exports = {
         enumerable: true, writable: false, configurable: true }
     })
   }
-};
+});
 
 [ 'app', 'cache', 'connection', 'router', 'manifest', 'printer', 'websocket' ].forEach( module => require( `./${module}` ) )
 
