@@ -43,11 +43,10 @@ weave.App = class App extends events.EventEmitter {
       if ( weave.hosts[ host ] ) return garden.error( `Host ${host} already used by ${weave.hosts[host].appName}.` )
 
       // Check to make sure it is a valid host, with a valid port. (Inside the range 0x1-0xFFFF)
-      let split = host.match( /^(.+?)(\:([0-9]{1,5}))$/ )
+      let [ split, hostname, port ] = host.match( /^(.+?\:)?([0-9]{1,5})$/ )
       if ( !split ) return garden.error( `Invalid host: ${host}` )
-
-      let port = Number.parseInt( split[3] )
       if ( port < 1 || port > 0xFFFF ) return garden.error( `${port} is not a valid port number.` )
+      if ( !hostname ) host = `*:${port}`
 
       // If the host is a wildcard then clear all wildcardMatches that match
       // it. If it's a literal, clear wildcardMatches for that literal.
