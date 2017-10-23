@@ -12,17 +12,20 @@ let path = require( 'path' )
 let Wildcard = require( './utilities/Wildcard' )
 
 weave.App = class App extends events.EventEmitter {
-  constructor( appName ) {
+  constructor( appName, configuration ) {
     // Make it an EventEmitter
     super()
 
-    if ( appName ) {
+    if ( String.check( appName ) ) {
       if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! App '${appName}' already exists!` )
       this.appName = appName
       weave.apps[ appName ] = this
-    } else weave.apps.anonymous.push( this )
+    } else {
+      weave.apps.anonymous.push( this )
+      configuration = appName
+    }
 
-    this.configuration = {}
+    this.configuration = configuration || {}
     this.cache = {
       parentDirectories: {},
       resolvedPaths: {}
@@ -137,10 +140,6 @@ weave.App = class App extends events.EventEmitter {
   }
 
   interface( directory, handle ) {
-    // XXX: Should there be a wrapper between the interface
-    // and the configuration? Probably an object that also
-    // contains details about what HTTP standards the interface
-    // supports, like Upgrades, Cookies, etc.
     this.configuration[ directory.replace( /\\/g, '/' ) ] = {
       type: 'interface',
       interface: handle

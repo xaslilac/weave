@@ -96,7 +96,7 @@ let crypto = require( 'crypto' )
 let http = require( 'http' )
 let path = require( 'path' )
 
-let weave = module.exports = exports = (...args) => new weave.App(...args)
+let weave = module.exports = exports = ( appName, ...conf ) => new weave.App( appName, ...conf )
 
 Object.assign( weave, {
   version: '0.1.11',
