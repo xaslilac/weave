@@ -38,6 +38,10 @@ let Garden = module.exports = exports = class Garden extends events.EventEmitter
   static enableDebug() {
     this.list.forEach( garden => garden.verbose = true )
   }
+
+  static disableDebug() {
+    this.list.forEach( garden => garden.verbose = false )
+  }
 }
 
 Garden.list = []
