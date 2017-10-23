@@ -57,7 +57,7 @@ weave.App.prototype.router = function ( connection ) {
   // handle it. But should we really disconnect? Code 405 let's them know that
   // we can't handle the request, instead of just confusing the client as to
   // why they didn't ever recieve anything in return to the request.
-  if ( [ 'GET', 'HEAD', 'POST' ].some( method => connection.method === method ) ) {
+  if ( [ 'GET', 'HEAD', 'POST' ].every( method => connection.method !== method ) ) {
     return connection.generateErrorPage( new weave.HTTPError( 405, "Only GET, HEAD, and POST methods are supported." ) )
   }
 

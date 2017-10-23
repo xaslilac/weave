@@ -378,4 +378,4 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 
 // Create destroy, pause, and resume reference methods.
-['destroy', 'pause', 'resume'].forEach( name => weave.Connection.prototype[name] = () => this._NODE_CONNECTION[name]() )
+;['destroy', 'pause', 'resume'].forEach( name => weave.Connection.prototype[name] = () => this._NODE_CONNECTION[name]() )
