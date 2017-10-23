@@ -5,12 +5,15 @@ object, on an app.configuration object, using the app.configure method, or using
 app.subdirectory method.
 
 ```
-'location': pathToRootWebDirectory
-'indexes': { 'indexFileName': maximumFolderDepth.. }
-'favoredExtensions': [ '.ext'.. ]
+'location': str pathToRootWebDirectory
+'indexes': { 'indexFileName': num maximumFolderDepth.. }
+'favoredExtensions': [ str '.ext'.. ]
 'htmlDirectoryListings': bool enabled
 'jsonDirectoryListings': bool enabled
 'mimeTypes': dictionary
-'errorPages': { errorCode: pathToFile.. }
+'errorPages': { errorCode: str pathToFile.. }
 'engines': { '.ext': engine( content, details, connection ) -> Promise.. }
+'cache': { maxCacheSize: num kilobytes, maxCachedFileSize: num kilebytes }       Can only be configured via weave.configuration as caches are global and shared
+'redirect': { fromUrl: str toUrl }
+'headers': { 'Header-Name': str 'value' }
 ```

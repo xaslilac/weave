@@ -72,13 +72,12 @@ function printDirectory( error, details, connection ) {
     if ( error ) { return connection.generateErrorPage( 500 ) }
 
     if ( connection.url.description === 'directory.json' ) {
-      connection.status( 200 )
-      connection.writeHeader( "Content-Type", "application/json" )
+      connection.writeHeader( 'Content-Type', 'application/json' )
       return connection.end( JSON.stringify( files ) )
     }
 
     // If it's not JSON, it must be HTML.
-    connection.writeHeader( "Content-Type", "text/html" )
+    connection.writeHeader( 'Content-Type', 'text/html' )
 
     // Basic document setup
     let document = new DOM.HTMLDocument( 'html', `Contents of ${connection.url.pathname}` )

@@ -101,8 +101,6 @@ weave.App = class App extends events.EventEmitter {
 
     // If we only have two arguments then inherit is actually going to be the
     // configuration. If we have three arguments, then we set the inheritance.
-    // Connection::bahavior will load inheritance from @configuration._super,
-    // followed by app.configuration, followed by weave.configuration.
     configuration
       ? configuration._super = String.is( inherit )
         ? this.configuration[ inherit ]
@@ -117,6 +115,7 @@ weave.App = class App extends events.EventEmitter {
     // The main reason this event is important is for 3rd party modules
     // that might alter the configuration, or that need to clear caches
     // for anything that is based off of a configurable property.
+    // XXX: Is this event even useful?
     this.emit( 'configured', directory, configuration, this.configuration )
 
     // Return this from all configuration methods so they can be chained.
@@ -146,5 +145,24 @@ weave.App = class App extends events.EventEmitter {
 
     // Return this from all configuration methods so they can be chained.
     return this
+  }
+
+  engine( extension, engine ) {
+    if ( this.configuration.engines ) this.configuration.engines[ extension ] = engine
+    else this.configuration.engines = { [ extension ]: engine }
+
+    // Return this from all configuration methods so they can be chained.
+    return this
+  }
+
+  redirect( from, to ) {
+    if ( this.configuration.redirect ) this.configuration.redirect[ from ] = to
+    else this.configuration.redirect = { [ from ]: to }
+  }
+
+  header( name, value ) {
+    // XXX: Should we incorporate template string tags into this some how?
+    if ( this.configuration.headers ) this.configuration.headers[ name ] = value
+    else this.configuration.headers = { [ name ]: value }
   }
 }

@@ -61,6 +61,9 @@ weave.App.prototype.router = function ( connection ) {
     return connection.generateErrorPage( new weave.HTTPError( 405, "Only GET, HEAD, and POST methods are supported." ) )
   }
 
+  let redirect = connection.behavior( `redirect ${connection.url.path}`)
+  if ( redirect ) return connection.redirect( redirect )
+
   // cursor points to where ever we're searching for files.
   let location = connection.behavior( 'location' )
   if ( typeof location !== 'string' ) return garden.error( `No location set for ${connection.url.pathname}! Cannot route!` )

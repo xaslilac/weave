@@ -219,11 +219,11 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	status( status ) {
 	  // Check to make sure the status is valid, and has not yet been written.
-	  if ( this.state !== 0     ) { return garden.log( 'Cannot write status '+status+' to HTTP stream, already wrote '+this._STATUS+'!' ) }
+	  if ( this.state !== 0     ) { return garden.warning( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` ) }
 		if ( !Number.is( status ) ) { return garden.error( 'Invalid status!', status ) }
 
-	  this._NODE_CONNECTION.write( "HTTP/1.1 "+status+" "+http.STATUS_CODES[status]+"\r\n")
-		this._STATUS = status
+	  this._NODE_CONNECTION.write( `HTTP/1.1 ${status} ${http.STATUS_CODES[status]}\r\n` )
+		this._WRITTEN_STATUS = status
 		this._WRITTEN_HEADERS = {}
 	  this.state = 1
 
@@ -232,13 +232,14 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	writeHeader( header, value = true ) {
 		// To write headers we must have a status, no body, and a valid header name.
-		if ( !String.is( header ) ) { return garden.error( 'Header arugment must be a string' ) }
-		if ( this.state === 0 ) { return this.status( 200 ) }
-	  if ( this.state > 1 ) { return garden.log( 'Headers already sent!') }
+		if ( !String.is( header ) ) return garden.error( 'Header arugment must be a string' )
+	  if ( this.state > 1 ) return garden.log( 'Headers already sent!')
+
+		if ( this.state === 0 ) this.status( 200 )
 
 		// You can't cache an error!
 		if ( header.toLowerCase() === "last-modified" && this._STATUS >= 300 ) {
-			garden.error( "You can't cache an error!" )
+			garden.warning( "You can't cache an error!" )
 		}
 
 		this._WRITTEN_HEADERS[ header ] = value
@@ -249,13 +250,13 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	writeHead( status, headers ) {
 		if ( !Number.is( status ) ) {
-			if ( !this._STATUS ) return garden.error( 'No status written yet, we need a status!' )
-		  headers = status
+			headers = status
+			status = 200
 		}
 
 		if ( !headers ) return garden.error( 'No headers given to weave.Connection::writeHead!' )
 
-	  this.status( status )
+	  if ( !this._WRITTEN_STATUS ) this.status( status )
 	  Object.keys( headers ).forEach( name => this.writeHeader( name, headers[ name ] ) )
 
 	  return this
@@ -266,8 +267,9 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  // Then end the header and start righting the body.
 	  if ( header ) this.writeHeader( header, value )
 
-		// Write required headers and shit
-		this.writeHeader( "Date", this.date.toUTCString() )
+		// Write preconfigured constant headers, if they are specified, and a Date header.
+		this.writeHead( Object.assign( { 'Date': this.date.toUTCString() }, this.behavior( 'headers' ) ) )
+
 		this.isKeepAlive ?
 			this.writeHeader( "Transfer-Encoding", "chunked" ) :
 			this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
@@ -284,6 +286,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	// XXX: Is the connection keep-alive or close?
 	// TODO: Check before assuming Transfer-encoding: chunked
+	// XXX: Should we only support Keep-Alive and chunked??
 	// TODO: Check before writing the Date header as well. Or disallow anyone else
 	// from writing it with a condition in ::writeHeader().
 	write( content, encoding ) {
@@ -294,7 +297,6 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	  if ( this.state < 2 ) {
 	    this.endHead()
-	    this.state = 2
 	  }
 
 		if ( this.hasBody() ) {
@@ -305,6 +307,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	      this._NODE_CONNECTION.write( buf )
 	    } else {
+				// this.writeHeader( 'Content-Length', content.length )
 				// XXX: I don't know if this is 100%, but I think it is.
 	      this._NODE_CONNECTION.write( content, encoding )
 				this._NODE_CONNECTION.end()
