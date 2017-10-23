@@ -37,7 +37,8 @@ dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
 dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
 
 new weave.Garden( gardenName, verbose ) -> garden
-Garden.enableDebug()                                                             Sets garden.verbose to true on all gardens
+Garden.enableDebug() -> undefined                                                Sets garden.verbose to true on all gardens
+Garden.disableDebug() -> undefined                                               Sets garden.verbose to false on all gardens
 garden.verbose: bool
 garden.debug( things.. ) -> undefined                                            Only prints when garden.verbose is true
 garden.log( things.. ) -> undefined

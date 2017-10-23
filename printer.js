@@ -60,7 +60,7 @@ function printFile( error, details, connection ) {
 
     // TODO: Add a check to make sure the engine returned a Promise
     if ( Function.check( engine ) ) {
-      engine( content, details )
+      engine( content, details, connection )
         .then( output => connection.end( output ) )
         .catch( () => connection.generateErrorPage( 500 ) )
     } else connection.end( content )

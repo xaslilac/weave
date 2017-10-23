@@ -12,4 +12,5 @@ app.subdirectory method.
 'jsonDirectoryListings': bool enabled
 'mimeTypes': dictionary
 'errorPages': { errorCode: pathToFile.. }
+'engines': { '.ext': engine( content, details, connection ) -> Promise.. }
 ```
