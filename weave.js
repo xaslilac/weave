@@ -14,9 +14,7 @@ Function.prototype.is = function (a) { console.log('Depreciated ::is!'); return 
 
 
 // TODO: Here are all the things I still need to bring over from Trailer.
-// URL Redirects, ReadFile with Content-Length***,
-// Should we allow Constant HTTP Headers? Do they need to be written directly to each individual
-// request? How will they be written?
+// ReadFile with Content-Length***,
 
 // ***So I've since learned that the Content-Length header is not supposed to be
 // used if the Transfer-Encoding is Chunked. So that's not really something
@@ -112,12 +110,13 @@ Object.assign( weave, {
   configuration: {
     'location': path.join( __dirname, 'http/default' ),
     'urlCleaning': true,
+    'headers': { 'X-Powered-By': 'Weave' },
     'cache': {
       maxCacheSize: 500*1024, // 500*1024 is 500MB
       maxCachedFileSize: 5*1024 // 5*1024 is 5MB
-    }
-   // adminEmail: String,
-   // logOutput: String,
+    },
+    // adminEmail: String,
+    // logOutput: String,
   },
 
   util: {
@@ -125,14 +124,10 @@ Object.assign( weave, {
     RNDM_RG: function ( min, max, base ) {
       let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
       return base ? r.toString( base ) : r },
-    READ_BITS: byte => [ byte >= 128 ? 1 : 0,
-                        (byte %= 128) >= 64  ? 1 : 0,
-                        (byte %= 64)  >= 32  ? 1 : 0,
-                        (byte %= 32)  >= 16  ? 1 : 0,
-                        (byte %= 16)  >= 8   ? 1 : 0,
-                        (byte %= 8)   >= 4   ? 1 : 0,
-                        (byte %= 4)   >= 2   ? 1 : 0,
-                        (byte %= 2)   == 1   ? 1 : 0 ],
+    READ_BITS: byte => [ byte         >= 128 ? 1 : 0, (byte %= 128) >= 64  ? 1 : 0,
+                        (byte %= 64)  >= 32  ? 1 : 0, (byte %= 32)  >= 16  ? 1 : 0,
+                        (byte %= 16)  >= 8   ? 1 : 0, (byte %= 8)   >= 4   ? 1 : 0,
+                        (byte %= 4)   >= 2   ? 1 : 0, (byte %= 2)   == 1   ? 1 : 0 ],
     BINARY_UINT: binary => Number.parseInt( binary.join(''), 2 ),
     times: ( times, task ) => { for ( let t = 0; t < times; t++ ) task() } },
 
@@ -158,25 +153,23 @@ Object.assign( weave, {
         value: description || weave.constants.STATUS_DESCRIPTIONS[ code ],
         enumerable: true, writable: false, configurable: true }
     })
+  },
+
+  flags: {
+    awwHeckYes() { console.log( 'aww heck yes' ) },
+    weaveVerbose() { weave.Garden.enableDebug() },
+    enableWeaveRepl() { require( './developer/repl' ).connect() },
+    enableWeaveInstruments() { require( './developer/instruments' ) }
   }
 });
 
 [ 'app', 'cache', 'connection', 'router', 'manifest', 'printer', 'websocket' ].forEach( module => require( `./${module}` ) )
 
-process.argv.forEach( function ( arg ) {
-  switch ( arg ) {
-    case "--aww-heck-yes":
-      console.log( "aww heck yes" )
-      break;
-    case "--weave-verbose":
-      weave.Garden.enableDebug()
-      break;
-    case "--enable-weave-repl":
-      require( './developer/repl' )
-      weave.connectREPL( process.stdin, process.stdout )
-      break;
-    case "--enable-weave-instruments":
-      require( './developer/instruments' )
-      break;
+process.argv.forEach( function ( arg, index ) {
+  if ( arg.indexOf( '--' ) === 0 ) {
+    let narg = weave.flags[ arg.substring( 2 ).toLowerCase()
+      .replace( /\-([a-z])/g, ( whole, letter ) => letter.toUpperCase() ) ]
+
+    if ( Function.check( narg ) ) narg( ...process.argv.slice( index + 1 ) )
   }
 })
