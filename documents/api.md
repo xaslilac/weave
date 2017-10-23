@@ -12,9 +12,10 @@ $ myWeaveApp --weave-verbose: weave will log all the things
 $ myWeaveApp --enable-weave-repl: will enable a command line repl
 $ myWeaveApp --enable-weave-instruments: will allow calls to weave.attachInstruments
 
+weave([ appName ]) -> app
 weave.version: versionNumber
 weave.servers: { port: server.. }
-weave.apps: { appName: app }
+weave.apps: { appName: app, anonymous: [ anonymousApps.. ] }
 weave.hosts: { hostName: app }
 weave.cache: { wildcardMatches: { hostname: wildcard } }
 weave.constants.WebSocketUUID: UUID
@@ -31,12 +32,13 @@ weave.util.times( i, task ) -> undefined
 weave.attachInstruments( app, instrumentsUrl ) -> undefined                      Navigate your browser to app.host/instrumentUrl/panel to access instruments
 
 new weave.Dictionary( apacheFilePath |
-  [ apacheFilePath.. ] | { type: [ str '.ext'.. ] } ) -> dictionary              Is this signature correct?
-dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )           Is this signature correct?
+  [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
+dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
 dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
 
 new weave.Garden( gardenName, verbose ) -> garden
 Garden.enableDebug()                                                             Sets garden.verbose to true on all gardens
+garden.verbose: bool
 garden.debug( things.. ) -> undefined                                            Only prints when garden.verbose is true
 garden.log( things.. ) -> undefined
 garden.warning( things.. ) -> undefined
@@ -47,7 +49,7 @@ httpError.status: statusName
 httpError.statusCode: statusCode
 httpError.description: description | longStatusDescription
 
-new weave.App( appName ) -> app
+new weave.App([ appName ]) -> app
 app.link( str 'hostname:port' | num port ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
