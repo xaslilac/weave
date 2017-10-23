@@ -75,48 +75,45 @@ let DOM = module.exports = exports = {
 		this.nodeType = 1
 	},
 
-	TextNode: function (text ){
+	TextNode: function ( text ) {
     this.text = text
     this.nodeType = 3
 	},
 
-	Comment: function (content ){
-		this.text = "<!-- "+content+" -->"
+	Comment: function ( content ) {
+		this.text = `<!-- ${content} -->`
 		this.nodeType = 8
 	}
 }
 
-DOM.Document.prototype.toString = function (document ){
-  return "<!DOCTYPE "+this.docType+">\n"+this.baseElement.toString()
+DOM.Document.prototype.toString = function ( document ) {
+  return `<!DOCTYPE ${this.docType}>\n${this.baseElement.toString()}`
 }
 
 DOM.Element.prototype.toString = function (){
-	var contents = "", attributes = "";
+	let attributes = ''
+  Object.keys( this.attributes ).forEach( key => {
+    attributes += ` ${key}='${this.attributes[ key ]}'`
+  })
 
-  Object.keys( this.attributes ).forEach( function (key ){
-    attributes += ' '+key+'="'+this.attributes[key]+'"'
-  }, this)
-
-  contents += "<"+this.tagName+" "+attributes+">"
+  let contents = `<${this.tagName}${attributes}>`
   this.children.forEach( function (child ){
     contents += child.toString()
   })
-  contents += "</"+this.tagName+">"
-
-  return contents
+  return contents + `</${this.tagName}>`
 }
 
-DOM.TextNode.prototype.toString = DOM.Comment.prototype.toString = function (){
+DOM.TextNode.prototype.toString = DOM.Comment.prototype.toString = function () {
   return this.text
 }
 
 
 
-DOM.Element.prototype.appendChild = function (child ){
+DOM.Element.prototype.appendChild = function ( child ) {
   this.children.push( child )
   return child
 }
 
-DOM.Element.prototype.setAttribute = function (attr, value ){
+DOM.Element.prototype.setAttribute = function ( attr, value ) {
   return this.attributes[ attr ] = value
 }
