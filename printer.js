@@ -42,24 +42,28 @@ function printError( error, details, connection ) {
 
 function printFile( error, details, connection ) {
   let cacheDate = connection.detail( "if-modified-since" )
+  let extname = path.extname( details.path )
+  let engine = connection.behavior( `engines ${extname}` )
   // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
   // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
   if ( !error && cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( details.stats.mtime.getTime() / 1000 ) )
     return connection.status( 304 ).end()
 
-  fs.readFile( details.path, ( ferror, contents ) => {
+  fs.readFile( details.path, ( ferror, content ) => {
     if ( ferror ) return connection.app.printer( new weave.HTTPError( 500 ), {}, connection )
-
     // We may be printing an error page from generateErrorPage
     connection.status( error ? error.statusCode : 200 )
-      .writeHeader( "Content-Type", connection.behavior( `mimeTypes ${path.extname( details.path )}` ) )
-
-    // garden.log( connection.behavior( `mimeTypes ${path.extname( details.path )}` ) )
+      .writeHeader( "Content-Type", connection.behavior( `mimeTypes ${extname}` ) )
 
     // You can't cache an error!
     if ( !error ) connection.writeHeader( "Last-Modified", details.stats.mtime.toUTCString() )
 
-    connection.end( contents )
+    // TODO: Add a check to make sure the engine returned a Promise
+    if ( Function.check( engine ) ) {
+      engine( content, details )
+        .then( output => connection.end( output ) )
+        .catch( () => connection.generateErrorPage( 500 ) )
+    } else connection.end( content )
   })
 }
 
