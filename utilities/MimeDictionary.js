@@ -1,71 +1,61 @@
-var fs = require( "fs" ), MimeDictionary;
+let fs = require( "fs" )
 
-MimeDictionary = function ( map ) {
-  this.dictionary = {}
-
-  if ( String.check( map ) ) {
-    this.fromApacheFile( map )
-  } else if ( Array.check( map ) ) {
-    map.forEach( ind => this.fromApacheFile( ind ) )
-  } else {
-    this.define.apply( this, arguments )
-  }
-}
-
-MimeDictionary.prototype.define = function (type, extensions ){
-  // We're defining a single type
-  if ( String.check( type ) ) {
-    // With multiple extensions
-    if ( Array.check( extensions ) ) {
-      extensions.forEach( function ( extension ) {
-        this.dictionary[extension] = type
-      }, this)
-    // With a single extension
+module.exports = class MimeDictionary {
+  constructor( map ) {
+    if ( String.check( map ) ) {
+      this.fromApacheFile( map )
+    } else if ( Array.check( map ) ) {
+      map.forEach( ind => this.fromApacheFile( ind ) )
     } else {
-      this.dictionary[extension] = extensions
+      this.define.apply( this, arguments )
     }
-  // We're defining a bunch of types
-  } else {
-    Object.keys( type ).forEach( function ( key ) {
-      this.define( key, type[ key ] )
-    })
   }
-}
 
-MimeDictionary.prototype.fromApacheFile = function ( path, encoding, callback ) {
-  var dictionary = this;
-
-  fs.readFile( path, encoding || "UTF-8", function ( error, content ) {
-    var type, extensions;
-
-    if ( error ) {
-      if ( callback ) { callback( error ) }
-      else throw error
+  define( type, extensions ) {
+    // We're defining a single type
+    if ( String.check( type ) ) {
+      // With multiple extensions
+      if ( Array.check( extensions ) ) {
+        extensions.forEach( extension => {
+          this[ extension ] = type
+        }, this)
+      // With a single extension
+      } else this[ extensions ] = type
+    // We're defining a bunch of types
     } else {
+      Object.keys( type ).forEach( key => {
+        this.define( key, type[ key ] )
+      })
+    }
+
+    return this
+  }
+
+  fromApacheFile( path, encoding ) {
+    fs.readFile( path, encoding || "UTF-8", ( error, content ) => {
+      if ( error ) return console.error( error )
+
       // Remove all empty lines and comments and then split the file into lines.
       content = content
         .replace( /(#.+)$/gm, '' )
         .replace( /\n{2,}/g, "\n" )
         .split( "\n" )
 
-      content.forEach( function (line ){
+      content.forEach( line => {
         // Trim off any whitespace on either end of the line
         line = line.trim()
 
         // Ignore any empty lines that made it this far
-        if (line ){
+        if ( line ) {
           // Remove multiple spaces/tabs and make sure extensions
           // have dots, and then turn it into an array.
-          line = line.replace( /\s+/g, ' .' ).split(' ')
+          // First item on the line is the mime type
+          // Everything after is an extension
+          let [ type, ...extensions ] = line.replace( /\s+/g, ' .' ).split(' ')
 
-          type = line.shift() // First item on the line is the mime type
-          extensions = line // Everything after is an extension
-
-          dictionary.define( type, extensions )
+          this.define( type, extensions )
         }
       })
-    }
-  })
+    })
+  }
 }
-
-module.exports = MimeDictionary
