@@ -16,17 +16,17 @@ weave.App = class App extends events.EventEmitter {
     // Make it an EventEmitter
     super()
 
-    if ( !appName ) return garden.error( 'No app name given!' )
-    if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! App '${appName}' already exists!` )
+    if ( appName ) {
+      if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! App '${appName}' already exists!` )
+      this.appName = appName
+      weave.apps[ appName ] = this
+    } else weave.apps.anonymous.push( this )
 
-    this.appName = appName,
     this.configuration = {}
     this.cache = {
       parentDirectories: {},
       resolvedPaths: {}
     }
-
-    weave.apps[ appName ] = this
   }
 
   link( ...hosts ) {
@@ -80,7 +80,7 @@ weave.App = class App extends events.EventEmitter {
   }
 
   configure( configuration ) {
-    Object.extend( this.configuration, configuration )
+    Object.assign( this.configuration, configuration )
 
     // Return this from all configuration methods so they can be chained.
     return this
@@ -108,7 +108,7 @@ weave.App = class App extends events.EventEmitter {
 
     configuration.type = 'directory'
 
-    if ( this.configuration[ directory ] ) Object.extend( this.configuration[ directory ], configuration )
+    if ( this.configuration[ directory ] ) Object.assign( this.configuration[ directory ], configuration )
     else this.configuration[ directory ] = configuration
 
     // The main reason this event is important is for 3rd party modules
