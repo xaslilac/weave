@@ -33,9 +33,14 @@ weave.App.prototype.printer = function ( error, details, connection ) {
 }
 
 function printError( error, details, connection ) {
-  let document = new DOM.HTMLDocument( 'html', `${error.status} ${weave.constants.STATUS_CODES[ error.statusCode ]}` )
+  let document = new DOM.HTMLDocument( 'html', `${error.statusCode} ${error.status}` )
   document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
-  if ( error.description ) document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = error.description
+  if ( error.description ) {
+    let desc = document.body.appendChild( new DOM.Element( 'p' ) )
+    desc.children = error.description.split( '\n' ).map( line => {
+      return new DOM.TextNode( line.replace( /\s/g, '&nbsp;' ).replace( weave.constants.HOME, '~' ) + '<br />' )
+    })
+  }
 
   return connection.status( error.statusCode ).end( document.toString() )
 }
@@ -58,9 +63,13 @@ function printFile( error, details, connection ) {
 
     // Check if there is an engine specified for this file format
     if ( typeof engine === 'function' ) {
-      engine( content, details, connection )
-        .then( output => connection.end( output ) )
-        .catch( () => connection.generateErrorPage( 500 ) )
+      try {
+        Promise.resolve( engine( content, details, connection ) )
+          .then( output => connection.end( output ) )
+          .catch( error => this.generateErrorPage(new weave.HTTPError( 500, conf )) )
+      } catch ( error ) {
+        connection.generateErrorPage(new weave.HTTPError( 500, error ))
+      }
     } else connection.end( content )
   }).catch( () => {
     printError( new weave.HTTPError( 500 ), {}, connection )

@@ -116,17 +116,22 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 				let manifest = new weave.Manifest( { url: this.url, type: 'interface' } )
 		    let handle = this.configuration[ this.method ] || this.configuration.any
-		    if ( typeof handle !== 'function' ) return this.generateErrorPage( new weave.HTTPError( 405 ) )
+		    if ( typeof handle !== 'function' ) return this.generateErrorPage(new weave.HTTPError( 405 ))
 
-				Promise.resolve( handle.call( this.app, this, manifest ) )
-					.catch( conf => {
-						if ( conf instanceof Error )
-						  return this.generateErrorPage( 500, `${conf.name}: ${conf.message}\n${conf.stack}` )
+				try {
+					Promise.resolve( handle.call( this.app, this, manifest ) )
+						.catch( conf => {
+							console.log('rwethereyet')
+							if ( conf instanceof Error )
+								return this.generateErrorPage(new weave.HTTPError( 500, conf ))
 
-						this.configuration = conf
-						this.app.emit( 'connection', this )
-						this.app.route( this )
-					})
+							this.configuration = conf
+							this.app.emit( 'connection', this )
+							this.app.route( this )
+						})
+				} catch ( error ) {
+					this.generateErrorPage(new weave.HTTPError( 500, error ))
+				}
 
 				// Once the handle has been started, we can start listening for data.
 				i.on( 'data', data => this.emit( 'data', data ) )
@@ -140,7 +145,8 @@ weave.Connection = class Connection extends events.EventEmitter {
 		i.on( 'data', data => this.emit( 'data', data ) )
 
 		// Begin routing the connection
-		this.app.route( this )
+		 try { this.app.route( this ) }
+		 catch ( error ) { this.generateErrorPage(new weave.HTTPError( 500, error )) }
 	}
 
 	static generateUUID() {

@@ -13,7 +13,7 @@ Object.assign( weave, {
 
   servers: {}, apps: { anonymous: [] }, hosts: {},
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
-               HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH || '/',
+               HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH,
                STATUS_CODES: http.STATUS_CODES },
 
   sources: 'app, cache, connection, manifest, printer, router, websocket',
@@ -33,13 +33,15 @@ Object.assign( weave, {
   Garden: require( './utilities/Garden'),
 
   HTTPError: class HTTPError {
-    constructor( code, description ) {
+    constructor( code, desc ) {
       if ( typeof code !== 'number' ) console.error( 'HTTPError requires argument code to be a number!' )
+
+      if ( desc instanceof Error ) desc = `${desc.name}: ${desc.message}\n${desc.stack}`
 
       Object.defineProperties( this, {
         status: { value: weave.constants.STATUS_CODES[ code ], enumerable: true },
         statusCode: { value: code, enumerable: true },
-        description: { value: description, enumerable: true }
+        description: { value: desc, enumerable: true }
       })
     }
   },
