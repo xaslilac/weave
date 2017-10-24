@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 let weave = require( '../weave' )
+let path = require( 'path' )
 
 process.on( 'beforeExit', function () {
   let garden = new weave.Garden( 'default' )
