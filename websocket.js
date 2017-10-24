@@ -221,7 +221,7 @@ weave.WebSocketConnection = class WebSocketConnection extends events.EventEmitte
       garden.debug( 'closing connection', this )
       this.readyState = 3
       //@_NODE_CONNECTION.close()
-      this.emit( 'close', message )
+      this.emit( 'close', frame )
     } else if ( this.readyState < 2 ) {
       // If we have processed a frame, then the client is requesting we close
       // the connection. If there is no frame, then it is us closing it.

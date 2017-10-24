@@ -70,6 +70,15 @@ app.printer( httpError, manifest, connection ) -> undefined                     
                                                                                  We would then call app.printer( ...app.router( connection ) ) in weave.Connection
 ```
 
+### weave.Dictionary
+Utility to help manage MIME types
+```
+new weave.Dictionary( apacheFilePath |
+  [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
+dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
+dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
+```
+
 ### weave.WebSocket
 ```
 new weave.WebSocket( app, webSocketUrl, connectionListener ) -> ws
@@ -77,12 +86,14 @@ ws.attach( app, socketUrl ) -> ws
 ws#connection( wsConnection )
 ```
 
-### weave.Dictionary
+### weave.WebSocketConnection
 ```
-new weave.Dictionary( apacheFilePath |
-  [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
-dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
-dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
+new weave.WebSocketConnection( ws, connection ) -> wsConnection
+wsConnection#message( message{ buffer decoded[, str data] } )
+wsConnection#close( message{ num code, str reason } )
+wsConnection.send( data ) -> bool success
+wsConnection.ping() -> bool success
+wsConnection.close( code[, reason ] ) -> bool success
 ```
 
 ## Not so important
@@ -136,13 +147,4 @@ new weave.HTTPError( statusCode[, description ] ) -> httpError
 httpError.status: str statusName
 httpError.statusCode: num statusCode
 httpError.description: str description
-```
-
-#### weave.WebSocketConnection
-```
-new weave.WebSocketConnection( ws, connection ) -> wsConnection
-wsConnection.decode( data ) -> wsFrame                                           This type needs to be better defined
-wsConnection.send( data ) -> bool success
-wsConnection.ping() -> bool success
-wsConnection.close( code[, reason ] ) -> bool success
 ```
