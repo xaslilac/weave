@@ -28,12 +28,10 @@ configure your app depending on your needs and preferences.
 
 ```JavaScript
 weave({ 'location': '~/http/' })
-
+weave( 'name', { 'location': '~/http/' })
 new weave.App({ 'location': '~/http/' })
-
-new weave.App( 'name' ).configure({
-  'location': '~/http/'
-})
+new weave.App( 'name', { 'location': '~/http/' })
+new weave.App( 'name' ).configure({ 'location': '~/http/' })
 ```
 
 Pick which ever way you like. When you decide, you'll just need to link your
