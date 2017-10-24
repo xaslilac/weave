@@ -11,37 +11,12 @@ weave.App.prototype.route = function ( connection ) {
   // Debug inspecting
   garden.debug( this.appName, connection.url )
 
-  // We give the printer this details object to let it know what we
-  // have found about about the request so far.
+  // Get the manifest ready for the printer, and make the printer easy to call.
 	let manifest = new weave.Manifest( { url: connection.url } )
-
-  // Make the printer easier to call in different contexts.
   let print = more => this.printer( undefined, manifest.extend( more ), connection )
 
-  // If the configuration is a Function, then the request should be handle as
-  // an interface type. Call the interface configuration.
-  if ( connection.configuration && connection.configuration.type === 'interface' ) {
-    let shouldContinue = false
-    let handle = connection.configuration[ connection.method ] || connection.configuration.any
-    if ( typeof handle !== 'function' ) return connection.generateErrorPage( new weave.HTTPError( 405 ) )
-
-    manifest.shouldContinue = function ( configuration ) {
-      if ( !configuration ) return garden.error( 'Interface told router to continue, but did not configure it.')
-      connection.configuration = configuration
-      return shouldContinue = true
-    }
-
-    // TODO: Decide what we should do with the result of the interface?
-    manifest.extend({
-      result: handle.call( connection.app, connection, manifest ),
-      type: 'interface'
-    })
-
-    if ( !shouldContinue ) return
-  }
-
   // Set the initial depth to 0. Depth is used to keep track of
-  // how many directories we've moved down from the original url.
+  // how many directories we've moved up from the original url.
   // This is used for directory indexes with finite depth.
   connection.url.depth = 0
 

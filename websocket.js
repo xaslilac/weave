@@ -82,7 +82,7 @@ weave.WebSocketConnection = class WebSocketConnection extends events.EventEmitte
           frame.code = ( decoded[0] << 8 ) + decoded[1]
           frame.reason = decoded.slice( 2 ).toString( 'utf-8' )
           this.close( null, null, frame )
-        } else if ( message.opcode === 0x9 ) {
+        } else if ( opcode === 0x9 ) {
           // Ping
           garden.debug( 'received ping frame' )
           this.emit( 'ping', frame )

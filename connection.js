@@ -4,11 +4,9 @@
 let weave = require( './weave' )
 let garden = new weave.Garden( 'weave.Connection' )
 
-let events = require('events')
+let events = require( 'events' )
 let fs = require( 'fs' )
-let http = require( 'http' )
 let path = require( 'path' )
-let util = require( 'util' )
 let url = require( 'url' )
 let Wildcard = require( './utilities/Wildcard' )
 
@@ -112,6 +110,29 @@ weave.Connection = class Connection extends events.EventEmitter {
 			// If we found a matching directory, shorten the URL relative to the directory.
 			this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
 			this.configuration = this.app.configuration[ this.directory ]
+
+			if ( this.configuration.type === 'interface' ) {
+		    this.url.description = path.relative( this.directory, this.url.pathname )
+
+				let manifest = new weave.Manifest( { url: this.url, type: 'interface' } )
+		    let handle = this.configuration[ this.method ] || this.configuration.any
+		    if ( typeof handle !== 'function' ) return this.generateErrorPage( new weave.HTTPError( 405 ) )
+
+				Promise.resolve( handle.call( this.app, this, manifest ) )
+					.catch( conf => {
+						if ( conf instanceof Error )
+						  return this.generateErrorPage( 500, `${conf.name}: ${conf.message}\n${conf.stack}` )
+
+						this.configuration = conf
+						this.app.emit( 'connection', this )
+						this.app.route( this )
+					})
+
+				// Once the handle has been started, we can start listening for data.
+				i.on( 'data', data => this.emit( 'data', data ) )
+
+		    return
+			}
 		}
 
     // Begin emiting data and connection events
@@ -119,7 +140,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 		i.on( 'data', data => this.emit( 'data', data ) )
 
 		// Begin routing the connection
-    this.app.route( this )
+		this.app.route( this )
 	}
 
 	static generateUUID() {
@@ -201,7 +222,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  if ( this.state !== 0 ) { return garden.warning( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` ) }
 		if ( typeof status !== 'number' ) { return garden.typeerror( 'IStatus is not a number!', status ) }
 
-	  this._NODE_CONNECTION.write( `HTTP/1.1 ${status} ${http.STATUS_CODES[status]}\r\n` )
+	  this._NODE_CONNECTION.write( `HTTP/1.1 ${status} ${weave.constants.STATUS_CODES[status]}\r\n` )
 		this._WRITTEN_STATUS = status
 		this._WRITTEN_HEADERS = {}
 	  this.state = 1
@@ -325,6 +346,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 		else if ( !error instanceof weave.HTTPError ) return garden.error( 'generateErrorPage requires a weave.HTTPError argument!' )
 		if ( error.statusCode >= 500 ) garden.error( error.description )
 
+		// Get the manifest ready for the printer, and make the printer easy to call.
 		let manifest = new weave.Manifest( { url: this.url } )
 		let print = more => weave.App.prototype.printer( error, manifest.extend( more ), this )
     let cursor = this.behavior( 'location' )
