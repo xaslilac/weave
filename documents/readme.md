@@ -34,7 +34,9 @@ object, using the `app.configure` method, or using the `app.subdirectory` method
 'headers': { 'Header-Name': str 'value' }
 ```
 
-## weave
+## Everything you need to know
+
+### weave
 ```
 weave([[ appName,] behaviors ]) -> app
 weave.version: versionNumber
@@ -52,7 +54,7 @@ weave.util.RNDM_RG( min, min, base ) -> randomNum
 weave.attachInstruments( app, instrumentsUrl ) -> undefined                      Navigate your browser to app.host/instrumentUrl/panel to access instruments
 ```
 
-## weave.App
+### weave.App
 ```
 new weave.App([[ appName,] behaviors ]) -> app
 app.link( str 'hostname:port' | num port ) -> app
@@ -68,14 +70,14 @@ app.printer( httpError, manifest, connection ) -> undefined                     
                                                                                  We would then call app.printer( ...app.router( connection ) ) in weave.Connection
 ```
 
-## weave.WebSocket
+### weave.WebSocket
 ```
 new weave.WebSocket( app, webSocketUrl, connectionListener ) -> ws
 ws.attach( app, socketUrl ) -> ws
 ws#connection( wsConnection )
 ```
 
-## weave.Dictionary
+### weave.Dictionary
 ```
 new weave.Dictionary( apacheFilePath |
   [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
@@ -83,7 +85,9 @@ dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
 dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
 ```
 
-### weave.Manifest
+## Not so important
+
+#### weave.Manifest
 ```
 new weave.Manifest() -> manifest
 manifest.isDirectory() -> bool
@@ -98,7 +102,7 @@ manifest.type: str 'directory' | 'file' | 'interface'
 manifest.url: connection.url
 ```
 
-### weave.Connection
+#### weave.Connection
 ```
 new weave.Connection( clientRequest, serverResponse ) -> connection
 connection.behavior( behaviorName ) -> behaviorValue
@@ -114,7 +118,7 @@ connection.redirect( location[, status] ) -> connection
 connection.generateErrorPage( httpError ) -> undefined
 ```
 
-### weave.Garden
+#### weave.Garden
 ```
 new weave.Garden( gardenName, verbose ) -> garden
 Garden.enableDebug() -> undefined                                                Sets garden.verbose to true on all gardens
@@ -126,7 +130,7 @@ garden.warning( things.. ) -> undefined
 garden.error( things.. ) -> undefined
 ```
 
-### weave.HTTPError
+#### weave.HTTPError
 ```
 new weave.HTTPError( statusCode[, description ] ) -> httpError
 httpError.status: str statusName
@@ -134,7 +138,7 @@ httpError.statusCode: num statusCode
 httpError.description: str description
 ```
 
-### weave.WebSocketConnection
+#### weave.WebSocketConnection
 ```
 new weave.WebSocketConnection( ws, connection ) -> wsConnection
 wsConnection.decode( data ) -> wsFrame                                           This type needs to be better defined
