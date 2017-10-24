@@ -6,11 +6,8 @@ let garden = new weave.Garden( 'weave developer/instruments' )
 
 let util = require( 'util' )
 let path = require( 'path' )
-
-let $ = n => weave.apps[ n ]
-let $$ = ( n, d ) => weave.apps[ n ].configuration[ d || "/" ]
-
-require( './repl' )
+let repl = require( 'repl' )
+let { Readable, Writable } = require( 'stream' )
 
 
 
@@ -33,11 +30,22 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
 
   app.interface( path.join( instrumentsUrl, '/enabled-instruments' ), connection => connection.end("['repl','log']") )
 
+
+
+
   let socket = new weave.WebSocket( app, path.join( instrumentsUrl, '/socket' ), connection => {
+    // let input = new Readable({ read() { return } })
+    // let output = new Writable({ write( result ) { connection.send( JSON.stringify({ messageType: 'console-print', data: util.inspect( result ) }) ) } })
+    //
+    // let $ = repl.start({ prompt: '', input, output })
+    //
+    // $.context.weave = weave
+    // $.context.$ = ( n = 'web' ) => Number.check( n ) ? weave.apps.anonymous[ n ] : weave.apps[ n ]
+    // $.context.$$ = ( n, d ) => { let x = $.context.$( n ).configuration; return d ? x[d] : x }
+
     connection.on( 'message', function ( message ) {
       message.json = JSON.parse( message.data )
       if ( message.json.messageType === 'console-command' ) {
-
         // TODO: Pipe this to a repl from the native repl module.
         try {
           let result = eval( message.json.data )
@@ -47,11 +55,12 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
             data: util.inspect( result )
           }) )
         } catch ( e ) {
-          garden.error( e )
+          garden.catch( e )
           connection.send( JSON.stringify({
             messageType: 'console-error',
             error: e.name,
-            message: e.message
+            message: e.message,
+            stack: e.stack
           }) )
         }
       }
