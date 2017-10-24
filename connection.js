@@ -97,21 +97,16 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  if ( this.app.cache.parentDirectories[ this.url.pathname ] ) {
 	    this.directory = this.app.cache.parentDirectories[ this.url.pathname ]
 	  } else {
-	    Object.keys( this.app.configuration ).forEach( directory => {
-	      if ( this.app.configuration.hasOwnProperty( directory ) ) {
-	        // Check if the directory matches the beginning of the requested URL, and
-	        // that it is a full directory. The second line avoids some issues, i.e.
-	        // if you have a configuration for /abc/ but the file requested is /abc.html
-	        // The correct directory for that should be /, but before this fix would
-	        // have been thought to be /abc/.
-	        if ( ~this.url.path.indexOf( directory )
-	        && ( this.url.path === directory
-	          || this.url.path.charAt( directory.length ) === "/"
-	          || this.url.path.charAt( directory.length - 1 ) === "/" )
-	        && directory.length > this.directory.length ) {
-	          this.directory = this.app.cache.parentDirectories[ this.url.pathname ] = directory
-	        }
-	      }
+	    Object.keys( this.app.configuration ).forEach( dir => {
+        // The 2nd condition ensures that the client is requesting *this*
+				// directory, and not a file or directory with a longer, overlapping
+				// name. Trailing slashes are sanitized on directory names in weave.App,
+				// so the forward slash will always 1 character after the dir name.
+        if ( this.url.path.startsWith( dir ) // Does it match?
+        && ( this.url.path === dir || this.url.path.charAt( dir.length ) === "/" ) // Is the client requesting this directory, or a file with a similar name?
+        && dir.length > this.directory.length ) {
+          this.directory = this.app.cache.parentDirectories[ this.url.pathname ] = dir
+        }
 	    })
 	  }
 

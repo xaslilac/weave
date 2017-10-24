@@ -94,8 +94,10 @@ weave.App = class App extends events.EventEmitter {
     // not conflict with previously caches requests.
     this.cache.parentDirectories = {}
 
-    // Keep things consistent on Windows with other platforms
-    directory = directory.replace( /\\/g, '/' )
+    // Keep things consistent on Windows with other platforms.
+    // Make sure that we don't store an ending slash on directories.
+    // If /abc/ is configured, and /abc is requested, we should round up.
+    directory = directory.replace( /\\/g, '/' ).replace( /\/$/, '' )
 
     // If we only have two arguments then inherit is actually going to be the
     // configuration. If we have three arguments, then we set the inheritance.
@@ -136,7 +138,7 @@ weave.App = class App extends events.EventEmitter {
   }
 
   interface( path, handle, methods = ['any'] ) {
-    // Keep things consistent on Windows with other platforms
+    // Keep things consistent on Windows with other platforms.
     path = path.replace( /\\/g, '/' )
 
     // If there is already an interface at this path, we might be able to
