@@ -1,14 +1,19 @@
-# Notice
+# weave.WebSocket
 
-This module requires the `--enable-web-socket` flag to be set. Please ensure the
-flag is set before attempting to use this module.
-
-#weave.WebSocket
+## Overview
+Weave already includes everything you need to use WebSockets as a communication
+channel between the browser and your server.
 
 ## Usage
 
-`var webSocket = new weave.WebSocket( appName || app, url )`
+```JavaScript
+let webSocket = new weave.WebSocket( appName || app, url )
 
-## Description
+webSocket.on( 'connection', connection => {
+  connection.on( 'message', message => {
+    console.log( message.data )
+  })
 
-Listens for WebSocket connections from a client on `app` at `url`
+  connection.send( 'Welcome!' )
+})
+```
