@@ -2,27 +2,42 @@
 "use strict";
 
 let weave = require( './weave' )
-let garden = new weave.Garden( 'weave.Cache' )
+let garden = new weave.Garden( 'weave.cache' )
+let fs = require( 'fs' )
 
-weave.cache = {
+weave.cache = ( path, stats ) => weave.cache.retrieveFile( path, stats )
+let mostRecent = []
+
+Object.assign( weave.cache, {
   wildcardMatches: {},
 
-  fileEntries: {
-    // "C:\\cached.html": {
-    //   stats: fs.stat(),
-    //   content: fs.readFile()
-    // },
-    'size': 0,
-    'mostRecent': []
-  },
+  fileEntries: { 'size': 0 },
 
-  addEntry: function ( path, stats, content ) {
-    this.fileEntries[ path ] = { stats, content }
-  },
+  retrieveFile: function ( path, stats ) {
+    return new Promise( ( fulfill, reject ) => {
+      let cachedFile = this.fileEntries[ path ]
 
-  retrieveEntry: function ( path, stats ) {
-    // Maybe this should be our main API to retrieve things from the file system to print
-    // Do we really need an addEntry API to be public? Maybe we should just add things in here
-    // if we don't already have them and use a Promise to tell printer when we have the content
+      if ( cachedFile && cachedFile.stats.mtime.getTime() === stats.mtime.getTime() ) {
+        fulfill( cachedFile )
+      } else fs.readFile( path, ( error, content ) => {
+        if ( error ) return reject( error )
+
+        let file = { path, stats, content, size: Buffer.byteLength( content ) }
+
+        fulfill( file )
+
+        if ( weave.configuration.cache )
+          if ( file.size <= weave.configuration.cache.maxCachedFileSize * 1024 ** 2 ) {
+            this.fileEntries[ path ] = file
+            this.fileEntries.size += file.size
+          }
+
+          while ( this.fileEntries.size > weave.configuration.cache.maxCacheSize * 1024 ** 2 ) {
+            let path = mostRecent.shift()
+            this.fileEntries.size -= weave.cache.fileEntries[ path ].size
+            weave.cache.fileEntries[ path ] = null
+          }
+      })
+    })
   }
-}
+})

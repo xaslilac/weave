@@ -7,6 +7,8 @@ process.on( 'beforeExit', function () {
   if ( !weave._ACTIVE ) {
     let d = new weave.App( 'default' ).link( 80 )
     .configure({
+      'location': path.join( __dirname, '../http/default' ),
+
       'indexes': {
         'default.html': Infinity
       },

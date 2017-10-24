@@ -15,10 +15,10 @@ require( './repl' )
 
 
 weave.attachInstruments = function ( app, instrumentsUrl ) {
-  if ( !weave.App.is( app ) ) {
-    if ( String.is( app ) && weave.App.is( weave.apps[ app ] ) ) {
+  if ( !app instanceof weave.App ) {
+    if ( typeof app === 'string' && weave.apps[ app ] instanceof weave.App ) {
       app = weave.apps[ app ]
-    } else garden.error( 'argument app must be an instance of weave.App or string appName' )
+    } else garden.typeerror( 'argument app must be an instance of weave.App or string appName' )
   }
 
   app.subdirectory( instrumentsUrl, {
@@ -31,9 +31,7 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
     }
   })
 
-  app.interface( path.join( instrumentsUrl, '/enabled-instruments' ), function ( connection ) {
-    connection.end("['repl','log']")
-  })
+  app.interface( path.join( instrumentsUrl, '/enabled-instruments' ), connection => connection.end("['repl','log']") )
 
   let socket = new weave.WebSocket( function ( connection ) {
     connection.on( 'message', function ( message ) {

@@ -10,14 +10,14 @@ let util = require( 'util' )
 let DOM = require( './utilities/DOM' )
 
 weave.App.prototype.printer = function ( error, details, connection ) {
+  // Debug inspecting
   garden.debug( error, details )
+
   if ( error ) {
-    if ( weave.HTTPError.is( error ) ) {
-      return ( details.isFile() ? printFile : printError )( error, details, connection )
-    } else {
-      // ::generateErrorPage will call us recursively with the correct arguments.
+    if ( error instanceof weave.HTTPError ) return ( details.isFile() ? printFile : printError )( error, details, connection )
+    else {
       printError( new weave.HTTPError( 500 ), details, connection )
-      return garden.error( 'Error argument was not a weave.HTTPError or undefined!', error )
+      return garden.typeerror( 'Error argument was not a weave.HTTPError!', error )
     }
   }
 
@@ -49,27 +49,27 @@ function printFile( error, details, connection ) {
   if ( !error && cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( details.stats.mtime.getTime() / 1000 ) )
     return connection.status( 304 ).end()
 
-  fs.readFile( details.path, ( ferror, content ) => {
-    if ( ferror ) return connection.app.printer( new weave.HTTPError( 500 ), {}, connection )
-    // We may be printing an error page from generateErrorPage
+  weave.cache( details.path, details.stats ).then( ({ content }) => {
     connection.status( error ? error.statusCode : 200 )
-      .writeHeader( "Content-Type", connection.behavior( `mimeTypes ${extname}` ) )
+      .writeHeader( 'Content-Type', connection.behavior( `mimeTypes ${extname}` ) )
 
-    // You can't cache an error!
+    // Don't cache error pages
     if ( !error ) connection.writeHeader( "Last-Modified", details.stats.mtime.toUTCString() )
 
-    // TODO: Add a check to make sure the engine returned a Promise
-    if ( Function.check( engine ) ) {
+    // Check if there is an engine specified for this file format
+    if ( typeof engine === 'function' ) {
       engine( content, details, connection )
         .then( output => connection.end( output ) )
         .catch( () => connection.generateErrorPage( 500 ) )
     } else connection.end( content )
+  }).catch( () => {
+    printError( new weave.HTTPError( 500 ), {}, connection )
   })
 }
 
 function printDirectory( error, details, connection ) {
-  fs.readdir( details.path, ( error, files ) => {
-    if ( error ) { return connection.generateErrorPage( 500 ) }
+  fs.readdir( details.path, ( derror, files ) => {
+    if ( derror ) return connection.generateErrorPage( 500 )
 
     if ( connection.url.description === 'directory.json' ) {
       connection.writeHeader( 'Content-Type', 'application/json' )

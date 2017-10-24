@@ -12,7 +12,7 @@ $ myWeaveApp --weave-verbose: weave will log all the things
 $ myWeaveApp --enable-weave-repl: will enable a command line repl
 $ myWeaveApp --enable-weave-instruments: will allow calls to weave.attachInstruments
 
-weave([ appName, behaviors ]) -> app
+weave([[ appName,] behaviors ]) -> app
 weave.version: versionNumber
 weave.servers: { port: server.. }
 weave.apps: { appName: app, anonymous: [ anonymousApps.. ] }
@@ -50,7 +50,7 @@ httpError.status: statusName
 httpError.statusCode: statusCode
 httpError.description: description | longStatusDescription
 
-new weave.App([ appName, behaviors ]) -> app
+new weave.App([[ appName,] behaviors ]) -> app
 app.link( str 'hostname:port' | num port ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
@@ -88,11 +88,10 @@ connection.redirect( location[, status] ) -> connection
 connection.generateErrorPage( httpError ) -> undefined
 
 new weave.WebSocketConnection( ws, connection ) -> wsConnection
-wsConnection.handshake() -> undefined                                            Called automatically on connection, mostly a private api
 wsConnection.decode( data ) -> wsFrame                                           This type needs to be better defined
 wsConnection.send( data ) -> bool success
 wsConnection.ping() -> bool success
-wsConnection.close( code[, reason[, message]] ) -> bool success
+wsConnection.close( code[, reason ] ) -> bool success
 
 new weave.WebSocket( app, webSocketUrl, connectionListener ) -> ws
 ws.attach( app, socketUrl ) -> ws

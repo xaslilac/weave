@@ -2,39 +2,35 @@
    Created by partheseas (Tyler Washburn)
    Copyright Tyler Washburn 2014 */
 
-var Wildcard;
+module.exports = class Wildcard {
+  constructor( string ) {
+    if ( typeof string !== 'string' ) throw new TypeError( 'Wildcards are made out of strings!')
+    if ( !/^[A-Za-z0-9\*\[\]\.\_\-\:]+$/.test( string ) ) throw new Error( 'Invalid character in wildcard!' )
 
-module.exports = exports = Wildcard = function (string ){
-  if ( /^[A-Za-z0-9\*\[\]\.\_\-\:]+$/.test( string ) ) {
-  	this.expression = RegExp( "^" +
+  	this.expression = new RegExp( `^${
   		string
-  		  .replace( /([\.\[\]])/g, "\\$1" ) // Make sure that special charaters are escaped before creating the expression
-  		  .replace( /\*/g, ".+" ) // Turn * wildcards into . wildcards
-  	+  "$" )
+  		  .replace( /([\.\[\]])/g, '\\$1' ) // Make sure that special charaters are escaped before creating the expression
+  		  .replace( /\*/g, '.+' ) // Turn * wildcards into . wildcards
+  	}$` )
   	this.string = string
   }
-}
 
-Wildcard.prototype.match = function ( string ) {
-  return this.expression.exec( string )
-}
+  match( string ) {
+    return this.expression.exec( string )
+  }
 
-Wildcard.match = function ( wildcard, string ) {
-  return new Wildcard( wildcard ).match( string )
-}
+  static match( wildcard, string ) {
+    return new Wildcard( wildcard ).match( string )
+  }
 
-Wildcard.bestMatch = function ( wildcards, string ) {
-  var match;
+  static bestMatch( wildcards, string ) {
+    let match = ""
 
-  match = ""
+    wildcards.forEach( wildcard => {
+      if ( ( new Wildcard( wildcard ) ).match( string )
+      && wildcard.length > match.length ) match = wildcard
+    } )
 
-  wildcards.forEach( function ( wildcard ) {
-    if ( ( new Wildcard( wildcard ) ).match( string ) ) {
-    	if ( wildcard.length > match.length ) {
-    		match = wildcard
-    	}
-    }
-  } )
-
-  return match
+    return match
+  }
 }

@@ -16,7 +16,7 @@ weave.App = class App extends events.EventEmitter {
     // Make it an EventEmitter
     super()
 
-    if ( String.check( appName ) ) {
+    if ( typeof appName === 'string' ) {
       if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! App '${appName}' already exists!` )
       this.appName = appName
       weave.apps[ appName ] = this
@@ -37,7 +37,7 @@ weave.App = class App extends events.EventEmitter {
       // If host is a port number, it will handle the entire port.
       // If it is not a port number or a string, it is invalid.
       if ( typeof host === 'number' ) host = `*:${host}`
-      else if ( typeof host !== 'string' ) return garden.error( "Host much be a string, or a port number." )
+      else if ( typeof host !== 'string' ) return garden.typeerror( "Host much be a string, or a port number." )
 
       // If the host is already taken, abandon ship.
       if ( weave.hosts[ host ] ) return garden.error( `Host ${host} already used by ${weave.hosts[host].appName}.` )
@@ -89,7 +89,7 @@ weave.App = class App extends events.EventEmitter {
   }
 
   subdirectory( directory, inherit, configuration ) {
-    if ( !String.check( directory ) ) return garden.error( 'Argument directory must be a string!')
+    if ( typeof directory !== 'string' ) return garden.typeerror( 'Argument directory must be a string!')
     if ( !path.isAbsolute( directory ) ) return garden.error( 'Argument directory must be absolute!' )
     if ( directory.length < 2 ) return garden.error( 'Argument directory cannot be root!')
     // Clear the cache so that the configuration can be modified and
@@ -102,7 +102,7 @@ weave.App = class App extends events.EventEmitter {
     // If we only have two arguments then inherit is actually going to be the
     // configuration. If we have three arguments, then we set the inheritance.
     configuration
-      ? configuration._super = String.is( inherit )
+      ? configuration._super = typeof inherit === 'string'
         ? this.configuration[ inherit ]
         : inherit
       : configuration = inherit
@@ -123,7 +123,7 @@ weave.App = class App extends events.EventEmitter {
   }
 
   setBehavior( name, value ) {
-    if ( typeof name !== 'string' ) return garden.error( `Behavior name '${name}' is not a string!` )
+    if ( typeof name !== 'string' ) return garden.typeerror( `Behavior name '${name}' is not a string!` )
     let nests = name.split(' ')
     let prop = nests.pop()
     let cursor = this.configuration

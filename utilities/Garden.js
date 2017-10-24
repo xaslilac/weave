@@ -20,19 +20,33 @@ let Garden = module.exports = exports = class Garden extends events.EventEmitter
   }
 
   debug( message, ...extra ) {
-    this.verbose && print( this.name, 'debug', format( message ), extra )
+    this.verbose && print( this.name, 'Debug', format( message ), extra )
+    return this.verbose
+  }
+
+  trace( message, ...extra ) {
+    if ( this.verbose ) {
+      print( this.name, 'Trace', format( message ), extra )
+      console.log( new Error( message ).stack )
+    }
   }
 
   log( message, ...extra ) {
-    print( this.name, 'log', format( message ), extra )
+    print( this.name, 'Log', format( message ), extra )
   }
 
   warning( message, ...extra ) {
-    print( this.name, 'warning', `\u001b[33m${format( message )}\u001b[39m`, extra )
+    print( this.name, 'Warning', `\u001b[33m${format( message )}\u001b[39m`, extra )
   }
 
   error( message, ...extra ) {
-    print( this.name, 'error', `\u001b[31m${format( message )}\u001b[39m`, extra )
+    print( this.name, 'Error', `\u001b[31m${format( message )}\u001b[39m`, extra )
+    console.log( new Error( message ).stack )
+  }
+
+  typeerror( message, ...extra ) {
+    print( this.name, 'TypeError', `\u001b[31m${format( message )}\u001b[39m`, extra )
+    console.log( new TypeError( message ).stack )
   }
 
   static enableDebug() {

@@ -37,9 +37,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  // If we don't have a Host header then there's no way to figure
 	  // out which app is supposed to be used to handle the Connection.
 	  if ( !i.headers.host )
-	    this.generateErrorPage(
-				new weave.HTTPError( 400, `The request is missing the
-			  Host header that is required to determine how to direct it.` ) )
+	    this.generateErrorPage( new weave.HTTPError( 400, `Request must have a Host header.` ) )
 
 	  // Save these here, mainly for internal use with the classes methods.
 	  // Ideally these wouldn't be used outside of Weave. All interactions
@@ -50,7 +48,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  // Give each connection a UUID for a little bit of tracing.
 	  this.UUID = weave.Connection.generateUUID()
 	  // Initialize @directory for the initial length comparisons.
-	  this.directory = ""
+	  this.directory = ''
 	  // Normalize the url to prevent anyone being sneaky with, say, some "../../"
 	  // tomfoolery to get low level file system access.
 		this.url = url.parse( path.normalize( i.url ) )
@@ -62,7 +60,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  this.url.port = i.connection.localPort
 	  // host should always have the port, so apply it
 		// Also make a shortcut to be lazy with
-	  this.host = this.url.host = this.url.hostname + ":" + this.url.port
+	  this.host = this.url.host = this.url.hostname + ':' + this.url.port
 
 	  // Check for a direct host match, or a cached wildcard match.
 	  // If there isn't one, check against wildcards, filtering out hosts
@@ -156,6 +154,8 @@ weave.Connection = class Connection extends events.EventEmitter {
 	}
 
 	behavior( name ) {
+		if ( typeof name !== 'string' ) return garden.typeerror( 'Configuration behavior must be a string' )
+
 	  let behavior
 	  let nests = name.split(" ")
 		let scopes = this.configuration ? [ this.configuration, this.configuration._super ] : []
@@ -176,7 +176,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 		// If the location begins with ~, replace it with the users home directory.
 		// weave.constants.HOME normalizes the API for Node across different platforms.
-		if ( name === 'location' && String.is( behavior ) )
+		if ( name === 'location' && typeof behavior === 'string' )
 			behavior = behavior.replace( /^~/, weave.constants.HOME )
 
 	  // Return the matching behavior. If we didn't find one this should
@@ -200,9 +200,9 @@ weave.Connection = class Connection extends events.EventEmitter {
 	        break;
 	      case "cookie":
 	        // I think this is how we parse cookies but I suck at them???
-					if ( String.is( header ) ) {
+					if ( typeof header === 'string' ) {
 						let data = {}
-						header.split(";").forEach( cookie => {
+						header.split( ';' ).forEach( cookie => {
 							cookie = cookie.trim().split( '=' )
 							data[cookie.shift()] = cookie.join( '=' ) || true
 						})
@@ -219,8 +219,8 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	status( status ) {
 	  // Check to make sure the status is valid, and has not yet been written.
-	  if ( this.state !== 0     ) { return garden.warning( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` ) }
-		if ( !Number.is( status ) ) { return garden.error( 'Invalid status!', status ) }
+	  if ( this.state !== 0 ) { return garden.warning( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` ) }
+		if ( typeof status !== 'number' ) { return garden.typeerror( 'IStatus is not a number!', status ) }
 
 	  this._NODE_CONNECTION.write( `HTTP/1.1 ${status} ${http.STATUS_CODES[status]}\r\n` )
 		this._WRITTEN_STATUS = status
@@ -232,8 +232,8 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	writeHeader( header, value = true ) {
 		// To write headers we must have a status, no body, and a valid header name.
-		if ( !String.is( header ) ) return garden.error( 'Header arugment must be a string' )
-	  if ( this.state > 1 ) return garden.log( 'Headers already sent!')
+		if ( typeof header !== 'string' ) return garden.typeerror( 'Header arugment must be a string' )
+	  if ( this.state > 1 ) return garden.error( 'Headers already sent!' )
 
 		if ( this.state === 0 ) this.status( 200 )
 
@@ -249,7 +249,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	}
 
 	writeHead( status, headers ) {
-		if ( !Number.is( status ) ) {
+		if ( typeof status !== 'number' ) {
 			headers = status
 			status = 200
 		}
@@ -334,45 +334,33 @@ weave.Connection = class Connection extends events.EventEmitter {
 	}
 
 	redirect( location, status = 301 ) {
-		if ( !String.check( location ) ) return garden.error( 'Invalid redirect location!' ) && connection.generateErrorPage( 500 )
-		if ( !Number.check( status ) || status < 300 || status > 399 ) return garden.error( 'Invalid redirect status!') && connection.generateErrorPage( 500 )
+		if ( typeof location !== 'string' ) return garden.typeerror( 'Redirect location is not a string!' ) && connection.generateErrorPage( 500 )
+		if ( typeof status !== 'number' || status < 300 || status > 399 ) return garden.error( 'Invalid redirect status!' ) && connection.generateErrorPage( 500 )
 
 		return this.writeHead( status, { 'Location': location } ).end()
 	}
 
 	generateErrorPage( error ) {
-		// Create a details object for us to pass to printer.
+		// Make sure we can generate a valid error page
+		if ( typeof error === 'number' ) error = new weave.HTTPError( error )
+		if ( !error instanceof weave.HTTPError ) return garden.error( 'generateErrorPage requires a weave.HTTPError argument!' )
+		if ( error.statusCode >= 500 ) garden.error( error.description )
+
 		let manifest = new weave.Manifest( { url: this.url } )
-
-		// Make the printer easier to call in different contexts.
 		let print = more => this.app.printer( error, manifest.extend( more ), this )
+    let cursor = this.behavior( 'location' )
+    let errorPageName = this.behavior( `errorPages ${error.statusCode}` )
+		if ( !errorPageName ) return print()
 
-		if ( Number.is( error ) ) { error = new weave.HTTPError( error ) }
+		// TODO: Make sure this actually works, so that we can have absolute paths.
+		// If it doesn't work, then switch it back to .join for now.
+		let errorPagePath = cursor
+			? path.resolve( cursor, errorPageName )
+			: errorPageName
 
-		// cursor points to where ever we're searching for files.
-		let cursor = this.behavior( "location" )
-
-		// NOTE: Router and this share a lot of boilerplate code. We should do something
-		// to merge them together maybe?
-
-	  if ( weave.HTTPError.is( error ) ) {
-			let errorPageName = this.behavior( `errorPages ${error.statusCode}` )
-			if ( errorPageName ) {
-				// TODO: Make sure this actually works, so that we can have absolute paths.
-				// If it doesn't work, then switch it back to .join for now.
-				let errorPagePath = cursor
-					? path.resolve( cursor, errorPageName )
-					: errorPageName
-
-				fs.stat( errorPagePath, ( serror, stats ) => {
-					if ( !serror && stats.isFile() ) {
-						print({ path: errorPagePath, stats: stats, type: "file" })
-					} else return print()
-				})
-			} else return print()
-		} else {
-			console.error( "Connection::generateErrorPage requires argument weave.HTTPError!" )
-		}
+		fs.stat( errorPagePath, ( serror, stats ) => {
+			print( !serror && stats.isFile ? { path: errorPagePath, stats: stats, type: 'file' } : null )
+		})
 	}
 }
 

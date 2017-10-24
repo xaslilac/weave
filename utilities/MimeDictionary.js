@@ -2,9 +2,9 @@ let fs = require( "fs" )
 
 module.exports = class MimeDictionary {
   constructor( map ) {
-    if ( String.check( map ) ) {
+    if ( typeof map === 'string' ) {
       this.fromApacheFile( map )
-    } else if ( Array.check( map ) ) {
+    } else if ( Array.isArray( map ) ) {
       map.forEach( ind => this.fromApacheFile( ind ) )
     } else {
       this.define.apply( this, arguments )
@@ -13,9 +13,9 @@ module.exports = class MimeDictionary {
 
   define( type, extensions ) {
     // We're defining a single type
-    if ( String.check( type ) ) {
+    if ( typeof type === 'string' ) {
       // With multiple extensions
-      if ( Array.check( extensions ) ) {
+      if ( Array.isArray( extensions ) ) {
         extensions.forEach( extension => {
           this[ extension ] = type
         }, this)

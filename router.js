@@ -8,10 +8,12 @@ let fs = require( 'fs' )
 let path = require( 'path' )
 
 weave.App.prototype.router = function ( connection ) {
+  // Debug inspecting
+  garden.debug( this.appName, connection.url )
+
   // We give the printer this details object to let it know what we
   // have found about about the request so far.
 	let manifest = new weave.Manifest( { url: connection.url } )
-  garden.debug( this.appName, connection.url )
 
   // Make the printer easier to call in different contexts.
   let print = more => this.printer( undefined, manifest.extend( more ), connection )
@@ -58,7 +60,7 @@ weave.App.prototype.router = function ( connection ) {
   // we can't handle the request, instead of just confusing the client as to
   // why they didn't ever recieve anything in return to the request.
   if ( [ 'GET', 'HEAD', 'POST' ].every( method => connection.method !== method ) ) {
-    return connection.generateErrorPage( new weave.HTTPError( 405, "Only GET, HEAD, and POST methods are supported." ) )
+    return connection.generateErrorPage( new weave.HTTPError( 405, `Only GET, HEAD, and POST methods are supported.` ) )
   }
 
   let redirect = connection.behavior( `redirect ${connection.url.path}`)
@@ -139,7 +141,7 @@ weave.App.prototype.router = function ( connection ) {
               && connection.url.depth === 1 && connection.url.description === 'directory.json' ) {
                   print({ path: cursor, stats: stats, type: 'directory'})
               } else {
-                connection.generateErrorPage( new weave.HTTPError( 404, "Found directory but no index file." ) )
+                connection.generateErrorPage( new weave.HTTPError( 404, 'The file you requested does not exist.' ) )
               }
             }).catch( print )
           } else {

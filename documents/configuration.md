@@ -13,7 +13,7 @@ app.subdirectory method.
 'mimeTypes': dictionary
 'errorPages': { errorCode: str pathToFile.. }
 'engines': { '.ext': engine( content, details, connection ) -> Promise.. }
-'cache': { maxCacheSize: num kilobytes, maxCachedFileSize: num kilebytes }       Can only be configured via weave.configuration as caches are global and shared
+'cache': { maxCacheSize: num megabytes, maxCachedFileSize: num megabytes }       Can only be configured via weave.configuration as caches are global and shared
 'redirect': { fromUrl: str toUrl }
 'headers': { 'Header-Name': str 'value' }
 ```
