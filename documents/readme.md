@@ -75,8 +75,7 @@ app.printer( httpError, manifest, connection ) -> undefined                     
 ### weave.Dictionary
 Utility to help manage MIME types
 ```
-new weave.Dictionary( apacheFilePath |
-  [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
+new weave.Dictionary( apacheFilePath | [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
 dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
 dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
 ```

@@ -55,22 +55,24 @@ Just download a tarball or zip and throw it into a node_modules folder somewhere
 
 ## Roadmap
 
-### Groundwork - v0.1 (WebSocks)
+##### Completed milestones
+##### Groundwork - v0.1 (WebSocks)
 Get the basics in, along with a couple of goodies. Be generally reliable,
 strong routing features, a base WebSocket implementation, document generation
 through a server-side DOM tree for error pages, etc., basic caching ground work.
 
-### Console/file logging - v0.2
+### Upcoming
+### Console/file logging - v0.2 (Sun Screen)
 Build a robust error and warning backend system with the ability to log to files
 
-### Remote debugging / Admin panel - v0.3
+### Remote debugging / Admin panel - v0.3 (Gooey)
 Add the ability to have an online debug console/admin panel that you would
 activate with App.addInterface( "/net-internals", new weave.AdminPanel(App) )
 or something similar. You'd be able to monitor an incoming request queue,
-interface directly with the App collection from a secure, remote, REPL with
+interface directly with the App collection from a secure, remote, GUI/REPL with
 syntax highlighting, pretty printing, and more.
 
-### Command Line Interface - v0.4 (Librarian (Sh))
+### Command Line Interface - v0.4 (Quiet Librarian)
 Could be helpful for things like clearing a cache or updating a setting.
 The main reason this would be important, is it would provide a simple way
 to actively maintain your server while it is running, without needing to
@@ -87,7 +89,7 @@ Read large files in chunks rather than entirely at once to avoid eating memory.
 Cache smaller files in memory for quick access, with easily set parameters for
 how much we can store.
 
-### Partial downloads, uploads, streaming - v0.6 (Sherbet Ice-Stream)
+### Partial downloads, uploads, streaming - v0.6 (Ice-Stream)
 Enable the ability to stream a video file from a certain time stamp, to
 resume a disrupted download at a later time, and to accept user uploads.
 
