@@ -7,7 +7,7 @@ let garden = new weave.Garden( 'weave.App::router' )
 let fs = require( 'fs' )
 let path = require( 'path' )
 
-weave.App.prototype.router = function ( connection ) {
+weave.App.prototype.route = function ( connection ) {
   // Debug inspecting
   garden.debug( this.appName, connection.url )
 

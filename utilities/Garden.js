@@ -49,6 +49,12 @@ let Garden = module.exports = exports = class Garden extends events.EventEmitter
     console.log( new TypeError( message ).stack )
   }
 
+  catch( error, ...extra ) {
+    if ( !error.stack ) error = new Error( error )
+    print( this.name, 'Error', `\u001b[31m${error.name}: ${error.message}\u001b[39m`, extra )
+    console.log( error.stack )
+  }
+
   static enableDebug() {
     this.list.forEach( garden => garden.verbose = true )
   }

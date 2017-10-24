@@ -34,10 +34,11 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  this.isKeepAlive = i.headers.connection === "keep-alive"
 	  this.isUpgrade   = i.headers.connection === "Upgrade"
 
-	  // If we don't have a Host header then there's no way to figure
+	  // If we don't have a valid Host header then there's no way to figure
 	  // out which app is supposed to be used to handle the Connection.
-	  if ( !i.headers.host )
-	    this.generateErrorPage( new weave.HTTPError( 400, `Request must have a Host header.` ) )
+	  if ( !i.headers.host ) return this.generateErrorPage( new weave.HTTPError( 400, 'Request must have a Host header.' ) )
+		let hostMatch = i.headers.host.match( /^(.+?)(\:([0-9]{1,5}))?$/ )
+		if ( !hostMatch ) return this.generateErrorPage( new weave.HTTPError( 400, 'Invalid Host header.' ) )
 
 	  // Save these here, mainly for internal use with the classes methods.
 	  // Ideally these wouldn't be used outside of Weave. All interactions
@@ -45,21 +46,13 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  this._NODE_CONNECTION = i.connection,
 	  this._NODE_REQUEST = i, this._NODE_RESPONSE = o
 
-	  // Give each connection a UUID for a little bit of tracing.
-	  this.UUID = weave.Connection.generateUUID()
-	  // Initialize @directory for the initial length comparisons.
-	  this.directory = ''
 	  // Normalize the url to prevent anyone being sneaky with, say, some "../../"
-	  // tomfoolery to get low level file system access.
+	  // tomfoolery to get low level file system access, and fill in the blanks.
 		this.url = url.parse( path.normalize( i.url ) )
-	  // File out the url object with all the missing standard properties.
 	  this.url.protocol = "http:"
 	  this.url.slashes = "//"
-	  // hostname should never have the port, but the host header sometimes will.
-		this.url.hostname = this.detail( 'host' ).match( /^(.+?)(\:([0-9]{1,5}))?$/ )[1]
+		this.url.hostname = hostMatch[1]
 	  this.url.port = i.connection.localPort
-	  // host should always have the port, so apply it
-		// Also make a shortcut to be lazy with
 	  this.host = this.url.host = this.url.hostname + ':' + this.url.port
 
 	  // Check for a direct host match, or a cached wildcard match.
@@ -68,15 +61,14 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  if ( weave.hosts[ this.host ] ) {
 	    this.app = weave.hosts[ this.host ].app
 	  } else if ( weave.cache.wildcardMatches[ this.host ] ) {
-	    this.app = weave.cache.wildcardMatches[ this.host ]
+	    this.app = weave.hosts[ weave.cache.wildcardMatches[ this.host ] ]
 	  } else {
-			let app = Wildcard.bestMatch(
+			let appName = Wildcard.bestMatch(
 	      Object.keys( weave.hosts ).filter( host => /\*/.test( host ) ),
 	    this.host )
 
 	    // If there isn't a linked app then just end the connection.
-			if ( !app ) {
-	      // If there isn't an app listening end the connection.
+			if ( !appName ) {
 	      // XXX: Should we really do this silently? Or should we report?
       	// We're trying to pretend that there isn't a server connected but
 	      // is that really a good idea? We should probably tell someone that
@@ -86,56 +78,48 @@ weave.Connection = class Connection extends events.EventEmitter {
 			}
 
 			// Remember which wildcard best matched this host for next time
-			this.app = weave.cache.wildcardMatches[ this.host ] = weave.hosts[ app ]
+			weave.cache.wildcardMatches[ this.host ] = appName
+			this.app = weave.hosts[ appName ]
 		}
+
+		// Give each connection a UUID for a little bit of tracing.
+		this.UUID = weave.Connection.generateUUID()
+		// Set directory to an empty string for length comparisons.
+		this.directory = ''
 
 	  // Check to see if we've already found the configuration for this path.
 	  // If not check to see if there's a directory with a configuration that
 	  // matches the URL we're processing and cache it. If there are multiple
 	  // matches we check it against the longest match to see if it's longer.
 	  // The longest match should always be the most specific configuration.
-	  if ( this.app.cache.parentDirectories[ this.url.pathname ] ) {
-	    this.directory = this.app.cache.parentDirectories[ this.url.pathname ]
+	  if ( this.app.cache.parentDirectories[ i.url ] ) {
+	    this.directory = this.app.cache.parentDirectories[ i.url ]
 	  } else {
 	    Object.keys( this.app.configuration ).forEach( dir => {
         // The 2nd condition ensures that the client is requesting *this*
 				// directory, and not a file or directory with a longer, overlapping
 				// name. Trailing slashes are sanitized on directory names in weave.App,
 				// so the forward slash will always 1 character after the dir name.
-        if ( this.url.path.startsWith( dir ) // Does it match?
-        && ( this.url.path === dir || this.url.path.charAt( dir.length ) === "/" ) // Is the client requesting this directory, or a file with a similar name?
+        if ( i.url.startsWith( dir )
+        && ( i.url === dir || i.url.charAt( dir.length ) === "/" )
         && dir.length > this.directory.length ) {
-          this.directory = this.app.cache.parentDirectories[ this.url.pathname ] = dir
+          this.directory = this.app.cache.parentDirectories[ i.url ] = dir
         }
 	    })
 	  }
 
-	  // If we found a matching directory, then we save which configuration is
-	  // handling the connection, and shorten the URL relative to the directory.
 	  if ( this.directory ) {
+			// If we found a matching directory, shorten the URL relative to the directory.
+			this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
 			this.configuration = this.app.configuration[ this.directory ]
-	    this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
 		}
 
-		// We check if this connection already has our data event listener to
-		// avoid adding it multiple times if the connection is keep alive.
-		// TODO: Figure out why this must go through REQUEST, and not CONNECTION
-		// XXX: This is an absolute mess, but one that the native HTTP module forced
-		// upon us. We should write our own HTTP parser and use it instead, because fuck Node.
-		if ( !this._NODE_CONNECTION._weavePipe ) {
-			this._NODE_CONNECTION._weavePipe = this
-			//@_NODE_REQUEST.resume()
-		  this._NODE_CONNECTION.on( 'data', data => this.emit( 'data', data ) )
-			// @_NODE_REQUEST.on( 'close', function () {
-			// 	@_NODE_REQUEST.unpipe( connection )
-			// })
-		}
-		// this._NODE_REQUEST.on( 'data', data => this.emit( 'data', data ) )
-
-    // Emit the connection event to so that the connection can be handed to
-    // the router and any other user code.
+    // Begin emiting data and connection events
     this.app.emit( 'connection', this )
-    this.app.router( this )
+		i.on( 'data', data => this.emit( 'data', data ) )
+
+		// Begin routing the connection
+    this.app.route( this )
 	}
 
 	static generateUUID() {
@@ -342,7 +326,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 		if ( error.statusCode >= 500 ) garden.error( error.description )
 
 		let manifest = new weave.Manifest( { url: this.url } )
-		let print = more => this.app.printer( error, manifest.extend( more ), this )
+		let print = more => weave.App.prototype.printer( error, manifest.extend( more ), this )
     let cursor = this.behavior( 'location' )
     let errorPageName = this.behavior( `errorPages ${error.statusCode}` )
 		if ( !errorPageName ) return print()

@@ -27,7 +27,7 @@ weave.App.prototype.printer = function ( error, details, connection ) {
   }
 
   // It's either a file, directory, or we are confused (an error)
-  if ( details.isFile() )           printFile( error, details, connection )
+  if      ( details.isFile() )      printFile( error, details, connection )
   else if ( details.isDirectory() ) printDirectory( error, details, connection )
   else                              printError( new weave.HTTPError( 500 ), details, connection )
 }

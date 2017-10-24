@@ -60,7 +60,7 @@ weave.WebSocketConnection = class WebSocketConnection extends events.EventEmitte
     this.readyState = 1
     socket.emit( 'connection', this )
 
-    httpConnection.on( 'data', data => {
+    this._NODE_CONNECTION.on( 'data', data => {
       let frame = this.decode( data )
       let { opcode, decoded } = frame
 
