@@ -5,6 +5,8 @@ they expect, what values they should hold and return, etc.
 - :: will be used to symbolize .prototype for classes
 - \# will be used to symbolize events that may be emitted
 - $  will be used to symbolize command line features/flags
+- [] may be used to symbolize optional arguments, or Array literals
+- |  will be used to symbolize multiple options for an argument format
 
 ## Flags
 These flags can be enabled with command line arguments or programmatically. All flags
@@ -38,7 +40,7 @@ object, using the `app.configure` method, or using the `app.subdirectory` method
 
 ### weave
 ```
-weave([[ appName,] behaviors ]) -> app
+weave([ appName,][ behaviors ]) -> app
 weave.version: versionNumber
 weave.servers: { port: server.. }
 weave.apps: { appName: app, anonymous: [ anonymousApps.. ] }
@@ -56,7 +58,7 @@ weave.attachInstruments( app, instrumentsUrl ) -> undefined                     
 
 ### weave.App
 ```
-new weave.App([[ appName,] behaviors ]) -> app
+new weave.App([ appName,][ behaviors ]) -> app
 app.link( str 'hostname:port' | num port ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
