@@ -29,6 +29,29 @@ let DOM = module.exports = exports = {
     return head
   },
 
+  StyleElement: class StyleElement {
+    constructor() {
+      this.selectors = {}
+    }
+
+    toString() {
+      return `<style type='text/css'>\n${
+        Object.keys( this.selectors ).map( selector => {
+          return `${selector} {\n${
+          Object.keys( this.selectors[ selector ] ).map( prop => {
+            return `  ${prop}: ${this.selectors[ selector ][ prop ]}`
+          }).join(';\n')}\n}`
+        }).join('\n\n')}\n</style>\n`
+    }
+
+    setStyles( selector, styles ) {
+      if ( this.selectors[ selector ] ) return Object.assign( this.selectors[ selector ], styles )
+      this.selectors[ selector ] = styles
+
+      return this
+    }
+  },
+
   Body: function () {
     return new DOM.Element( "body" )
   },
@@ -94,11 +117,11 @@ DOM.Element.prototype.toString = function (){
     attributes += ` ${key}='${this.attributes[ key ]}'`
   })
 
-  let contents = `<${this.tagName}${attributes}>`
+  let contents = `\n<${this.tagName}${attributes}>`
   this.children.forEach( function (child ){
     contents += child.toString()
   })
-  return contents + `</${this.tagName}>`
+  return contents + `</${this.tagName}>\n`
 }
 
 DOM.TextNode.prototype.toString = DOM.Comment.prototype.toString = function () {

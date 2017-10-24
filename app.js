@@ -148,7 +148,7 @@ weave.App = class App extends events.EventEmitter {
     else if ( !Array.isArray( methods ) ) garden.typeerror( 'Interface method must be a string or an array of strings' )
 
     methods.forEach( method => {
-      if wrap[ method ] return garden.error( `Interface ${method}: ${path} already exists!` )
+      if ( wrap[ method ] ) return garden.error( `Interface ${method}: ${path} already exists!` )
       wrap[ method ] = handle
     })
 

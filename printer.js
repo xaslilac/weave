@@ -88,12 +88,12 @@ function printDirectory( error, details, connection ) {
     document.body.appendChild( list )
 
     // Style stuff
-    let style = new DOM.Element( 'style' )
-    style.innerHTML = `.directory a { color: #3009c9 }
-                       .file a { color: #11a9f4 }`
+    let style = new DOM.StyleElement()
+    style.setStyles( '.directory a', { 'color': '#3009c9' } )
+         .setStyles( '.file      a', { 'color': '#11a9f4' } )
     document.head.appendChild( style )
 
-    // Don't waste out time with empty directories
+    // Don't waste our time with empty directories
     if ( files.length === 0 ) {
       document.body.appendChild( new DOM.Element( 'p' ) ).innerHTML = "Nothing to see here!"
       connection.end( document.toString() )
