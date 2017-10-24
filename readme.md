@@ -56,13 +56,13 @@ Just download a tarball or zip and throw it into a node_modules folder somewhere
 ## Roadmap
 
 ##### Completed milestones
-##### Groundwork - v0.1 (WebSocks)
+##### Groundwork - v0.1 (WebSocks) ✔
 Get the basics in, along with a couple of goodies. Be generally reliable,
 strong routing features, a base WebSocket implementation, document generation
 through a server-side DOM tree for error pages, etc., basic caching ground work.
 
 ### Upcoming
-### Console/file logging - v0.2 (Sun Screen)
+## Console/file logging - v0.2 (Sun Screen)
 Build a robust error and warning backend system with the ability to log to files
 
 ### Remote debugging / Admin panel - v0.3 (Gooey)
