@@ -6,12 +6,36 @@ they expect, what values they should hold and return, etc.
 - \# will be used to symbolize events that may be emitted
 - $  will be used to symbolize command line features/flags
 
+## Flags
+These flags can be enabled with command line arguments or programmatically. All flags
+are exposed as functions on `weave.flags` and follow camelCase naming. (e.g. ---aww-heck-yes and awwHeckYes())
 ```
-$ myWeaveApp --aww-heck-yes: logs 'aww heck yes' if weave is loaded fully
-$ myWeaveApp --weave-verbose: weave will log all the things
-$ myWeaveApp --enable-weave-repl: will enable a command line repl
-$ myWeaveApp --enable-weave-instruments: will allow calls to weave.attachInstruments
+$ myWeaveApp --aww-heck-yes                                                      Try it for yourself! :)
+$ myWeaveApp --weave-verbose                                                     Equivalent to weave.Garden.enableDebug()
+$ myWeaveApp --enable-weave-repl                                                 Will enable a command line repl
+$ myWeaveApp --enable-weave-instruments                                          Will allow calls to weave.attachInstruments
+```
 
+## Configuration behaviors
+These properties can be set on the global `weave.configuration` object, on an `app.configuration`
+object, using the `app.configure` method, or using the `app.subdirectory` method.
+
+```
+'location': str pathToRootWebDirectory
+'indexes': { 'indexFileName': num maximumFolderDepth.. }                         Set maximumFolderDepth to 0 for a "traditional" directory index behavior.
+'favoredExtensions': [ str '.ext'.. ]
+'htmlDirectoryListings': bool enabled
+'jsonDirectoryListings': bool enabled
+'mimeTypes': dictionary
+'errorPages': { errorCode: str pathToFile.. }
+'engines': { '.ext': engine( content, details, connection ) -> Promise.. }
+'cache': { maxCacheSize: num megabytes, maxCachedFileSize: num megabytes }       Can only be configured via weave.configuration as caches are global and shared
+'redirect': { fromUrl: str toUrl }
+'headers': { 'Header-Name': str 'value' }
+```
+
+## weave
+```
 weave([[ appName,] behaviors ]) -> app
 weave.version: versionNumber
 weave.servers: { port: server.. }
@@ -21,35 +45,15 @@ weave.cache: { wildcardMatches: { hostname: wildcard } }
 weave.constants.WebSocketUUID: UUID
 weave.constants.HOME: userHomeDir
 weave.constants.STATUS_CODES: { statusCode: statusName.. }
-weave.constants.STATUS_DESCRIPTIONS: { statusCode: longStatusDescription.. }
 weave.configuration: { confProp: confValue.. }
 weave.util.SHA1_64( data ) -> sha1Hash
 weave.util.RNDM_RG( min, min, base ) -> randomNum
-weave.util.READ_BITS( byte ) [ bool.. ]
-weave.util.BINARY_UINT( [ bool.. ] ) -> num
-weave.util.times( i, task ) -> undefined
 
 weave.attachInstruments( app, instrumentsUrl ) -> undefined                      Navigate your browser to app.host/instrumentUrl/panel to access instruments
+```
 
-new weave.Dictionary( apacheFilePath |
-  [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
-dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
-dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
-
-new weave.Garden( gardenName, verbose ) -> garden
-Garden.enableDebug() -> undefined                                                Sets garden.verbose to true on all gardens
-Garden.disableDebug() -> undefined                                               Sets garden.verbose to false on all gardens
-garden.verbose: bool
-garden.debug( things.. ) -> undefined                                            Only prints when garden.verbose is true
-garden.log( things.. ) -> undefined
-garden.warning( things.. ) -> undefined
-garden.error( things.. ) -> undefined
-
-new weave.HTTPError( statusCode[, description ] ) -> httpError
-httpError.status: statusName
-httpError.statusCode: statusCode
-httpError.description: description | longStatusDescription
-
+## weave.App
+```
 new weave.App([[ appName,] behaviors ]) -> app
 app.link( str 'hostname:port' | num port ) -> app
 app#listening()
@@ -62,6 +66,25 @@ app#unconfigurable connection( connection )
 app.router( connection ) -> undefined                                            Automatically calls app.printer
 app.printer( httpError, manifest, connection ) -> undefined                      In the futute, app.router might return [ httpError, details, connection ]
                                                                                  We would then call app.printer( ...app.router( connection ) ) in weave.Connection
+```
+
+## weave.WebSocket
+```
+new weave.WebSocket( app, webSocketUrl, connectionListener ) -> ws
+ws.attach( app, socketUrl ) -> ws
+ws#connection( wsConnection )
+```
+
+## weave.Dictionary
+```
+new weave.Dictionary( apacheFilePath |
+  [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
+dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
+dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
+```
+
+### weave.Manifest
+```
 new weave.Manifest() -> manifest
 manifest.isDirectory() -> bool
 manifest.isFile()      -> bool
@@ -69,11 +92,14 @@ mainfest.isInterface() -> bool
 manifest.isNA()        -> bool
 manifest.extend( obj ) -> manifest
 manifest.path: file path as resolved by app.router
-manifest.result: the return value of the interface if isInterface() is true
+manifest.result: the return value of the interface if isInterface() is true      This one is a weird property.
 manifest.stats: fs.stats if isFile() or isDirectory() is true
-manifest.type: str
+manifest.type: str 'directory' | 'file' | 'interface'
 manifest.url: connection.url
+```
 
+### weave.Connection
+```
 new weave.Connection( clientRequest, serverResponse ) -> connection
 connection.behavior( behaviorName ) -> behaviorValue
 connection.detail( headerName[, untampered ] ) -> headerValue
@@ -86,14 +112,33 @@ connection.write( content[, encoding] ) -> connection
 connection.end( content[, encoding] ) -> connection
 connection.redirect( location[, status] ) -> connection
 connection.generateErrorPage( httpError ) -> undefined
+```
 
+### weave.Garden
+```
+new weave.Garden( gardenName, verbose ) -> garden
+Garden.enableDebug() -> undefined                                                Sets garden.verbose to true on all gardens
+Garden.disableDebug() -> undefined                                               Sets garden.verbose to false on all gardens
+garden.verbose: bool
+garden.debug( things.. ) -> undefined                                            Only prints when garden.verbose is true
+garden.log( things.. ) -> undefined
+garden.warning( things.. ) -> undefined
+garden.error( things.. ) -> undefined
+```
+
+### weave.HTTPError
+```
+new weave.HTTPError( statusCode[, description ] ) -> httpError
+httpError.status: str statusName
+httpError.statusCode: num statusCode
+httpError.description: str description
+```
+
+### weave.WebSocketConnection
+```
 new weave.WebSocketConnection( ws, connection ) -> wsConnection
 wsConnection.decode( data ) -> wsFrame                                           This type needs to be better defined
 wsConnection.send( data ) -> bool success
 wsConnection.ping() -> bool success
 wsConnection.close( code[, reason ] ) -> bool success
-
-new weave.WebSocket( app, webSocketUrl, connectionListener ) -> ws
-ws.attach( app, socketUrl ) -> ws
-ws#connection( wsConnection )
 ```

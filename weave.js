@@ -4,7 +4,6 @@
 
 let crypto = require( 'crypto' )
 let http = require( 'http' )
-let path = require( 'path' )
 
 const weave = module.exports = exports =
   ( appName, ...conf ) => new weave.App( appName, ...conf )
@@ -46,7 +45,7 @@ Object.assign( weave, {
   },
 
   flags: {
-    awwHeckYes() { console.log( 'aww heck yes' ) },
+    awwHeckYes() { console.log( 'Aww heck yes!!' ) },
     weaveVerbose() { weave.Garden.enableDebug() },
     enableWeaveRepl() { require( './developer/repl' ).connect() },
     enableWeaveInstruments() { require( './developer/instruments' ) } }
