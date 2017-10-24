@@ -89,8 +89,8 @@ function printDirectory( error, details, connection ) {
 
     // Style stuff
     let style = new DOM.StyleElement()
-    style.setStyles( '.directory a', { 'color': '#3009c9' } )
-         .setStyles( '.file      a', { 'color': '#11a9f4' } )
+    style.setStyles( '.directory a', { 'color': '#11a9f4' } )
+         .setStyles( '.file      a', { 'color': '#11f4e6' } )
     document.head.appendChild( style )
 
     // Don't waste our time with empty directories

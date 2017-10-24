@@ -76,8 +76,8 @@ weave.App.prototype.router = function ( connection ) {
       return connection.generateErrorPage( new weave.HTTPError( 404 ) )
 
     cursor = path.join( cursor, '..' )
-    manifest.description = path.relative( connection.url.path, connection.url.pathname )
     connection.url.path = path.join( connection.url.path, '..' )
+    connection.url.description = path.relative( connection.url.path, connection.url.pathname )
     connection.url.depth++
     search()
   }
@@ -85,7 +85,7 @@ weave.App.prototype.router = function ( connection ) {
   let indexes = connection.behavior( 'indexes' )
 
   // Define our search function
-  let search = function () {
+  const search = () => {
     // Check to see if it exists, and if it's a file or a directory.
     // If it doesn't exist, then step up a directory and try again.
     fs.stat( cursor, function ( error, stats ) {
@@ -108,11 +108,7 @@ weave.App.prototype.router = function ( connection ) {
       } else {
         // If it's a file, then we're done, and we just call the printer.
         // If it's a directory, then check for an index, making sure that
-        // is has a fitting depth, that it exists, and is a file. We use a
-        // customized Array::some function that you can use with asynchronous
-        // functions, since you tell it when to go to the next item. The
-        // callback is run when .next() is called but there is not another
-        // item to process, so it will only be called if there isn't a match.
+        // is has a fitting depth.
         if ( stats.isFile() ) {
           print({ path: cursor, stats: stats, type: "file" })
         } else if ( stats.isDirectory() ) {
