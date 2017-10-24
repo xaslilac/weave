@@ -1,4 +1,4 @@
-// MIT License / Copyright Tyler Washburn 2015
+// MIT License / Copyright Kayla Washburn 2014
 "use strict";
 
 let weave = require( '../weave' )
@@ -33,7 +33,7 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
 
   app.interface( path.join( instrumentsUrl, '/enabled-instruments' ), connection => connection.end("['repl','log']") )
 
-  let socket = new weave.WebSocket( function ( connection ) {
+  let socket = new weave.WebSocket( app, path.join( instrumentsUrl, '/socket' ), connection => {
     connection.on( 'message', function ( message ) {
       message.json = JSON.parse( message.data )
       if ( message.json.messageType === 'console-command' ) {
@@ -57,19 +57,18 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
       }
     })
 
-    let logPipe = function ( log ) {
-      connection.send( JSON.stringify({
-        messageType: 'console-log',
-        space: log.space,
-        data: util.inspect( log.data.length > 1 ? log.data : log.data[0] )
-      }) )
-    }
+    // TODO: Implement events in Garden
+    // let logPipe = function ( log ) {
+    //   connection.send( JSON.stringify({
+    //     messageType: 'console-log',
+    //     space: log.space,
+    //     data: util.inspect( log.data.length > 1 ? log.data : log.data[0] )
+    //   }) )
+    // }
 
     // weave.zen.on( 'log', logPipe )
     // connection.on( 'close', function {
     //   weave.zen.events.removeListener( 'log', logPipe )
     // })
   })
-
-  socket.attach( app, path.join( instrumentsUrl, '/socket' ) )
 }

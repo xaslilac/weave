@@ -1,4 +1,4 @@
-// MIT License / Copyright Tyler Washburn 2015
+// MIT License / Copyright 2015
 "use strict";
 
 let weave = require( './weave' )
@@ -67,12 +67,15 @@ weave.WebSocketConnection = class WebSocketConnection extends events.EventEmitte
       if ( this.readyState === 1 ) {
         if ( opcode === 0x0 ) {
           // ????
+          // XXX: What is this opcode for?
+          // TODO: Find out
         } else if ( opcode === 0x1 ) {
           // Plain text
           frame.data = decoded.toString( 'utf-8' )
           this.emit( 'message', frame )
         } else if ( opcode === 0x2 ) {
           // Binary
+          // TODO: Finish this
         } else if ( opcode === 0x8 ) {
           // Close
           garden.debug( 'received close frame' )

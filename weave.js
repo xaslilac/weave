@@ -1,7 +1,4 @@
-/* MIT License
-   Copyright 2015
-   Created by partheseas
-   Weave - Make webs */
+// MIT License / Copyright Kayla Washburn 2015
 
 "use strict";
 
@@ -9,11 +6,11 @@ let crypto = require( 'crypto' )
 let http = require( 'http' )
 let path = require( 'path' )
 
-let weave = module.exports = exports =
+const weave = module.exports = exports =
   ( appName, ...conf ) => new weave.App( appName, ...conf )
 
 Object.assign( weave, {
-  version: '0.1.11',
+  version: '0.2.0',
 
   servers: {}, apps: { anonymous: [] }, hosts: {},
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',

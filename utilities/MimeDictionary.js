@@ -1,3 +1,5 @@
+// MIT License / Copyright Kayla Washburn 2014
+
 let fs = require( "fs" )
 
 module.exports = class MimeDictionary {

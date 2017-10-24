@@ -10,7 +10,6 @@ let mostRecent = []
 
 Object.assign( weave.cache, {
   wildcardMatches: {},
-
   fileEntries: { 'size': 0 },
 
   retrieveFile: function ( path, stats ) {
@@ -19,6 +18,8 @@ Object.assign( weave.cache, {
 
       if ( cachedFile && cachedFile.stats.mtime.getTime() === stats.mtime.getTime() ) {
         fulfill( cachedFile )
+        // TODO: Keep track of what files are being pulled from the cache the most
+        // so that they don't get cleared from memory when the cache fills
       } else fs.readFile( path, ( error, content ) => {
         if ( error ) return reject( error )
 

@@ -21,6 +21,7 @@ weave.Manifest = class Manifest {
     if ( more ) this.extend( more )
   }
   // path: resolved path,
+  // description: relative path between resolved file, and the extra given
   // result: the return value of the interface if isInterface is true,
   // stats: fs.stat,
   // type: "directory"|"file"|"interface"|"na",

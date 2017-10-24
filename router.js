@@ -22,20 +22,18 @@ weave.App.prototype.router = function ( connection ) {
   // an interface type. Call the interface configuration.
   if ( connection.configuration && connection.configuration.type === 'interface' ) {
     let shouldContinue = false
+    let handle = connection.configuration[ connection.method ] || connection.configuration.any
+    if ( typeof handle !== 'function' ) return connection.generateErrorPage( new weave.HTTPError( 405 ) )
 
     manifest.shouldContinue = function ( configuration ) {
-      if ( configuration ) {
-        connection.configuration = configuration
-        return shouldContinue = true
-      } else {
-        // TODO: Not sure what to do here exactly. Need to complain about not
-        // getting a configuration argument.
-      }
+      if ( !configuration ) return garden.error( 'Interface told router to continue, but did not configure it.')
+      connection.configuration = configuration
+      return shouldContinue = true
     }
 
-    // TODO: This is messy right now. Nothing is being passed the results of the interface.
+    // TODO: Decide what we should do with the result of the interface?
     manifest.extend({
-      result: connection.configuration.interface.call( connection.app, connection, manifest ),
+      result: handle.call( connection.app, connection, manifest ),
       type: 'interface'
     })
 
@@ -59,9 +57,8 @@ weave.App.prototype.router = function ( connection ) {
   // handle it. But should we really disconnect? Code 405 let's them know that
   // we can't handle the request, instead of just confusing the client as to
   // why they didn't ever recieve anything in return to the request.
-  if ( [ 'GET', 'HEAD', 'POST' ].every( method => connection.method !== method ) ) {
+  if ( !'GET HEAD POST'.includes( connection.method ) )
     return connection.generateErrorPage( new weave.HTTPError( 405, `Only GET, HEAD, and POST methods are supported.` ) )
-  }
 
   let redirect = connection.behavior( `redirect ${connection.url.path}`)
   if ( redirect ) return connection.redirect( redirect )
@@ -75,14 +72,14 @@ weave.App.prototype.router = function ( connection ) {
   // search directly if a recursive search is necessary.
   let reroute = function () {
     // If there's room to step back and keep searching for files then we do so.
-    if ( path.relative( "/", connection.url.path ) ) {
-      connection.url.path = path.join( connection.url.path, ".." ), cursor = path.join( cursor, ".." );
-      connection.url.description = path.relative( connection.url.path, connection.url.pathname );
-      connection.url.depth++, search()
-    } else {
-      // TODO: Come up with a better way to handle errors.
-      connection.generateErrorPage( new weave.HTTPError( 404 ) )
-    }
+    if ( !path.relative( '/', connection.url.path ) )
+      return connection.generateErrorPage( new weave.HTTPError( 404 ) )
+
+    cursor = path.join( cursor, '..' )
+    manifest.description = path.relative( connection.url.path, connection.url.pathname )
+    connection.url.path = path.join( connection.url.path, '..' )
+    connection.url.depth++
+    search()
   }
 
   let indexes = connection.behavior( 'indexes' )

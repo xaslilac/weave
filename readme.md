@@ -1,6 +1,6 @@
 # Weave
 
-![Weave Version 0.1.11](https://img.shields.io/badge/weave-v0.1.11-5050DD.svg?style=flat)
+![Weave Version 0.2.0](https://img.shields.io/badge/weave-v0.2.0-5050DD.svg?style=flat)
 ![Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
 
 ## Disclosure
@@ -36,7 +36,7 @@ Weave runs in Node along side your own code that configures and controls it.
 
 ## Installation
 
-Just download a tarball and throw it into a node_modules folder somewhere. You should be good to go.
+Just download a tarball or zip and throw it into a node_modules folder somewhere. You should be good to go.
 
 **I will be publishing weave in the NPM directory eventually. I just want to get a fully functioning product ready first.**
 

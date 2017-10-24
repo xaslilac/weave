@@ -343,7 +343,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	generateErrorPage( error ) {
 		// Make sure we can generate a valid error page
 		if ( typeof error === 'number' ) error = new weave.HTTPError( error )
-		if ( !error instanceof weave.HTTPError ) return garden.error( 'generateErrorPage requires a weave.HTTPError argument!' )
+		else if ( !error instanceof weave.HTTPError ) return garden.error( 'generateErrorPage requires a weave.HTTPError argument!' )
 		if ( error.statusCode >= 500 ) garden.error( error.description )
 
 		let manifest = new weave.Manifest( { url: this.url } )

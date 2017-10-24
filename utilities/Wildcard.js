@@ -1,6 +1,4 @@
-/* MIT License
-   Created by partheseas (Tyler Washburn)
-   Copyright Tyler Washburn 2014 */
+// MIT License / Copyright Kayla Washburn 2014
 
 module.exports = class Wildcard {
   constructor( string ) {

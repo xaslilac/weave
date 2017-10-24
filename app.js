@@ -1,6 +1,4 @@
 // MIT License / Copyright 2015
-// weave.App is weaves main entry point, and it's file format should be used as
-// a template for all other .js source files.
 "use strict";
 
 let weave = require( './weave' )
@@ -137,11 +135,22 @@ weave.App = class App extends events.EventEmitter {
     return this
   }
 
-  interface( directory, handle ) {
-    this.configuration[ directory.replace( /\\/g, '/' ) ] = {
-      type: 'interface',
-      interface: handle
-    }
+  interface( path, handle, methods = ['any'] ) {
+    // Keep things consistent on Windows with other platforms
+    path = path.replace( /\\/g, '/' )
+
+    // If there is already an interface at this path, we might be able to
+    // attach to a different request method. If not, create a new wrapper.
+    if ( !this.configuration[ path ] ) this.configuration[ path ] = { type: 'interface' }
+    let wrap = this.configuration[ path ]
+
+    if ( typeof methods === 'string' ) methods = [ methods ]
+    else if ( !Array.isArray( methods ) ) garden.typeerror( 'Interface method must be a string or an array of strings' )
+
+    methods.forEach( method => {
+      if wrap[ method ] return garden.error( `Interface ${method}: ${path} already exists!` )
+      wrap[ method ] = handle
+    })
 
     // Return this from all configuration methods so they can be chained.
     return this

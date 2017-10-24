@@ -1,4 +1,4 @@
-// MIT License / Copyright Tyler Washburn 2015
+// MIT License / Copyright 2015
 "use strict";
 
 let weave = require( './weave' )

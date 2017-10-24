@@ -55,7 +55,7 @@ app.link( str 'hostname:port' | num port ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
 app.subdirectory( dirName[, superDirName | superDirBehaviors], dirBehaviors ) -> app
-app.interface( dirName, func ) -> app
+app.interface( dirName, handle[, str method | array ['methods'..]] ) -> app                               
 app#configured( dirName, dirConf, appConf )
 app#connection( connection )                                                     Automatically calls app.router
 app#unconfigurable connection( connection )

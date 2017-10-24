@@ -1,4 +1,4 @@
-// MIT License / Copyright Tyler Washburn 2017
+// MIT License / Copyright Kayla Washburn 2017
 
 // TODO: Octal escapes aren't allowed in strict mode. Try to find a work around?
 "use strict";
