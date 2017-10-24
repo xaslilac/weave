@@ -2,11 +2,11 @@
 It gives bare-minimum information on all functions and properties. What arguments
 they expect, what values they should hold and return, etc.
 
-- :: will be used to symbolize .prototype for classes
-- \# will be used to symbolize events that may be emitted
-- $  will be used to symbolize command line features/flags
-- [] may be used to symbolize optional arguments, or Array literals
-- |  will be used to symbolize multiple options for an argument format
+- `::` will be used to symbolize .prototype for classes
+- `\#` will be used to symbolize events that may be emitted
+- `$`  will be used to symbolize command line features/flags
+- `[]` may be used to symbolize optional arguments, or Array literals
+- `|`  will be used to symbolize multiple options for an argument format
 
 ## Flags
 These flags can be enabled with command line arguments or programmatically. All flags
