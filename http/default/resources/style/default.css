@@ -27,23 +27,14 @@ html, body {
 
 
 @media screen and (min-width: 800px) {
-  body {
+  #main {
+    grid-area: content;
     display: grid;
     grid-template-columns: 1fr 750px 1fr;
-    grid-template-rows: 300px 1fr 100px;
+    grid-template-rows: 1fr 100px;
     grid-template-areas:
-      "margin-l  title  margin-r"
-      "margin-l content margin-r"
-      "margin-l   end   margin-r"
-  }
-
-  #content {
-    border-radius: 29px;
-    padding: 45px;
-  }
-
-  #end {
-    color: #efffff;
+      "margin-l center margin-r"
+      "margin-l  end   margin-r"
   }
 }
 
@@ -51,20 +42,20 @@ html, body {
   body {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 300px 1fr, 100px;
+    grid-template-rows: 300px 1fr;
     grid-template-areas:
        "title"
       "content"
-        "end"
   }
 
-  #content {
-    padding: 35px;
-  }
-
-  #end {
-    background-color: #efffff;
-    color: black;
+  #main {
+    grid-area: content;
+    display: grid;
+    grid-template-columns: 750px;
+    grid-template-rows: 1fr 100px;
+    grid-template-areas:
+      "center"
+      "end"
   }
 }
 
@@ -85,11 +76,14 @@ a {
   color: #12e6c6;
 }
 
-#content {
-  grid-area: content;
+#main {
   background-color: #efffff;
+}
 
-  max-width: 100%;
+#content {
+  grid-area: center;
+  padding: 35px;
+  max-width: 750px;
 }
 
 #navigation {
@@ -139,7 +133,7 @@ code {
   color: #11e6f4;
 }
 
-.hljs-literal {
+.hljs-literal, .hljs-function {
   color: #11d8f4;
 }
 

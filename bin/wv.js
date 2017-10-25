@@ -2,11 +2,11 @@
 let weave = require( '../weave' )
 let path = require( 'path' )
 let marked = require( 'marked' )
-let { highlightAuto } = require( 'highlight.js' )
+let { highlight } = require( 'highlight.js' )
 let { stat } = require( 'fs' )
 let mdWrapperPath = path.join( __dirname, '../http/default/default.html' )
 
-marked.setOptions({ highlight: code => highlightAuto( code ).value })
+marked.setOptions({ highlight: code => highlight( 'js', code ).value })
 
 process.on( 'beforeExit', function () {
   let garden = new weave.Garden( 'default' )
