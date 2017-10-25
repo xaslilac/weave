@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 let weave = require( '../weave' )
 let path = require( 'path' )
-let { parse } = require( 'github-flavored-markdown' )
+let marked = require( 'marked' )
+let { highlightAuto } = require( 'highlight.js' )
 let { stat } = require( 'fs' )
 let mdWrapperPath = path.join( __dirname, '../http/default/default.html' )
+
+marked.setOptions({ highlight: code => highlightAuto( code ).value })
 
 process.on( 'beforeExit', function () {
   let garden = new weave.Garden( 'default' )
@@ -19,13 +22,16 @@ process.on( 'beforeExit', function () {
         '.css':  'text/css',
         '.js':   'application/javascript'
       },
+      'errorPages': {
+        '404': '404.md'
+      },
       'engines': {
         '.md': ( buffer, manifest, connection ) => {
           return new Promise( ( fulfill, reject ) => {
             stat( mdWrapperPath, ( error, stats ) => {
               if ( error ) return reject( error )
 
-              let content = parse( buffer.toString() )
+              let content = marked( buffer.toString() )
               let title = `weave - ${path.relative( connection.behavior( 'location' ), manifest.path )}`
 
               // In the future the content could be cached by us directly, without the stat call.

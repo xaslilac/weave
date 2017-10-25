@@ -78,9 +78,9 @@ not need to actually exist, they just need to be requested by the client.
 
 In this example, `~/http/index.html` would be used as the response to any url requested
 without an exact file match, since it is set to be an index for infinite folders.
-However, our secret file at `~/somewhere/secret/index.html` would remain secret, as
-it would not be used for any child directories. It would only be used when `/secretfolder/`
-has been requested.
+However, our secret file at `~/somewhere/secret/index.html` would remain secret, as it
+would not be used for any child directories. It would only be used when `/secretfolder/` has
+been requested.
 
 It is important to note that if we had not defined an `'indexes'` behavior for `/secretfolder`
 that the behavior would've been inherited from the app configuration, and

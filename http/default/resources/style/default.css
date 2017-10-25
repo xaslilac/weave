@@ -81,9 +81,15 @@ html, body {
   text-decoration: none;
 }
 
+a {
+  color: #12e6c6;
+}
+
 #content {
   grid-area: content;
   background-color: #efffff;
+
+  max-width: 100%;
 }
 
 #navigation {
@@ -108,9 +114,41 @@ html, body {
 }
 
 pre {
-  font-family: m1;
+  background-color: #22252a;
+  color: #efffff;
+
   max-width: 750px;
+  padding: 8px;
+  border-radius: 4px;
   overflow-x: auto;
+}
+
+code {
+  font-family: m1;
+}
+
+.hljs-string {
+  color: #11f4bd;
+}
+
+.hljs-number {
+  color: #11f4e6;
+}
+
+.hljs-keyword {
+  color: #11e6f4;
+}
+
+.hljs-literal {
+  color: #11d8f4;
+}
+
+.hljs-built_in {
+  color: #11a9f4;
+}
+
+.hljs-comment {
+  color: #767676;
 }
 
 #end {

@@ -23,7 +23,7 @@ weave.App.prototype.printer = function ( error, manifest, connection ) {
 
   if ( !manifest.path ) {
     connection.generateErrorPage( 500 )
-    return garden.error( 'No path given!' )
+    return garden.error( 'No path given!', manifest )
   }
 
   // It's either a file, directory, or we are confused (an error)
