@@ -6,7 +6,7 @@ process.on( 'beforeExit', function () {
   let garden = new weave.Garden( 'default' )
   garden.log( 'Starting default server' )
   if ( !weave._ACTIVE ) {
-    let d = new weave.App( 'default' ).link( 80 )
+    let d = new weave.App( 'default' ).link( process.env.PORT || 80 )
     .configure({
       'location': path.join( __dirname, '../http/default' ),
 
