@@ -161,12 +161,13 @@ weave.Connection = class Connection extends events.EventEmitter {
 	behavior( name ) {
 		if ( typeof name !== 'string' ) return garden.typeerror( 'Configuration behavior must be a string' )
 
-	  let behavior
+	  let behavior, point
 	  let nests = name.split(" ")
-		let scopes = this.configuration ? [ this.configuration, this.configuration._super ] : []
+		let scopes = ( this.configuration ? [ this.configuration,
+			this.configuration._super ] : [] ).concat([ this.app.configuration, weave.configuration ])
 
 	  // Load in order of priority. Check the most relevant configurations first.
-	  scopes.concat([ this.app.configuration, weave.configuration ]).some( cursor => {
+	  scopes.some( ( cursor, x ) => {
 	      // Make sure the cursor actually exists, in case
 	      // this.configuration._super isn't defined.
 	      if ( cursor ) {
@@ -174,6 +175,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	        // then set the behavior and return true to stop checking.
 	        if ( nests.every( nest => cursor = cursor[ nest ] ) ) {
 	          behavior = cursor
+						point = x
 	          return true;
 	        }
 	      }
@@ -183,6 +185,14 @@ weave.Connection = class Connection extends events.EventEmitter {
 		// weave.constants.HOME normalizes the API for Node across different platforms.
 		if ( name === 'location' && typeof behavior === 'string' )
 			behavior = behavior.replace( /^~/, weave.constants.HOME )
+
+		// Crazy bug fix for inherited error pages
+		if ( nests[0] === 'errorPages'
+		&& this.configuration && this.configuration.location
+		&& point > 0 && scopes[ point ].location ) {
+			behavior = path.join( path.relative( this.configuration.location, scopes[ point ].location ), behavior )
+		}
+
 
 	  // Return the matching behavior. If we didn't find one this should
 	  // still just be undefined.
@@ -365,7 +375,8 @@ weave.Connection = class Connection extends events.EventEmitter {
 			: errorPageName
 
 		fs.stat( errorPagePath, ( serror, stats ) => {
-			print( !serror && stats.isFile ? { path: errorPagePath, stats: stats, type: 'file' } : null )
+			console.log( serror )
+			print( !serror && stats.isFile() ? { path: errorPagePath, stats: stats, type: 'file' } : null )
 		})
 	}
 }
