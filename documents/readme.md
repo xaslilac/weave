@@ -8,7 +8,7 @@ they expect, what values they should hold and return, etc.
 - `[]` may be used to symbolize optional arguments, or Array literals
 - `|`  will be used to symbolize multiple options for an argument format
 - `->` will be used to symbolize a return values
--
+- `?:` will be used to symbolize fulfill and reject values of a Promise
 
 ## Flags
 These flags can be enabled with command line arguments or programmatically. All flags
@@ -151,6 +151,7 @@ connection.generateErrorPage( httpError ) -> undefined
 
 #### weave.cache
 ```JavaScript
+weave.cache( filePath, stats ) -> Promise ? contents : error
 ```
 
 #### weave.Garden
