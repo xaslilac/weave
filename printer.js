@@ -9,30 +9,30 @@ let path = require( 'path' )
 let util = require( 'util' )
 let DOM = require( './utilities/DOM' )
 
-weave.App.prototype.printer = function ( error, details, connection ) {
+weave.App.prototype.printer = function ( error, manifest, connection ) {
   // Debug inspecting
-  garden.debug( error, details )
+  garden.debug( error, manifest )
 
   if ( error ) {
-    if ( error instanceof weave.HTTPError ) return ( details.isFile() ? printFile : printError )( error, details, connection )
+    if ( error instanceof weave.HTTPError ) return ( manifest.isFile() ? printFile : printError )( error, manifest, connection )
     else {
-      printError( new weave.HTTPError( 500 ), details, connection )
+      printError( new weave.HTTPError( 500 ), manifest, connection )
       return garden.typeerror( 'Error argument was not a weave.HTTPError!', error )
     }
   }
 
-  if ( !details.path ) {
+  if ( !manifest.path ) {
     connection.generateErrorPage( 500 )
     return garden.error( 'No path given!' )
   }
 
   // It's either a file, directory, or we are confused (an error)
-  if      ( details.isFile() )      printFile( error, details, connection )
-  else if ( details.isDirectory() ) printDirectory( error, details, connection )
-  else                              printError( new weave.HTTPError( 500 ), details, connection )
+  if      ( manifest.isFile() )      printFile( error, manifest, connection )
+  else if ( manifest.isDirectory() ) printDirectory( error, manifest, connection )
+  else                              printError( new weave.HTTPError( 500 ), manifest, connection )
 }
 
-function printError( error, details, connection ) {
+function printError( error, manifest, connection ) {
   let document = new DOM.HTMLDocument( 'html', `${error.statusCode} ${error.status}` )
   document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
   if ( error.description ) {
@@ -45,26 +45,26 @@ function printError( error, details, connection ) {
   return connection.status( error.statusCode ).end( document.toString() )
 }
 
-function printFile( error, details, connection ) {
+function printFile( error, manifest, connection ) {
   let cacheDate = connection.detail( "if-modified-since" )
-  let extname = path.extname( details.path )
+  let extname = path.extname( manifest.path )
   let engine = connection.behavior( `engines ${extname}` )
   // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
   // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
-  if ( !error && cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( details.stats.mtime.getTime() / 1000 ) )
+  if ( !error && cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( manifest.stats.mtime.getTime() / 1000 ) )
     return connection.status( 304 ).end()
 
-  weave.cache( details.path, details.stats ).then( ({ content }) => {
+  weave.cache( manifest.path, manifest.stats ).then( ({ content }) => {
     connection.status( error ? error.statusCode : 200 )
       .writeHeader( 'Content-Type', connection.behavior( `mimeTypes ${extname}` ) )
 
     // Don't cache error pages
-    if ( !error ) connection.writeHeader( "Last-Modified", details.stats.mtime.toUTCString() )
+    if ( !error ) connection.writeHeader( "Last-Modified", manifest.stats.mtime.toUTCString() )
 
     // Check if there is an engine specified for this file format
     if ( typeof engine === 'function' ) {
       try {
-        Promise.resolve( engine( content, details, connection ) )
+        Promise.resolve( engine( content, manifest, connection ) )
           .then( output => connection.end( output ) )
           .catch( error => this.generateErrorPage(new weave.HTTPError( 500, conf )) )
       } catch ( error ) {
@@ -76,8 +76,8 @@ function printFile( error, details, connection ) {
   })
 }
 
-function printDirectory( error, details, connection ) {
-  fs.readdir( details.path, ( derror, files ) => {
+function printDirectory( error, manifest, connection ) {
+  fs.readdir( manifest.path, ( derror, files ) => {
     if ( derror ) return connection.generateErrorPage( 500 )
 
     if ( connection.url.description === 'directory.json' ) {
@@ -110,7 +110,7 @@ function printDirectory( error, details, connection ) {
 
     Promise.all( files.map( file => {
       return new Promise( ( yes, no ) => {
-        fs.stat( path.join( details.path, file ), ( error, stats ) => {
+        fs.stat( path.join( manifest.path, file ), ( error, stats ) => {
           if ( error ) return no()
 
           let isDir = stats.isDirectory()
