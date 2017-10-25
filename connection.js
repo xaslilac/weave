@@ -354,7 +354,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 		// Get the manifest ready for the printer, and make the printer easy to call.
 		let manifest = new weave.Manifest( { url: this.url } )
 		let print = more => weave.App.prototype.printer( error, manifest.extend( more ), this )
-    let cursor = this.behavior( 'location' )
+    let cursor = this.app && this.behavior( 'location' )
     let errorPageName = this.behavior( `errorPages ${error.statusCode}` )
 		if ( !errorPageName ) return print()
 
