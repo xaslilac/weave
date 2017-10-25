@@ -12,7 +12,7 @@ they expect, what values they should hold and return, etc.
 
 ## Flags
 These flags can be enabled with command line arguments or programmatically. All flags
-are exposed as functions on `weave.flags` and follow camelCase naming. (e.g. ---aww-heck-yes and awwHeckYes())
+are exposed as functions on `weave.flags` and follow camelCase naming. (e.g. `---aww-heck-yes` and `weave.flags.awwHeckYes()`)
 ```Shell
 $ myWeaveApp --aww-heck-yes                                                    # Try it for yourself! :)
 $ myWeaveApp --weave-verbose                                                   # Equivalent to weave.Garden.enableDebug()
