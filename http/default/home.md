@@ -17,5 +17,5 @@ weave({
 .link( 80 )
 ```
 
-This website runs off of Weave. All pages are written in Markdown, and are parsed
+This website is run by Weave. All pages are written in Markdown, and are parsed
 and served by Weave.

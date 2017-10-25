@@ -20,7 +20,8 @@ process.on( 'beforeExit', function () {
         '.md': 'text/html',
         '.html': 'text/html',
         '.css':  'text/css',
-        '.js':   'application/javascript'
+        '.js':   'application/javascript',
+        '.ttf': 'application/octet-stream'
       },
       'errorPages': {
         '404': '404.md'
@@ -30,6 +31,14 @@ process.on( 'beforeExit', function () {
           return new Promise( ( fulfill, reject ) => {
             stat( mdWrapperPath, ( error, stats ) => {
               if ( error ) return reject( error )
+
+              let cacheDate = connection.detail( 'if-modified-since' )
+              if ( cacheDate ) {
+                cacheDate = Math.floor( cacheDate.getTime() / 1000 )
+                let mdDate = Math.floor( manifest.stats.mtime.getTime() / 1000 )
+                let wrDate = Math.floor( stats.mtime.getTime() / 1000 )
+                if ( cacheDate === mdDate || cacheDate === wrDate ) return connection.redirect( 304 )
+              }
 
               let content = marked( buffer.toString() )
               let title = `weave - ${path.relative( connection.behavior( 'location' ), manifest.path )}`

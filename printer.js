@@ -51,29 +51,36 @@ function printFile( error, manifest, connection ) {
   let engine = connection.behavior( `engines ${extname}` )
   // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
   // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
-  if ( !error && cacheDate && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( manifest.stats.mtime.getTime() / 1000 ) )
-    return connection.status( 304 ).end()
+  if ( !error && cacheDate && !engine && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( manifest.stats.mtime.getTime() / 1000 ) )
+    return connection.redirect( 304 )
 
   weave.cache( manifest.path, manifest.stats ).then( ({ content }) => {
-    connection.status( error ? error.statusCode : 200 )
-      .writeHeader( 'Content-Type', connection.behavior( `mimeTypes ${extname}` ) )
-
-    // Don't cache error pages
-    if ( !error ) connection.writeHeader( "Last-Modified", manifest.stats.mtime.toUTCString() )
-
     // Check if there is an engine specified for this file format
     if ( typeof engine === 'function' ) {
       try {
         Promise.resolve( engine( content, manifest, connection ) )
-          .then( output => connection.end( output ) )
-          .catch( error => this.generateErrorPage(new weave.HTTPError( 500, conf )) )
+          .then( output => printFileHead( error, manifest, connection ).end( output ) )
+          .catch( error => connection.generateErrorPage(new weave.HTTPError( 500, error )) )
       } catch ( error ) {
         connection.generateErrorPage(new weave.HTTPError( 500, error ))
       }
-    } else connection.end( content )
+      return
+    }
+
+    printFileHead( error, manifest, connection ).end( content )
   }).catch( () => {
     printError( new weave.HTTPError( 500 ), {}, connection )
   })
+}
+
+function printFileHead( error, manifest, connection ) {
+  let extname = path.extname( manifest.path )
+  connection.status( error ? error.statusCode : 200 )
+    .writeHeader( 'Content-Type', connection.behavior( `mimeTypes ${extname}` ) )
+  // Don't cache error pages
+  console.log( manifest.stats.mti)
+  if ( !error ) connection.writeHeader( "Last-Modified", manifest.stats.mtime.toUTCString() )
+  return connection
 }
 
 function printDirectory( error, manifest, connection ) {

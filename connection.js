@@ -29,8 +29,8 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	  // What kind of Connection are we dealing with?
 	  this.method      = i.method
-	  this.isKeepAlive = i.headers.connection === "keep-alive"
-	  this.isUpgrade   = i.headers.connection === "Upgrade"
+	  this.isKeepAlive = /keep-alive/i.test( i.headers.connection )
+	  this.isUpgrade   = /upgrade/i.test( i.headers.connection )
 
 	  // If we don't have a valid Host header then there's no way to figure
 	  // out which app is supposed to be used to handle the Connection.
@@ -234,8 +234,8 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	status( status ) {
 	  // Check to make sure the status is valid, and has not yet been written.
-	  if ( this.state !== 0 ) { return garden.warning( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` ) }
-		if ( typeof status !== 'number' ) { return garden.typeerror( 'IStatus is not a number!', status ) }
+	  if ( this.state !== 0 ) { return garden.error( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` ) }
+		if ( typeof status !== 'number' ) { return garden.typeerror( 'Status is not a number!', status ) }
 
 	  this._NODE_CONNECTION.write( `HTTP/1.1 ${status} ${weave.constants.STATUS_CODES[status]}\r\n` )
 		this._WRITTEN_STATUS = status
@@ -349,8 +349,9 @@ weave.Connection = class Connection extends events.EventEmitter {
 	}
 
 	redirect( location, status = 301 ) {
-		if ( typeof location !== 'string' ) return garden.typeerror( 'Redirect location is not a string!' ) && connection.generateErrorPage( 500 )
-		if ( typeof status !== 'number' || status < 300 || status > 399 ) return garden.error( 'Invalid redirect status!' ) && connection.generateErrorPage( 500 )
+		if ( location === 304 ) return this.status( 304 ).end()
+		if ( typeof location !== 'string' ) return garden.typeerror( 'Redirect location is not a string!' ) && this.generateErrorPage( 500 )
+		if ( typeof status !== 'number' || status < 300 || status > 399 ) return garden.error( 'Invalid redirect status!' ) && this.generateErrorPage( 500 )
 
 		return this.writeHead( status, { 'Location': location } ).end()
 	}
