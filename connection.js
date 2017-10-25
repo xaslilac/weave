@@ -8,7 +8,7 @@ let events = require( 'events' )
 let fs = require( 'fs' )
 let path = require( 'path' )
 let url = require( 'url' )
-let Wildcard = require( './utilities/Wildcard' )
+let Wildcard = require( './utilities/wildcard' )
 
 // n is a CRLF buffer, z is an end packet buffer.
 const n = new Buffer('\r\n')

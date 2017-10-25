@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Welcome to Weave!</title>
-  <link rel='stylesheet' type='text/css' href='default.css' />
+  <title>{{TITLE}}</title>
+  <link rel='stylesheet' type='text/css' href='/resources/style/default.css' />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-  <div>
-    <h1>Weave</h1>
-  </div>
+<body><h1 id="title"><a href="/">weave</a></h1>
+<div id="content">
+<ul id="navigation"><li><a href="https://github.com/partheseas/weave">Github</a></li>
+<li><a href="/docs/">API</a></li>
+<li><a href="https://github.com/partheseas/weave/releases">Download</a></li>
+<li><a href="/docs/getting started">Getting Started</a></li></ul>
+
+{{CONTENT}}
+</div>
+<div id="end"><p>Made with love by <label id="name">Kayla</label><p></div>
 </body>
 </html>

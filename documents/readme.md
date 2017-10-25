@@ -14,26 +14,28 @@ they expect, what values they should hold and return, etc.
 These flags can be enabled with command line arguments or programmatically. All flags
 are exposed as functions on `weave.flags` and follow camelCase naming. (e.g. `---aww-heck-yes` and `weave.flags.awwHeckYes()`)
 ```Shell
-$ myWeaveApp --aww-heck-yes                                                    # Try it for yourself! :)
-$ myWeaveApp --weave-verbose                                                   # Equivalent to weave.Garden.enableDebug()
-$ myWeaveApp --enable-weave-repl                                               # Will enable a command line repl
-$ myWeaveApp --enable-weave-instruments                                        # Will allow calls to weave.attachInstruments
+$ myWeaveApp --aww-heck-yes # Try it for yourself! :)
+$ myWeaveApp --weave-verbose # Equivalent to weave.Garden.enableDebug()
+$ myWeaveApp --enable-weave-repl # Will enable a command line repl
+$ myWeaveApp --enable-weave-instruments # Will allow calls to weave.attachInstruments
 ```
 
 ## Configuration behaviors
-These properties can be set on the global `weave.configuration` object, on an `app.configuration`
-object, using the `app.configure` method, or using the `app.subdirectory` method.
+These properties can be set on the global `weave.configuration` object, on an
+`app.configuration` object, using the `app.configure` method, or using the `app.subdirectory` method.
 
 ```JavaScript
 'location': str pathToRootWebDirectory
-'indexes': { 'indexFileName': num maximumFolderDepth.. }                      // Set maximumFolderDepth to 0 for a "traditional" directory index behavior.
+// Set maximumFolderDepth to 0 for a "traditional" directory index behavior.
+'indexes': { 'indexFileName': num maximumFolderDepth.. }
 'favoredExtensions': [ str '.ext'.. ]
 'htmlDirectoryListings': bool enabled
 'jsonDirectoryListings': bool enabled
 'mimeTypes': dictionary
 'errorPages': { errorCode: str pathToFile.. }
 'engines': { '.ext': engine( content, details, connection ) -> Promise.. }
-'cache': { maxCacheSize: num megabytes, maxCachedFileSize: num megabytes }    // Can only be configured via weave.configuration as caches are global and shared
+// Can only be configured via weave.configuration as caches are global and shared
+'cache': { maxCacheSize: num megabytes, maxCachedFileSize: num megabytes }
 'redirect': { fromUrl: str toUrl }
 'headers': { 'Header-Name': str 'value' }
 ```
@@ -54,8 +56,9 @@ weave.constants.STATUS_CODES: { statusCode: statusName.. }
 weave.configuration: { confProp: confValue.. }
 weave.util.SHA1_64( data ) -> sha1Hash
 weave.util.RNDM_RG( min, min, base ) -> randomNum
-
-weave.attachInstruments( app, instrumentsUrl ) -> undefined                   // Navigate your browser to app.host/instrumentUrl/panel to access instruments
+// Requires --enable-weave-instruments
+// Navigate your browser to app.host/instrumentUrl/panel to access instruments
+weave.attachInstruments( app, instrumentsUrl ) -> undefined
 ```
 
 ### weave.App
@@ -70,8 +73,8 @@ app.engine( str extension, handle( fileBuffer, manifest, connection ) -> promise
 app.redirect( str from, str to )
 app.header( str name, str value )
 app#configured( dirName, dirConf, appConf )
-app#connection( connection )                                                  // Automatically calls app.router
-app.router( connection ) -> undefined                                         // Automatically calls app.printer
+app#connection( connection )
+app.router( connection ) -> undefined
 app.printer( httpError, manifest, connection ) -> undefined                   
 ```
 
@@ -127,7 +130,6 @@ mainfest.isInterface() -> bool
 manifest.isNA()        -> bool
 manifest.extend( obj ) -> manifest
 manifest.path: file path as resolved by app.router
-manifest.result: the return value of the interface if isInterface() is true   // This one is a weird property.
 manifest.stats: fs.stats if isFile() or isDirectory() is true
 manifest.type: str 'directory' | 'file' | 'interface'
 manifest.url: connection.url
@@ -157,13 +159,19 @@ weave.cache( filePath, stats ) -> Promise ? contents : error
 #### weave.Garden
 ```JavaScript
 new weave.Garden( gardenName, verbose ) -> garden
-Garden.enableDebug() -> undefined                                             // Sets garden.verbose to true on all gardens
-Garden.disableDebug() -> undefined                                            // Sets garden.verbose to false on all gardens
+// Sets garden.verbose to true on all gardens
+Garden.enableDebug() -> undefined
+// Sets garden.verbose to false on all gardens
+Garden.disableDebug() -> undefined
 garden.verbose: bool
-garden.debug( things.. ) -> undefined                                         // Only prints when garden.verbose is true
+// Only prints when garden.verbose is true
+garden.debug( things.. ) -> undefined
+// Only prints when garden.verbose is true
+garden.trace( things.. ) -> undefined
 garden.log( things.. ) -> undefined
 garden.warning( things.. ) -> undefined
 garden.error( things.. ) -> undefined
+garden.typeerror( things.. ) -> undefined
 ```
 
 #### weave.HTTPError

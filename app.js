@@ -7,7 +7,7 @@ let garden = new weave.Garden( 'weave.App' )
 let events = require( 'events' )
 let http = require( 'http' )
 let path = require( 'path' )
-let Wildcard = require( './utilities/Wildcard' )
+let Wildcard = require( './utilities/wildcard' )
 
 weave.App = class App extends events.EventEmitter {
   constructor( appName, configuration ) {

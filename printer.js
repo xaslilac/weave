@@ -7,7 +7,7 @@ let garden = new weave.Garden( 'weave.App::printer' )
 let fs = require( 'fs' )
 let path = require( 'path' )
 let util = require( 'util' )
-let DOM = require( './utilities/DOM' )
+let DOM = require( './utilities/dom' )
 
 weave.App.prototype.printer = function ( error, manifest, connection ) {
   // Debug inspecting
@@ -33,7 +33,7 @@ weave.App.prototype.printer = function ( error, manifest, connection ) {
 }
 
 function printError( error, manifest, connection ) {
-  let document = new DOM.HTMLDocument( 'html', `${error.statusCode} ${error.status}` )
+  let document = new DOM.HTMLDocument( `${error.statusCode} ${error.status}` )
   document.body.appendChild( new DOM.Element( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
   if ( error.description ) {
     let desc = document.body.appendChild( new DOM.Element( 'p' ) )
@@ -89,7 +89,7 @@ function printDirectory( error, manifest, connection ) {
     connection.writeHeader( 'Content-Type', 'text/html' )
 
     // Basic document setup
-    let document = new DOM.HTMLDocument( 'html', `Contents of ${connection.url.pathname}` )
+    let document = new DOM.HTMLDocument( `Contents of ${connection.url.pathname}` )
     let header = new DOM.Element( 'h1' )
     let list = new DOM.Element( 'ul' )
     header.innerHTML = document.title

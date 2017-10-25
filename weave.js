@@ -29,8 +29,8 @@ Object.assign( weave, {
       let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
       return base ? r.toString( base ) : r } },
 
-  Dictionary: require( './utilities/MimeDictionary' ),
-  Garden: require( './utilities/Garden'),
+  Dictionary: require( './utilities/mimedictionary' ),
+  Garden: require( './utilities/garden'),
 
   HTTPError: class HTTPError {
     constructor( code, desc ) {

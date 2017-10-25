@@ -14,8 +14,13 @@
     "url": "https://github.com/partheseas/weave.git"
   },
   "keywords": [
-    "httpd", "server", "app-server"
+    "httpd",
+    "server",
+    "app-server"
   ],
   "author": "Tyler Washburn",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "github-flavored-markdown": "^1.0.1"
+  }
 }
