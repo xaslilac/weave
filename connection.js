@@ -121,7 +121,6 @@ weave.Connection = class Connection extends events.EventEmitter {
 				try {
 					Promise.resolve( handle.call( this.app, this, manifest ) )
 						.catch( conf => {
-							console.log('rwethereyet')
 							if ( conf instanceof Error )
 								return this.generateErrorPage(new weave.HTTPError( 500, conf ))
 
