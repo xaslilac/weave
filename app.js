@@ -134,6 +134,15 @@ weave.App = class App extends events.EventEmitter {
 
     cursor[ prop ] = value
 
+    // Return this from all configuration methods so they can be chained.
+    return this
+  }
+
+  index( name, depth = 0 ) {
+    if ( this.configuration.indexes ) this.configuration.indexes[ name ] = depth
+    else this.configuration.indexes = { [ name ]: depth }
+
+    // Return this from all configuration methods so they can be chained.
     return this
   }
 
@@ -169,11 +178,17 @@ weave.App = class App extends events.EventEmitter {
   redirect( from, to ) {
     if ( this.configuration.redirect ) this.configuration.redirect[ from ] = to
     else this.configuration.redirect = { [ from ]: to }
+
+    // Return this from all configuration methods so they can be chained.
+    return this
   }
 
   header( name, value ) {
     // XXX: Should we incorporate template string tags into this some how?
     if ( this.configuration.headers ) this.configuration.headers[ name ] = value
     else this.configuration.headers = { [ name ]: value }
+
+    // Return this from all configuration methods so they can be chained.
+    return this
   }
 }
