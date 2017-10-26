@@ -28,9 +28,9 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  this.state = 0
 
 	  // What kind of Connection are we dealing with?
-	  this.method      = i.method
+	  this.method = i.method
 	  this.isKeepAlive = /keep-alive/i.test( i.headers.connection )
-	  this.isUpgrade   = /upgrade/i.test( i.headers.connection )
+	  this.isUpgrade = /upgrade/i.test( i.headers.connection )
 
 	  // If we don't have a valid Host header then there's no way to figure
 	  // out which app is supposed to be used to handle the Connection.
