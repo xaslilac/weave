@@ -7,6 +7,7 @@
   },
   "main": "weave.js",
   "bin": {
+    "weave-demo": "bin/weave-demo.js",
     "wv": "bin/wv.js"
   },
   "repository": {

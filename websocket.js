@@ -43,7 +43,7 @@ weave.WebSocketConnection = class WebSocketConnection extends events.EventEmitte
 
     // Make sure the client is expecting a WebSocket upgrade, and that it gave us a key.
     // TIL: The Connection header can have more than just an upgrade request in it
-    if ( httpConnection.detail( "connection" ).includes( "Upgrade" ) && httpConnection.detail( "upgrade" ) === "websocket" ) {
+    if ( httpConnection.isUpgrade && httpConnection.detail( "upgrade" ) === "websocket" ) {
       let key = httpConnection.detail( "sec-websocket-key" )
       if ( key ) {
         // Compute the sec-websocket-accept header value to complete the handshake.

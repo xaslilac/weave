@@ -84,6 +84,7 @@ a {
   grid-area: center;
   padding: 35px;
   max-width: 750px;
+  margin: auto;
 }
 
 #navigation {
