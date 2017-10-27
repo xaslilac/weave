@@ -1,6 +1,6 @@
 {
   "name": "weave",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "A super duper good Node.js server!",
   "engine": {
     "node": "8.6.0"
@@ -19,7 +19,7 @@
     "server",
     "app-server"
   ],
-  "author": "Tyler Washburn",
+  "author": "Kayla Washburn",
   "license": "MIT",
   "dependencies": {
     "highlight.js": "^9.12.0",
