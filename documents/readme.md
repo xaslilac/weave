@@ -18,7 +18,7 @@ All flags are exposed as functions on `weave.flags` and follow camelCase naming.
 ```Shell
 $ weave-demo # Starts a server that will present a demo website on port 80
 $ myWeaveApp --aww-heck-yes # Try it for yourself! :)
-$ myWeaveApp --weave-verbose # Equivalent to weave.Garden.enableDebug()
+$ myWeaveApp --weave-verbose # Equivalent to weave.Garden.verbose = true
 $ myWeaveApp --enable-weave-repl # Will enable a command line repl
 $ myWeaveApp --enable-weave-instruments # Will allow calls to weave.attachInstruments
 ```
@@ -67,6 +67,7 @@ weave.attachInstruments( app, instrumentsUrl ) -> undefined
 ### weave.App
 ```JavaScript
 new weave.App([ appName,][ behaviors ]) -> app
+app.garden: garden
 app.link( str 'hostname:port' | num port ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
@@ -122,7 +123,7 @@ wsConnection.ping() -> bool success
 wsConnection.close( code[, reason ] ) -> bool success
 ```
 
-## Not so important
+## Not so important (Private APIs)
 
 #### weave.Manifest
 ```JavaScript
@@ -160,13 +161,18 @@ weave.cache( filePath, stats ) -> Promise ? contents : error
 ```
 
 #### weave.Garden
+**IMPORTANT NOTE:** Each piece of Weave (each file) and each instance of `weave.App`
+has it's own unique garden that it logs to in order to help debugging and tracing
+where things are happening. For things that might be *our* fault, we should use the garden
+instance in the context of where we made as error. Anything that we want to log
+that is *directly* due to receiving invalid input from a user should be logged to
+the `app.garden` on the corresponding app.
 ```JavaScript
 new weave.Garden( gardenName, verbose ) -> garden
-// Sets garden.verbose to true on all gardens
-Garden.enableDebug() -> undefined
-// Sets garden.verbose to false on all gardens
-Garden.disableDebug() -> undefined
+// Universal override for being verbose
+Garden.verbose: bool
 garden.verbose: bool
+garden.isVerbose() -> bool garden.verbose | Garden.verbose
 // Only prints when garden.verbose is true
 garden.debug( things.. ) -> undefined
 // Only prints when garden.verbose is true

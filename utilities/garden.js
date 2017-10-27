@@ -1,9 +1,6 @@
 // MIT License / Copyright Kayla Washburn 2017
 
-// TODO: Octal escapes aren't allowed in strict mode. Try to find a work around?
 "use strict";
-
-
 
 let events = require( 'events' )
 let util = require( 'util' )
@@ -15,17 +12,19 @@ let Garden = module.exports = exports = class Garden extends events.EventEmitter
 
     this.name = name
     this.verbose = verbose
+  }
 
-    Garden.list.push( this )
+  isVerbose() {
+    return this.verbose || Garden.verbose
   }
 
   debug( message, ...extra ) {
-    this.verbose && print( this.name, 'Debug', format( message ), extra )
-    return this.verbose
+    this.isVerbose() && print( this.name, 'Debug', format( message ), extra )
+    return this.isVerbose()
   }
 
   trace( message, ...extra ) {
-    if ( this.verbose ) {
+    if ( this.isVerbose() ) {
       print( this.name, 'Trace', format( message ), extra )
       console.log( new Error( message ).stack )
     }
@@ -54,17 +53,7 @@ let Garden = module.exports = exports = class Garden extends events.EventEmitter
     print( this.name, 'Error', `\u001b[31m${error.name}: ${error.message}\u001b[39m`, extra )
     console.log( error.stack )
   }
-
-  static enableDebug() {
-    this.list.forEach( garden => garden.verbose = true )
-  }
-
-  static disableDebug() {
-    this.list.forEach( garden => garden.verbose = false )
-  }
 }
-
-Garden.list = []
 
 let format = function ( message ) {
   return typeof message === 'string' ? message : util.inspect( message )
