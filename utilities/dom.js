@@ -139,5 +139,12 @@ let dom = module.exports = exports = {
     return document
   },
 
+  parseHtml( string ) {
+    let document = dom.createHtmlDocument()
+    document.body.appendChild( document.createElement( 'p' ) ).innerHTML = 'im trying!!!!'
+    document.body.appendChild( document.createElement( 'pre' ) ).innerHTML = string
+    return document
+  },
+
   Document, StyleSheet, Element, TextNode, Comment
 }

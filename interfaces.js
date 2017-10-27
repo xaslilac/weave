@@ -10,12 +10,23 @@ weave.interfaces = {
     manifest.type = 'interface'
 
     return new Promise( ( fulfill, reject ) => {
-      vm.runInNewContext( content.toString( 'utf-8' ), {
-        dom, garden, console: garden,
-        document: dom.createHtmlDocument(),
+      let script = content.toString( 'utf-8' )
+      let split = /\<\!DOCTYPE|\<html/i.exec( script )
+      let html, document;
+
+      if ( split ) {
+        html = script.substr( split.index )
+        script = script.substr( 0, split.index )
+        document = dom.parseHtml( html )
+      } else {
+        document = dom.createHtmlDocument()
+      }
+
+      vm.runInNewContext( script, {
+        document, garden, console: garden,
         weave: handle => {
           if ( typeof handle === 'function' ) handle( exchange, manifest )
-          else return { app: exchange.app, exchange, manifest }
+          else return { exchange, manifest }
         }
       }, { filename: manifest.path, displayErrors: true })
     })

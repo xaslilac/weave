@@ -22,13 +22,13 @@ The JavaScript portion of the file has a few APIs available to it, the main one
 is a function named `weave` that can work one of two ways and exposes the exchange.
 
 ```JavaScript
-weave( exchange => {
+weave( ( exchange, manifest ) => {
   // your code here
 })
 
 // or
 
-let exchange = weave()
+let { exchange, manifest } = weave()
 ```
 
 `document` is also made available to expose the DOM, as well as `garden` and `console`.
