@@ -1,140 +1,143 @@
 // MIT License / Copyright Kayla Washburn 2014
 
-let DOM = module.exports = exports = {
-  HTMLDocument: function ( title, type = 'html' ) {
-    let doc = new DOM.Document( "html", type );
+class Document {
+  constructor( base, docType ) {
+    this.docType = docType
+    this.baseElement = new Element( base )
+    this.nodeType = 9
+  }
 
-    // TODO: Make this robust. Define a getter and setter that alter the title element in head.
-    doc.title = title
-    doc.head = doc.baseElement.appendChild( new DOM.Head( title ) )
-    doc.body = doc.baseElement.appendChild( new DOM.Body() )
-    return doc
-  },
+  toString() {
+    return `<!DOCTYPE ${this.docType}>\n${this.baseElement.toString()}`
+  }
 
-	Document: function ( base, type ) {
-		this.docType = type
-		this.baseElement = new DOM.Element( base )
-		this.nodeType = 9
-	},
+  createElement( type ) {
+    return new Element( type )
+  }
 
-  Head: function ( title ) {
-    let head = new DOM.Element( "head" )
+  createStyleSheet( styles ) {
+    return this.head.appendChild( new StyleSheet( styles ) )
+  }
+}
 
-    if ( title ) {
-      head.appendChild( new DOM.Element( "title" ) )
-          .appendChild( new DOM.TextNode( title ) )
-      this.title = title
-    }
+class StyleSheet {
+  constructor( styles ) {
+    this.selectors = {}
+    this.setStyles( styles )
+  }
 
-    return head
-  },
+  toString() {
+    return `<style type='text/css'>\n${
+      Object.keys( this.selectors ).map( selector => {
+        return `${selector} {\n${
+        Object.keys( this.selectors[ selector ] ).map( prop => {
+          return `  ${prop}: ${this.selectors[ selector ][ prop ]}`
+        }).join(';\n')}\n}`
+      }).join('\n\n')}\n</style>\n`
+  }
 
-  StyleElement: class StyleElement {
-    constructor() {
-      this.selectors = {}
-    }
+  setStyles( styles ) {
+    Object.keys( styles ).forEach( selector => {
+      if ( this.selectors[ selector ] ) return Object.assign( this.selectors[ selector ], styles[ selector ] )
+      this.selectors[ selector ] = styles[ selector ]
+    })
 
-    toString() {
-      return `<style type='text/css'>\n${
-        Object.keys( this.selectors ).map( selector => {
-          return `${selector} {\n${
-          Object.keys( this.selectors[ selector ] ).map( prop => {
-            return `  ${prop}: ${this.selectors[ selector ][ prop ]}`
-          }).join(';\n')}\n}`
-        }).join('\n\n')}\n</style>\n`
-    }
+    return this
+  }
+}
 
-    setStyles( selector, styles ) {
-      if ( this.selectors[ selector ] ) return Object.assign( this.selectors[ selector ], styles )
-      this.selectors[ selector ] = styles
 
-      return this
-    }
-  },
-
-  Body: function () {
-    return new DOM.Element( "body" )
-  },
-
-	Element: function ( tag ) {
-    var e = this;
-
-    Object.defineProperties( this, {
-      innerHTML: {
-        get: function () {
-          let contents = '';
-          e.children.forEach( child => contents += child.toString() )
-          return contents
-        },
-        set: function ( value ) {
-          e.children = [ new DOM.TextNode( value ) ]
-        }
-      },
-
-      className: {
-        get: function () {
-          return e.attributes[ 'class' ]
-        },
-        set: function ( value ) {
-          e.attributes[ 'class' ] = value
-        }
-      },
-
-      href: {
-        get: function () {
-          return e.attributes[ 'href' ]
-        },
-        set: function ( value ) {
-          e.attributes[ 'href' ] = value
-        }
-      }
-    } )
-
+class	Element {
+  constructor( tag ) {
 		this.tagName = tag
 		this.children = []
 		this.attributes = {}
 		this.nodeType = 1
-	},
+	}
 
-	TextNode: function ( text ) {
+  toString() {
+  	return `\n<${this.tagName} ${
+      Object.keys( this.attributes ).map( key => `${key}='${this.attributes[ key ]}'` ).join( ' ' )
+    }>` + this.children.map( child => child.toString() ).join( '' ) + `</${this.tagName}>\n`
+  }
+
+  appendChild( element ) {
+    this.children.push( element )
+    return element
+  }
+
+  setAttribute( attr, value ) {
+    return this.attributes[ attr ] = value
+  }
+
+  get innerHTML() { return this.children.map( child => child.toString() ).join( '' ) }
+  set innerHTML( value ) { this.children = [ new TextNode( value ) ] }
+
+  get className() { return this.attributes[ 'class' ] }
+  set className( value ) { this.attributes[ 'class' ] = value }
+
+  get href() { return this.attributes[ 'href' ] }
+  set href( value ) { this.attributes[ 'href' ] = value }
+}
+
+class TextNode {
+  constructor( text ) {
     this.text = text
     this.nodeType = 3
-	},
+	}
 
-	Comment: function ( content ) {
-		this.text = `<!-- ${content} -->`
+  toString() {
+    return this.text
+  }
+}
+
+class Comment {
+  constructor( text ) {
+		this.text = text
 		this.nodeType = 8
 	}
+
+  toString() {
+    return `<!-- ${this.text} -->`
+  }
 }
 
-DOM.Document.prototype.toString = function ( document ) {
-  return `<!DOCTYPE ${this.docType}>\n${this.baseElement.toString()}`
-}
+let dom = module.exports = exports = {
+	createDocument( base, docType ) { return new Document( base, docType ) },
 
-DOM.Element.prototype.toString = function (){
-	let attributes = ''
-  Object.keys( this.attributes ).forEach( key => {
-    attributes += ` ${key}='${this.attributes[ key ]}'`
-  })
+  createHtmlDocument( title, docType = 'html' ) {
+    let document = dom.createDocument( 'html', docType );
 
-  let contents = `\n<${this.tagName}${attributes}>`
-  this.children.forEach( function (child ){
-    contents += child.toString()
-  })
-  return contents + `</${this.tagName}>\n`
-}
+    Object.defineProperties( document, {
+      head: {
+        value: document.baseElement.appendChild( document.createElement( 'head' ) ),
+        enumerable: true },
+      body: {
+        value: document.baseElement.appendChild( document.createElement( 'body' ) ),
+        enumerable: true },
+      title: {
+        get: function () {
+          let title
+          document.head.children.some( child => {
+            if ( child.tagName !== 'title' ) return false
 
-DOM.TextNode.prototype.toString = DOM.Comment.prototype.toString = function () {
-  return this.text
-}
+            title = child.innerHTML
+            return true
+          })
+          return title
+        },
+        set: function ( title ) {
+          document.head.children.some( child => {
+            if ( child.tagName === 'title' ) child.innerHTML = title
+          }) || ( document.head.appendChild( document.createElement( 'title' ) ).innerHTML = title )
+        }
+      }
+    })
 
+    if ( typeof title === 'string' ) document.title = title
 
+    return document
+  },
 
-DOM.Element.prototype.appendChild = function ( child ) {
-  this.children.push( child )
-  return child
-}
-
-DOM.Element.prototype.setAttribute = function ( attr, value ) {
-  return this.attributes[ attr ] = value
+  Document, StyleSheet, Element, TextNode, Comment
 }
