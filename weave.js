@@ -26,7 +26,7 @@ require( './websocket' )
 let garden = new weave.Garden( 'weave' )
 
 Object.assign( weave, {
-  version: '0.2.1',
+  version: '0.2.2',
 
   servers: {}, apps: { anonymous: [] }, hosts: {},
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',

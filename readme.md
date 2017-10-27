@@ -1,6 +1,6 @@
 # Weave
 
-![Weave Version 0.2.1](https://img.shields.io/badge/weave-v0.2.1-5050DD.svg?style=flat)
+![Weave Version 0.2.2](https://img.shields.io/badge/weave-v0.2.2-5050DD.svg?style=flat)
 ![Stability: Alpha](http://img.shields.io/badge/stability-alpha-f04c5e.svg?style=flat)
 
 ## Overview
