@@ -86,7 +86,7 @@ let print = function ( name, type, message, extra ) {
 
   if ( configuration.outputPath ) {
     if ( !outputStream ) outputStream = fs.createWriteStream( configuration.outputPath, { 'flags': 'a' })
-    outputStream.write( `[${name}] [${type}]  ${message}\n` )
+    outputStream.write( `[${new Date().toLocaleString()}]  [${name}] [${type}]  ${message}\n` )
   }
 
   extra.length ? console.log( ...extra ) : process.stdout.write( '\n' )

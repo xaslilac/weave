@@ -12,6 +12,8 @@ Object.assign( weave, {
   Garden: require( './utilities/garden' )
 })
 
+weave.Garden.configure( weave.configuration )
+
 require( './app' )
 require( './cache' )
 require( './exchange' )

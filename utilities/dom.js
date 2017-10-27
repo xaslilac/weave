@@ -142,7 +142,7 @@ let dom = module.exports = exports = {
   parseHtml( string ) {
     let document = dom.createHtmlDocument()
     document.body.appendChild( document.createElement( 'p' ) ).innerHTML = 'im trying!!!!'
-    document.body.appendChild( document.createElement( 'pre' ) ).innerHTML = string
+    document.body.appendChild( document.createElement( 'pre' ) ).innerHTML = string.replace( /\</g, '&lt;' )
     return document
   },
 
