@@ -11,10 +11,10 @@ file locations and gives you great control over the behavior of the server.
 Weave runs in Node along side your own code that configures and controls it.
 
 ## Installation
-
-Just download a tarball or zip and throw it into a node_modules folder somewhere. You should be good to go.
-
-**I will be publishing weave in the NPM directory eventually. I just want to get a fully functioning product ready first.**
+```Shell
+npm install wv-http
+```
+or just download a .zip and throw it into a node_modules folder somewhere. You should be good to go.
 
 ## Features
 - Extensive and powerful customization

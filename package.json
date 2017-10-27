@@ -1,5 +1,5 @@
 {
-  "name": "weave",
+  "name": "wv-http",
   "version": "0.2.1",
   "description": "A super duper good Node.js server!",
   "engine": {
