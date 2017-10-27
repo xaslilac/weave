@@ -9,30 +9,30 @@ let path = require( 'path' )
 let util = require( 'util' )
 let dom = require( './utilities/dom' )
 
-weave.App.prototype.printer = function ( error, manifest, connection ) {
+weave.App.prototype.printer = function ( error, manifest, exchange ) {
   // Debug inspecting
   garden.debug( error, manifest )
 
   if ( error ) {
-    if ( error instanceof weave.HTTPError ) return ( manifest.isFile() ? printFile : printError )( error, manifest, connection )
+    if ( error instanceof weave.HTTPError ) return ( manifest.isFile() ? printFile : printError )( error, manifest, exchange )
     else {
-      printError( new weave.HTTPError( 500 ), manifest, connection )
+      printError( new weave.HTTPError( 500 ), manifest, exchange )
       return garden.typeerror( 'Error argument was not a weave.HTTPError!', error )
     }
   }
 
   if ( !manifest.path ) {
-    connection.generateErrorPage( 500 )
+    exchange.generateErrorPage( 500 )
     return garden.error( 'No path given!', manifest )
   }
 
   // It's either a file, directory, or we are confused (an error)
-  if      ( manifest.isFile() )      printFile( error, manifest, connection )
-  else if ( manifest.isDirectory() ) printDirectory( error, manifest, connection )
-  else                               printError( new weave.HTTPError( 500 ), manifest, connection )
+  if      ( manifest.isFile() )      printFile( error, manifest, exchange )
+  else if ( manifest.isDirectory() ) printDirectory( error, manifest, exchange )
+  else                               printError( new weave.HTTPError( 500 ), manifest, exchange )
 }
 
-function printError( error, manifest, connection ) {
+function printError( error, manifest, exchange ) {
   let document = dom.createHtmlDocument( `${error.statusCode} ${error.status}` )
   document.body.appendChild( document.createElement( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
   if ( error.description ) {
@@ -42,60 +42,60 @@ function printError( error, manifest, connection ) {
     })
   }
 
-  return connection.status( error.statusCode ).end( document.toString() )
+  return exchange.status( error.statusCode ).end( document.toString() )
 }
 
-function printFile( error, manifest, connection ) {
-  let cacheDate = connection.detail( "if-modified-since" )
+function printFile( error, manifest, exchange ) {
+  let cacheDate = exchange.detail( "if-modified-since" )
   let extname = path.extname( manifest.path )
-  let engine = connection.behavior( `engines ${extname}` )
+  let engine = exchange.behavior( `engines ${extname}` )
   // We have to take away some precision, because some file systems store the modify time as accurately as by the millisecond,
   // but due to the standard date format used by HTTP headers, we can only report it as accurately as by the second.
   if ( !error && cacheDate && !engine && Math.floor( cacheDate.getTime() / 1000 ) === Math.floor( manifest.stats.mtime.getTime() / 1000 ) )
-    return connection.redirect( 304 )
+    return exchange.redirect( 304 )
 
   weave.cache( manifest.path, manifest.stats ).then( ({ content }) => {
     // Check if there is an engine specified for this file format
     if ( typeof engine === 'function' ) {
       try {
-        Promise.resolve( engine( content, manifest, connection ) )
-          .then( output => printFileHead( error, manifest, connection ).end( output ) )
-          .catch( error => connection.generateErrorPage(new weave.HTTPError( 500, error )) )
+        Promise.resolve( engine( content, manifest, exchange ) )
+          .then( output => printFileHead( error, manifest, exchange ).end( output ) )
+          .catch( error => exchange.generateErrorPage(new weave.HTTPError( 500, error )) )
       } catch ( error ) {
-        connection.generateErrorPage(new weave.HTTPError( 500, error ))
+        exchange.generateErrorPage(new weave.HTTPError( 500, error ))
       }
       return
     }
 
-    printFileHead( error, manifest, connection ).end( content )
+    printFileHead( error, manifest, exchange ).end( content )
   }).catch( () => {
-    printError( new weave.HTTPError( 500 ), {}, connection )
+    printError( new weave.HTTPError( 500 ), {}, exchange )
   })
 }
 
-function printFileHead( error, manifest, connection ) {
+function printFileHead( error, manifest, exchange ) {
   let extname = path.extname( manifest.path )
-  connection.status( error ? error.statusCode : 200 )
-    .writeHeader( 'Content-Type', connection.behavior( `mimeTypes ${extname}` ) )
+  exchange.status( error ? error.statusCode : 200 )
+    .writeHeader( 'Content-Type', exchange.behavior( `mimeTypes ${extname}` ) )
   // Don't cache error pages
-  if ( !error ) connection.writeHeader( "Last-Modified", manifest.stats.mtime.toUTCString() )
-  return connection
+  if ( !error ) exchange.writeHeader( "Last-Modified", manifest.stats.mtime.toUTCString() )
+  return exchange
 }
 
-function printDirectory( error, manifest, connection ) {
+function printDirectory( error, manifest, exchange ) {
   fs.readdir( manifest.path, ( derror, files ) => {
-    if ( derror ) return connection.generateErrorPage( 500 )
+    if ( derror ) return exchange.generateErrorPage( 500 )
 
-    if ( connection.url.description === 'directory.json' ) {
-      connection.writeHeader( 'Content-Type', 'application/json' )
-      return connection.end( JSON.stringify( files ) )
+    if ( exchange.url.description === 'directory.json' ) {
+      exchange.writeHeader( 'Content-Type', 'application/json' )
+      return exchange.end( JSON.stringify( files ) )
     }
 
     // If it's not JSON, it must be HTML.
-    connection.writeHeader( 'Content-Type', 'text/html' )
+    exchange.writeHeader( 'Content-Type', 'text/html' )
 
     // Basic document setup
-    let document = dom.createHtmlDocument( `Contents of ${connection.url.pathname}` )
+    let document = dom.createHtmlDocument( `Contents of ${exchange.url.pathname}` )
     let header = document.createElement( 'h1' )
     let list = document.createElement( 'ul' )
     header.innerHTML = document.title
@@ -108,7 +108,7 @@ function printDirectory( error, manifest, connection ) {
     // Don't waste our time with empty directories
     if ( files.length === 0 ) {
       document.body.appendChild( document.createElement( 'p' ) ).innerHTML = "Nothing to see here!"
-      connection.end( document.toString() )
+      exchange.end( document.toString() )
     }
 
     Promise.all( files.map( file => {
@@ -121,7 +121,7 @@ function printDirectory( error, manifest, connection ) {
 
           yes({
             type: isDir ? 'directory' : 'file',
-            href: path.join( '/', connection.url.pathname, name ),
+            href: path.join( '/', exchange.url.pathname, name ),
             name: name
           })
         } )
@@ -136,9 +136,9 @@ function printDirectory( error, manifest, connection ) {
         list.appendChild( li ).appendChild( a )
       })
 
-      connection.end( document.toString() )
+      exchange.end( document.toString() )
     }).catch( () => {
-      connection.generateErrorPage( 500 )
+      exchange.generateErrorPage( 500 )
     })
   })
 }

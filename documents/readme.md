@@ -21,6 +21,7 @@ $ myWeaveApp --aww-heck-yes # Try it for yourself! :)
 $ myWeaveApp --weave-verbose # Equivalent to weave.Garden.verbose = true
 $ myWeaveApp --enable-weave-repl # Will enable a command line repl
 $ myWeaveApp --enable-weave-instruments # Will allow calls to weave.attachInstruments
+$ myWeaveApp --enable-interface-engine # Enables experimental implementation
 ```
 
 ## Configuration behaviors
@@ -36,7 +37,7 @@ These properties can be set on the global `weave.configuration` object, on an
 'jsonDirectoryListings': bool enabled
 'mimeTypes': dictionary
 'errorPages': { errorCode: str pathToFile.. }
-'engines': { '.ext': engine( content, details, connection ) -> Promise.. }
+'engines': { '.ext': engine( content, details, exchange ) -> Promise.. }
 // Can only be configured via weave.configuration as caches are global and shared
 'cache': { maxCacheSize: num megabytes, maxCachedFileSize: num megabytes }
 'redirect': { fromUrl: str toUrl }
@@ -72,14 +73,14 @@ app.link( str 'hostname:port' | num port ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
 app.subdirectory( dirName[, superDirName | superDirBehaviors], dirBehaviors ) -> app
-app.interface( dirName, handle( connection, manifest ) -> promise[, str method | array ['methods'..]] ) -> app
-app.engine( str extension, handle( fileBuffer, manifest, connection ) -> promise)
+app.interface( dirName, handle( exchange, manifest ) -> promise[, str method | array ['methods'..]] ) -> app
+app.engine( str extension, handle( fileBuffer, manifest, exchange ) -> promise)
 app.redirect( str from, str to )
 app.header( str name, str value )
 app#configured( dirName, dirConf, appConf )
-app#connection( connection )
-app.router( connection ) -> undefined
-app.printer( httpError, manifest, connection ) -> undefined                   
+app#exchange( exchange )
+app.router( exchange ) -> undefined
+app.printer( httpError, manifest, exchange ) -> undefined                   
 ```
 
 #### Promises
@@ -115,7 +116,7 @@ ws#connection( wsConnection )
 
 ### weave.WebSocketConnection
 ```JavaScript
-new weave.WebSocketConnection( ws, connection ) -> wsConnection
+new weave.WebSocketConnection( ws, exchange ) -> wsConnection
 wsConnection#message( message{ buffer decoded[, str data] } )
 wsConnection#close( message{ num code, str reason } )
 wsConnection.send( data ) -> bool success
@@ -139,20 +140,20 @@ manifest.type: str 'directory' | 'file' | 'interface'
 manifest.url: connection.url
 ```
 
-#### weave.Connection
+#### weave.Exchange
 ```JavaScript
-new weave.Connection( clientRequest, serverResponse ) -> connection
-connection.behavior( behaviorName ) -> behaviorValue
-connection.detail( headerName[, untampered ] ) -> headerValue
-connection.status( statusCode ) -> connection
-connection.writeHeader( headerName, headerValue ) -> connection
-connection.writeHead([ status,] objOfHeaders ) -> connection
-connection.endHead( headerName, headerValue ) -> connection
-connection.hasBody() -> bool
-connection.write( content[, encoding] ) -> connection
-connection.end( content[, encoding] ) -> connection
-connection.redirect( location[, status] ) -> connection
-connection.generateErrorPage( httpError ) -> undefined
+new weave.Exchange( clientRequest, serverResponse ) -> exchange
+exchange.behavior( behaviorName ) -> behaviorValue
+exchange.detail( headerName[, untampered ] ) -> headerValue
+exchange.status( statusCode ) -> exchange
+exchange.writeHeader( headerName, headerValue ) -> exchange
+exchange.writeHead([ status,] objOfHeaders ) -> exchange
+exchange.endHead( headerName, headerValue ) -> exchange
+exchange.hasBody() -> bool
+exchange.write( content[, encoding] ) -> exchange
+exchange.end( content[, encoding] ) -> exchange
+exchange.redirect( location[, status] ) -> exchange
+exchange.generateErrorPage( httpError ) -> undefined
 ```
 
 #### weave.cache

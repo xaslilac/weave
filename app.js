@@ -54,12 +54,12 @@ weave.App = class App extends events.EventEmitter {
       // it. If it's a literal, clear wildcardMatches for that literal.
       if ( /\*/.test( host ) ) {
         let wildcard = new Wildcard( host )
-        Object.keys( weave.cache.wildcardMatches ).forEach( cachedhost => {
-          if ( weave.cache.wildcardMatches.hasOwnProperty( cachedhost ) )
-            if ( wildcard.match( weave.cache.wildcardMatches[ cachedhost ] ) )
-              weave.cache.wildcardMatches[ cachedhost ] = false })
-      } else if ( weave.cache.wildcardMatches[ host ] )
-        weave.cache.wildcardMatches[ host ] = false
+        Object.keys( weave.cache.hostMatches ).forEach( cachedhost => {
+          if ( weave.cache.hostMatches.hasOwnProperty( cachedhost ) )
+            if ( wildcard.match( weave.cache.hostMatches[ cachedhost ] ) )
+              weave.cache.hostMatches[ cachedhost ] = false })
+      } else if ( weave.cache.hostMatches[ host ] )
+        weave.cache.hostMatches[ host ] = false
 
       // Link the app to it's hostname
       weave.hosts[ host ] = this
@@ -73,7 +73,7 @@ weave.App = class App extends events.EventEmitter {
 
       let server = weave.servers[ port ] = http.createServer();
       // Accept incoming requests on the server
-      ['request', 'upgrade'].forEach(e => server.on( e, (i, o) => new weave.Connection( i, o ) ))
+      ['request', 'upgrade'].forEach( event => server.on( event, ( ...streams ) => new weave.Exchange( ...streams ) ) )
       // Used to determine if any servers are active yet when an error is encountered.
       server.on( 'listening', () => { weave._ACTIVE = true; this.emit( 'listening' ) } )
       server.listen( port, '::' )

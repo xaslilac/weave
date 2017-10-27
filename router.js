@@ -7,57 +7,57 @@ let garden = new weave.Garden( 'weave.App::router' )
 let fs = require( 'fs' )
 let path = require( 'path' )
 
-weave.App.prototype.route = function ( connection ) {
+weave.App.prototype.route = function ( exchange ) {
   // Debug inspecting
-  garden.debug( this.appName, connection.url )
+  garden.debug( this.appName, exchange.url )
 
   // Get the manifest ready for the printer, and make the printer easy to call.
-	let manifest = new weave.Manifest( { url: connection.url } )
-  let print = more => this.printer( undefined, manifest.extend( more ), connection )
+	let manifest = new weave.Manifest( { url: exchange.url } )
+  let print = more => this.printer( undefined, manifest.extend( more ), exchange )
 
   // Set the initial depth to 0. Depth is used to keep track of
   // how many directories we've moved up from the original url.
   // This is used for directory indexes with finite depth.
-  connection.url.depth = 0
+  exchange.url.depth = 0
 
   // Upgrades are only supported via interfaces.
   // TODO: Let's emit an upgrade event here as one last attempt
   // at saving the connection before we destroy it.
-  if ( connection.isUpgrade ) {
-    connection.destroy()
-    return connection.generateErrorPage( new weave.HTTPError( 501, "Cannot Upgrade" ) )
+  if ( exchange.isUpgrade ) {
+    exchange.destroy()
+    return exchange.generateErrorPage( new weave.HTTPError( 501, "Cannot Upgrade" ) )
   }
 
   // If the request type isn't GET, HEAD, or POST, then we don't know how to
   // handle it. But should we really disconnect? Code 405 let's them know that
   // we can't handle the request, instead of just confusing the client as to
   // why they didn't ever recieve anything in return to the request.
-  if ( !'GET HEAD POST'.includes( connection.method ) )
-    return connection.generateErrorPage( new weave.HTTPError( 405, `Only GET, HEAD, and POST methods are supported.` ) )
+  if ( !'GET HEAD POST'.includes( exchange.method ) )
+    return exchange.generateErrorPage( new weave.HTTPError( 405, `Only GET, HEAD, and POST methods are supported.` ) )
 
-  let redirect = connection.behavior( `redirect ${connection.url.path}`)
-  if ( redirect ) return connection.redirect( redirect )
+  let redirect = exchange.behavior( `redirect ${exchange.url.path}`)
+  if ( redirect ) return exchange.redirect( redirect )
 
   // cursor points to where ever we're searching for files.
-  let location = connection.behavior( 'location' )
-  if ( typeof location !== 'string' ) return garden.error( `No location set for ${connection.url.pathname}! Cannot route!` )
-  let cursor = path.join( location, unescape( connection.url.path ) )
+  let location = exchange.behavior( 'location' )
+  if ( typeof location !== 'string' ) return garden.error( `No location set for ${exchange.url.pathname}! Cannot route!` )
+  let cursor = path.join( location, unescape( exchange.url.path ) )
 
   // This function makes depth adjustments, and is called rather than calling
   // search directly if a recursive search is necessary.
   let reroute = function () {
     // If there's room to step back and keep searching for files then we do so.
-    if ( !path.relative( '/', connection.url.path ) )
-      return connection.generateErrorPage( new weave.HTTPError( 404 ) )
+    if ( !path.relative( '/', exchange.url.path ) )
+      return exchange.generateErrorPage( new weave.HTTPError( 404 ) )
 
     cursor = path.join( cursor, '..' )
-    connection.url.path = path.join( connection.url.path, '..' )
-    connection.url.description = path.relative( connection.url.path, connection.url.pathname )
-    connection.url.depth++
+    exchange.url.path = path.join( exchange.url.path, '..' )
+    exchange.url.description = path.relative( exchange.url.path, exchange.url.pathname )
+    exchange.url.depth++
     search()
   }
 
-  let indexes = connection.behavior( 'indexes' )
+  let indexes = exchange.behavior( 'indexes' )
 
   // Define our search function
   const search = () => {
@@ -68,10 +68,10 @@ weave.App.prototype.route = function ( connection ) {
         // Search for any files with favored extensions.
         // Favored extensions only work on a depth of 0, and if the url ends in
         // a character that would be valid in a filename.
-        if ( connection.url.depth === 0
-        && Array.isArray( connection.behavior( 'favoredExtensions' ) )
-        && connection.url.pathname.charAt( connection.url.pathname.length - 1 ).match( /[A-Za-z0-9\-\_]/ ) ) {
-          Promise.all( connection.behavior( 'favoredExtensions' ).map( extension => {
+        if ( exchange.url.depth === 0
+        && Array.isArray( exchange.behavior( 'favoredExtensions' ) )
+        && exchange.url.pathname.charAt( exchange.url.pathname.length - 1 ).match( /[A-Za-z0-9\-\_]/ ) ) {
+          Promise.all( exchange.behavior( 'favoredExtensions' ).map( extension => {
             return new Promise( ( next, print ) => {
               fs.stat( cursor + extension, ( error, stats ) => {
                 if ( error || !stats.isFile() ) return next()
@@ -87,13 +87,13 @@ weave.App.prototype.route = function ( connection ) {
         if ( stats.isFile() ) {
           print({ path: cursor, stats: stats, type: "file" })
         } else if ( stats.isDirectory() ) {
-          if ( connection.url.depth === 0 && connection.behavior( 'urlCleaning' )
-          && !connection.url.pathname.endsWith('/') ) {
-            connection.redirect( connection.url.pathname + '/' )
+          if ( exchange.url.depth === 0 && exchange.behavior( 'urlCleaning' )
+          && !exchange.url.pathname.endsWith('/') ) {
+            exchange.redirect( exchange.url.pathname + '/' )
           } else if ( indexes ) {
             Promise.all( Object.keys( indexes ).map( index => {
               return new Promise( ( next, print ) => {
-                if ( connection.url.depth <= indexes[ index ] ) {
+                if ( exchange.url.depth <= indexes[ index ] ) {
                   index = path.join( cursor, index )
 
                   fs.stat( index, function ( error, stats ) {
@@ -103,13 +103,13 @@ weave.App.prototype.route = function ( connection ) {
                 } else next()
               })
             }) ).then( () => {
-              if ( connection.url.depth === 0 && connection.behavior( 'htmlDirectoryListings' ) ) {
+              if ( exchange.url.depth === 0 && exchange.behavior( 'htmlDirectoryListings' ) ) {
                 print({ path: cursor, stats: stats, type: 'directory' })
-              } else if ( connection.behavior( 'jsonDirectoryListings' )
-              && connection.url.depth === 1 && connection.url.description === 'directory.json' ) {
+              } else if ( exchange.behavior( 'jsonDirectoryListings' )
+              && exchange.url.depth === 1 && exchange.url.description === 'directory.json' ) {
                   print({ path: cursor, stats: stats, type: 'directory'})
               } else {
-                connection.generateErrorPage( new weave.HTTPError( 404, 'The file you requested does not exist.' ) )
+                exchange.generateErrorPage( new weave.HTTPError( 404, 'The file you requested does not exist.' ) )
               }
             }).catch( print )
           } else {

@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( './weave' )
-let garden = new weave.Garden( 'weave.Connection' )
+let garden = new weave.Garden( 'weave.Exchange' )
 
 let events = require( 'events' )
 let fs = require( 'fs' )
@@ -17,7 +17,7 @@ const z = new Buffer('0\r\n\r\n')
 // The Connection class determines which App is responsible
 // for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
-weave.Connection = class Connection extends events.EventEmitter {
+weave.Exchange = class Exchange extends events.EventEmitter {
 	constructor( i, o ) {
 		// Make it an EventEmitter
 		super()
@@ -44,6 +44,15 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  this._NODE_CONNECTION = i.connection,
 	  this._NODE_REQUEST = i, this._NODE_RESPONSE = o
 
+		// This is so that we don't start forwarding data until someone is listening
+		// to it, since we don't implement a Readable Stream, we just forward events.
+		this.on( 'newListener', event => {
+			if ( event === 'data' ) {
+				i.on( 'data', data => this.emit( 'data', data ) )
+				this.removeAllListeners( 'newListener' )
+			}
+		})
+
 	  // Normalize the url to prevent anyone being sneaky with, say, some "../../"
 	  // tomfoolery to get low level file system access, and fill in the blanks.
 		this.url = url.parse( path.normalize( i.url ) )
@@ -58,15 +67,14 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  // that don't contain at least one wildcard since they won't match.
 	  if ( weave.hosts[ this.host ] ) {
 	    this.app = weave.hosts[ this.host ].app
-	  } else if ( weave.cache.wildcardMatches[ this.host ] ) {
-	    this.app = weave.hosts[ weave.cache.wildcardMatches[ this.host ] ]
+	  } else if ( weave.cache.hostMatches[ this.host ] ) {
+	    this.app = weave.hosts[ weave.cache.hostMatches[ this.host ] ]
 	  } else {
-			let appName = Wildcard.bestMatch(
-	      Object.keys( weave.hosts ).filter( host => /\*/.test( host ) ),
-	    this.host )
+			let appHostName = Wildcard.bestMatch( this.host,
+	      Object.keys( weave.hosts ).filter( host => /\*/.test( host ) ) )
 
 	    // If there isn't a linked app then just end the connection.
-			if ( !appName ) {
+			if ( !appHostName ) {
 	      // XXX: Should we really do this silently? Or should we report?
       	// We're trying to pretend that there isn't a server connected but
 	      // is that really a good idea? We should probably tell someone that
@@ -76,12 +84,12 @@ weave.Connection = class Connection extends events.EventEmitter {
 			}
 
 			// Remember which wildcard best matched this host for next time
-			weave.cache.wildcardMatches[ this.host ] = appName
-			this.app = weave.hosts[ appName ]
+			weave.cache.hostMatches[ this.host ] = appHostName
+			this.app = weave.hosts[ appHostName ]
 		}
 
 		// Give each connection a UUID for a little bit of tracing.
-		this.UUID = weave.Connection.generateUUID()
+		this.UUID = weave.Exchange.generateUUID()
 		// Set directory to an empty string for length comparisons.
 		this.directory = ''
 
@@ -111,41 +119,12 @@ weave.Connection = class Connection extends events.EventEmitter {
 			this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
 			this.configuration = this.app.configuration[ this.directory ]
 
-			if ( this.configuration.type === 'interface' ) {
-		    this.url.description = path.relative( this.directory, this.url.pathname )
-
-				let manifest = new weave.Manifest( { url: this.url, type: 'interface' } )
-		    let handle = this.configuration[ this.method ] || this.configuration.any
-		    if ( typeof handle !== 'function' ) return this.generateErrorPage(new weave.HTTPError( 405 ))
-
-				try {
-					Promise.resolve( handle.call( this.app, this, manifest ) )
-						.catch( conf => {
-							if ( conf instanceof Error )
-								return this.generateErrorPage(new weave.HTTPError( 500, conf ))
-
-							this.configuration = conf
-							this.app.emit( 'connection', this )
-							this.app.route( this )
-						})
-				} catch ( error ) {
-					this.generateErrorPage(new weave.HTTPError( 500, error ))
-				}
-
-				// Once the handle has been started, we can start listening for data.
-				i.on( 'data', data => this.emit( 'data', data ) )
-
-		    return
-			}
+			if ( this.configuration.type === 'interface' ) return weave.interfaces.handle( connection )
 		}
 
-    // Begin emiting data and connection events
-    this.app.emit( 'connection', this )
-		i.on( 'data', data => this.emit( 'data', data ) )
-
-		// Begin routing the connection
-		 try { this.app.route( this ) }
-		 catch ( error ) { this.generateErrorPage(new weave.HTTPError( 500, error )) }
+    this.app.emit( 'exchange', this )
+	  try { this.app.route( this ) }
+	  catch ( error ) { this.generateErrorPage(new weave.HTTPError( 500, error )) }
 	}
 
 	static generateUUID() {
@@ -219,7 +198,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 						let data = {}
 						header.split( ';' ).forEach( cookie => {
 							cookie = cookie.trim().split( '=' )
-							data[cookie.shift()] = cookie.join( '=' ) || true
+							data[cookie.shift()] = cookie.length ? cookie.join( '=' ) : true
 						})
 						return data
 					}
@@ -269,7 +248,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 			status = 200
 		}
 
-		if ( !headers ) return garden.error( 'No headers given to weave.Connection::writeHead!' )
+		if ( !headers ) return garden.error( 'No headers given to weave.Exchange::writeHead!' )
 
 	  if ( !this._WRITTEN_STATUS ) this.status( status )
 	  Object.keys( headers ).forEach( name => this.writeHeader( name, headers[ name ] ) )
@@ -305,14 +284,10 @@ weave.Connection = class Connection extends events.EventEmitter {
 	// TODO: Check before writing the Date header as well. Or disallow anyone else
 	// from writing it with a condition in ::writeHeader().
 	write( content, encoding ) {
-	  // If we aren't writing the body yet, right some final headers.
-	  if ( this.state === 3 ) {
-			return garden.error( "Cannot write data, response has already been completed." )
-		}
-
-	  if ( this.state < 2 ) {
-	    this.endHead()
-	  }
+	  if ( this.state === 3 ) return garden.error( "Cannot write data, response has already been completed." )
+	  if ( this.state < 2 ) this.endHead()
+		if ( typeof content !== 'string' && !content instanceof Buffer )
+			return garden.typeerror( 'Content must be a string or buffer' )
 
 		if ( this.hasBody() ) {
 	    if ( this.isKeepAlive ) {
@@ -380,10 +355,3 @@ weave.Connection = class Connection extends events.EventEmitter {
 		})
 	}
 }
-
-
-
-
-
-// Create destroy, pause, and resume reference methods.
-;['destroy', 'pause', 'resume'].forEach( name => weave.Connection.prototype[name] = () => this._NODE_CONNECTION[name]() )

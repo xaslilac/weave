@@ -56,8 +56,8 @@ class	Element {
 	}
 
   toString() {
-  	return `\n<${this.tagName} ${
-      Object.keys( this.attributes ).map( key => `${key}='${this.attributes[ key ]}'` ).join( ' ' )
+  	return `\n<${this.tagName}${
+      Object.keys( this.attributes ).map( key => ` ${key}='${this.attributes[ key ]}'` ).join( '' )
     }>` + this.children.map( child => child.toString() ).join( '' ) + `</${this.tagName}>\n`
   }
 

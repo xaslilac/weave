@@ -9,7 +9,9 @@ weave.cache = ( path, stats ) => weave.cache.retrieveFile( path, stats )
 let mostRecent = []
 
 Object.assign( weave.cache, {
-  wildcardMatches: {},
+  // For use in matching requests to apps
+  hostMatches: {},
+
   fileEntries: { 'size': 0 },
 
   retrieveFile: function ( path, stats ) {

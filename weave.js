@@ -5,18 +5,34 @@
 let crypto = require( 'crypto' )
 let http = require( 'http' )
 
-const weave = module.exports = exports =
-  ( appName, ...conf ) => new weave.App( appName, ...conf )
+const weave = module.exports = exports = ( ...conf ) => new weave.App( ...conf )
 
 Object.assign( weave, {
-  version: '0.2.0',
+  Dictionary: require( './utilities/mimedictionary' ),
+  Garden: require( './utilities/garden' )
+})
+
+require( './app' )
+require( './cache' )
+require( './exchange' )
+require( './interfaces' )
+require( './manifest' )
+require( './printer' )
+require( './router' )
+require( './websocket' )
+
+let garden = new weave.Garden( 'weave' )
+
+Object.assign( weave, {
+  version: '0.2.1',
 
   servers: {}, apps: { anonymous: [] }, hosts: {},
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
                HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH,
                STATUS_CODES: http.STATUS_CODES },
 
-  sources: 'app, cache, connection, manifest, printer, router, websocket',
+  verbose( verbose = true ) { weave.Garden.verbose = verbose },
+  silent() { this.verbose( false ) },
 
   configuration: {
     'urlCleaning': true,
@@ -29,12 +45,9 @@ Object.assign( weave, {
       let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
       return base ? r.toString( base ) : r } },
 
-  Dictionary: require( './utilities/mimedictionary' ),
-  Garden: require( './utilities/garden'),
-
   HTTPError: class HTTPError {
     constructor( code, desc ) {
-      if ( typeof code !== 'number' ) console.error( new TypeError( 'HTTPError requires argument code to be a number!' ) )
+      if ( typeof code !== 'number' ) garden.typeerror( 'HTTPError requires argument code to be a number!' )
 
       if ( desc instanceof Error ) desc = `${desc.name}: ${desc.message}\n${desc.stack}`
 
@@ -48,10 +61,12 @@ Object.assign( weave, {
 
   flags: {
     awwHeckYes() { console.log( 'Aww heck yes!!' ) },
-    weaveVerbose() { weave.Garden.verbose = true },
+    weaveVerbose() { weave.verbose() },
     enableWeaveRepl() { require( './developer/repl' ).connect() },
-    enableWeaveInstruments() { require( './developer/instruments' ) } }
-});
+    enableWeaveInstruments() { require( './developer/instruments' ) },
+    enableInterfaceEngine() { weave.configuration.engines = { '.interface': weave.interfaces.engine } }
+  }
+})
 
 // Read command line configuration options
 process.argv.forEach( ( arg, index ) => {
@@ -62,6 +77,3 @@ process.argv.forEach( ( arg, index ) => {
     if ( typeof narg === 'function' ) narg( ...process.argv.slice( index + 1 ) )
   }
 })
-
-// Once everything is configured, load everything in.
-weave.sources.split(', ').forEach( module => require( `./${module}` ) )

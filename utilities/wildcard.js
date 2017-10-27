@@ -21,7 +21,7 @@ module.exports = class Wildcard {
     return new Wildcard( wildcard ).match( string )
   }
 
-  static bestMatch( wildcards, string ) {
+  static bestMatch( string, wildcards ) {
     let match = ""
 
     wildcards.forEach( wildcard => {
