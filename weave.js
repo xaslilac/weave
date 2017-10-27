@@ -34,7 +34,7 @@ Object.assign( weave, {
 
   HTTPError: class HTTPError {
     constructor( code, desc ) {
-      if ( typeof code !== 'number' ) console.error( 'HTTPError requires argument code to be a number!' )
+      if ( typeof code !== 'number' ) console.error( new TypeError( 'HTTPError requires argument code to be a number!' ) )
 
       if ( desc instanceof Error ) desc = `${desc.name}: ${desc.message}\n${desc.stack}`
 
@@ -48,13 +48,12 @@ Object.assign( weave, {
 
   flags: {
     awwHeckYes() { console.log( 'Aww heck yes!!' ) },
-    weaveVerbose() { weave.Garden.enableDebug() },
+    weaveVerbose() { weave.Garden.verbose = true },
     enableWeaveRepl() { require( './developer/repl' ).connect() },
     enableWeaveInstruments() { require( './developer/instruments' ) } }
 });
 
-weave.sources.split(', ').forEach( module => require( `./${module}` ) )
-
+// Read command line configuration options
 process.argv.forEach( ( arg, index ) => {
   if ( arg.indexOf( '--' ) === 0 ) {
     let narg = weave.flags[ arg.substring( 2 ).toLowerCase()
@@ -63,3 +62,6 @@ process.argv.forEach( ( arg, index ) => {
     if ( typeof narg === 'function' ) narg( ...process.argv.slice( index + 1 ) )
   }
 })
+
+// Once everything is configured, load everything in.
+weave.sources.split(', ').forEach( module => require( `./${module}` ) )

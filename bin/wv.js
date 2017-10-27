@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-let weave = require( './weave' )
+let weave = require( '../weave' )
 
 weave.flags.enableWeaveRepl()

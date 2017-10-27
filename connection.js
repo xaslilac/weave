@@ -211,7 +211,7 @@ weave.Connection = class Connection extends events.EventEmitter {
 	  if ( !untampered ) {
 	    switch ( name ) {
 	      case "if-modified-since":
-	        if ( header ) { return new Date( header ) }
+	        if ( header ) return new Date( header )
 	        break;
 	      case "cookie":
 	        // I think this is how we parse cookies but I suck at them???
@@ -234,8 +234,8 @@ weave.Connection = class Connection extends events.EventEmitter {
 
 	status( status ) {
 	  // Check to make sure the status is valid, and has not yet been written.
-	  if ( this.state !== 0 ) { return garden.error( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` ) }
-		if ( typeof status !== 'number' ) { return garden.typeerror( 'Status is not a number!', status ) }
+	  if ( this.state !== 0 ) return garden.error( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` )
+		if ( typeof status !== 'number' ) return garden.typeerror( `Status ${status} is not a number!` )
 
 	  this._NODE_CONNECTION.write( `HTTP/1.1 ${status} ${weave.constants.STATUS_CODES[status]}\r\n` )
 		this._WRITTEN_STATUS = status
@@ -376,7 +376,6 @@ weave.Connection = class Connection extends events.EventEmitter {
 			: errorPageName
 
 		fs.stat( errorPagePath, ( serror, stats ) => {
-			console.log( serror )
 			print( !serror && stats.isFile() ? { path: errorPagePath, stats: stats, type: 'file' } : null )
 		})
 	}

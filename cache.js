@@ -13,6 +13,9 @@ Object.assign( weave.cache, {
   fileEntries: { 'size': 0 },
 
   retrieveFile: function ( path, stats ) {
+    if ( typeof path !== 'string' ) return garden.typeerror( 'path argument must be a string!' )
+    if ( !stats instanceof fs.Stats ) return garden.typeerror( 'stats arugment must be a Stats object!' )
+
     return new Promise( ( fulfill, reject ) => {
       let cachedFile = this.fileEntries[ path ]
 

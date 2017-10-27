@@ -14,15 +14,19 @@ weave.App = class App extends events.EventEmitter {
     // Make it an EventEmitter
     super()
 
-    if ( typeof appName === 'string' ) {
-      if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! App '${appName}' already exists!` )
-      this.appName = appName
-      weave.apps[ appName ] = this
-    } else {
-      weave.apps.anonymous.push( this )
-      configuration = appName
+    if ( appName ) {
+      if ( typeof appName === 'string' ) {
+        if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! App '${appName}' already exists!` )
+        this.appName = appName
+        weave.apps[ appName ] = this
+      } else {
+        weave.apps.anonymous.push( this )
+        configuration = appName
+        appName = configuration.appName
+      }
     }
 
+    this.garden = new weave.Garden( `${appName || 'anonymous'} instanceof weave.App` )
     this.configuration = configuration || {}
     this.cache = {
       parentDirectories: {},
@@ -35,15 +39,15 @@ weave.App = class App extends events.EventEmitter {
       // If host is a port number, it will handle the entire port.
       // If it is not a port number or a string, it is invalid.
       if ( typeof host === 'number' ) host = `*:${host}`
-      else if ( typeof host !== 'string' ) return garden.typeerror( "Host much be a string, or a port number." )
+      else if ( typeof host !== 'string' ) return this.garden.typeerror( "Host much be a string, or a port number." )
 
       // If the host is already taken, abandon ship.
-      if ( weave.hosts[ host ] ) return garden.error( `Host ${host} already used by ${weave.hosts[host].appName}.` )
+      if ( weave.hosts[ host ] ) return this.garden.error( `Host ${host} already used by ${weave.hosts[host].appName}.` )
 
       // Check to make sure it is a valid host, with a valid port. (Inside the range 0x1-0xFFFF)
       let [ split, hostname, port ] = host.match( /^(.+?\:)?([0-9]{1,5})$/ )
-      if ( !split ) return garden.error( `Invalid host: ${host}` )
-      if ( port < 1 || port > 0xFFFF ) return garden.error( `${port} is not a valid port number.` )
+      if ( !split ) return this.garden.error( `${host} is not a valid host name.` )
+      if ( port < 1 || port > 0xFFFF ) return this.garden.error( `${port} is not a valid port number.` )
       if ( !hostname ) host = `*:${port}`
 
       // If the host is a wildcard then clear all wildcardMatches that match
@@ -87,8 +91,8 @@ weave.App = class App extends events.EventEmitter {
   }
 
   subdirectory( directory, inherit, configuration ) {
-    if ( typeof directory !== 'string' ) return garden.typeerror( 'Argument directory must be a string!')
-    if ( !path.isAbsolute( directory ) ) return garden.error( 'Argument directory must be absolute!' )
+    if ( typeof directory !== 'string' ) return this.garden.typeerror( 'Argument directory must be a string!')
+    if ( !path.isAbsolute( directory ) ) return this.garden.error( 'Argument directory must be absolute!' )
     if ( directory.length < 2 ) return garden.error( 'Argument directory cannot be root!')
     // Clear the cache so that the configuration can be modified and
     // not conflict with previously caches requests.
@@ -123,7 +127,7 @@ weave.App = class App extends events.EventEmitter {
   }
 
   setBehavior( name, value ) {
-    if ( typeof name !== 'string' ) return garden.typeerror( `Behavior name '${name}' is not a string!` )
+    if ( typeof name !== 'string' ) return this.garden.typeerror( `Behavior name '${name}' is not a string!` )
     let nests = name.split(' ')
     let prop = nests.pop()
     let cursor = this.configuration
@@ -156,9 +160,10 @@ weave.App = class App extends events.EventEmitter {
     let wrap = this.configuration[ path ]
 
     if ( typeof methods === 'string' ) methods = [ methods ]
-    else if ( !Array.isArray( methods ) ) garden.typeerror( 'Interface method must be a string or an array of strings' )
+    else if ( !Array.isArray( methods ) ) return this.garden.typeerror( 'Interface method must be a string or an array of strings' )
 
     methods.forEach( method => {
+      if ( typeof method !== 'string' ) return this.garden.typeerror( 'Interface method must a string!' )
       if ( wrap[ method ] ) return garden.error( `Interface ${method}: ${path} already exists!` )
       wrap[ method ] = handle
     })
