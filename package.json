@@ -3,7 +3,7 @@
   "version": "0.2.2",
   "description": "A super duper good Node.js server!",
   "engine": {
-    "node": ">= 8.6.0"
+    "node": ">=8.6.0"
   },
   "main": "weave.js",
   "bin": {
