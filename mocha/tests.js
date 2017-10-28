@@ -1,8 +1,10 @@
+"use strict";
+
 let assert = require( 'assert' )
 let weave = require(  '../' )
 
 context( 'weave', function () {
-  describe( 'constructing a new app', function() {
+  describe( 'constructing a new app', function () {
     it( 'should return an instance of weave.App', function () {
       assert( weave() instanceof weave.App )
     })
