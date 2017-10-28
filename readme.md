@@ -37,8 +37,9 @@ strong routing features, a base WebSocket implementation, document generation
 through a server-side DOM tree for error pages, etc., basic caching ground work.
 
 ### Upcoming
-## Console/file logging - v0.2 (Sun Screen)
-Build a robust error and warning backend system with the ability to log to files
+## Logging and testing - v0.2 (Sun Screen)
+Build a robust error and warning backend system with the ability to log to files.
+Implement a full (or at least mostly full) test suite.
 
 ### Remote debugging / Admin panel - v0.3 (Gooey)
 Add the ability to have an online debug console/admin panel that you would
