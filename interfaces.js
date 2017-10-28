@@ -39,6 +39,8 @@ weave.interfaces = {
     exchange.url.description = path.relative( exchange.directory, exchange.url.pathname )
     let manifest = new weave.Manifest( { url: exchange.url, type: 'interface' } )
 
+    exchange.app.emit( 'interface exchange', exchange )
+
     try {
       Promise.resolve( handle( exchange, manifest ) )
         .catch( conf => {

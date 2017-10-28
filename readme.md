@@ -25,9 +25,8 @@ or just download a .zip and throw it into a node_modules folder somewhere. You s
 
 ### Coming soon...
 - An easy to use and robust command line interface
-- Uses Promises API
 - A simple web interface to control remotely or locally monitor internal data
-- SPDY & HTTP 2.0 support eventually maybe
+- HTTP/2 support
 
 ## Roadmap
 
@@ -72,7 +71,7 @@ resume a disrupted download at a later time, and to accept user uploads.
 ### Standalone operation - v0.7
 Polish the CLI enough to be able to run entirely from the command line.
 
-### SPDY Protocol / GZip / HTTP 2.0 / HTTPS support - v0.8
+### HTTP/2, HTTPS, compression support - v0.8
 Add support for Google's SPDY protocol and for HTTP 2.0. HTTPS support is
 hard for me to implement without access to any sort of secure certificate
 of my own to work with, and is a requirement for SPDY.

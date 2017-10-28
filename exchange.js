@@ -10,8 +10,7 @@ let path = require( 'path' )
 let url = require( 'url' )
 let Wildcard = require( './utilities/wildcard' )
 
-// n is a CRLF buffer, z is an end packet buffer.
-const n = new Buffer('\r\n')
+// end packet buffer for connection: keep-alive
 const z = new Buffer('0\r\n\r\n')
 
 // The Connection class determines which App is responsible
@@ -123,8 +122,12 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		}
 
     this.app.emit( 'exchange', this )
-	  try { this.app.route( this ) }
-	  catch ( error ) { this.generateErrorPage(new weave.HTTPError( 500, error )) }
+
+	  try {
+			this.app.route( this )
+		} catch ( error ) {
+			this.generateErrorPage(new weave.HTTPError( 500, error ))
+		}
 	}
 
 	static generateUUID() {
@@ -237,7 +240,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		}
 
 		this._WRITTEN_HEADERS[ header ] = value
-		this._NODE_CONNECTION.write( `${header}: ${value}${n}` )
+		this._NODE_CONNECTION.write( `${header}: ${value}\r\n` )
 
 	  return this
 	}
@@ -264,11 +267,11 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		// Write preconfigured constant headers, if they are specified, and a Date header.
 		this.writeHead( Object.assign( { 'Date': this.date.toUTCString() }, this.behavior( 'headers' ) ) )
 
-		this.isKeepAlive ?
-			this.writeHeader( "Transfer-Encoding", "chunked" ) :
-			this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
+		// this.isKeepAlive ?
+		this.writeHeader( "Transfer-Encoding", "chunked" )
+			// : this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
 
-	  this._NODE_CONNECTION.write( n )
+	  this._NODE_CONNECTION.write( '\r\n' )
 	  this.state = 2
 
 	  return this
@@ -315,9 +318,9 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		if ( this.state < 2 ) this.write('')
 
 	  // Keep the connection alive or kill it
-	  this.isKeepAlive
-	    ? this._NODE_CONNECTION.write( z )
-	    : this._NODE_CONNECTION.end()
+	  // this.isKeepAlive ?
+	  this._NODE_CONNECTION.write( z )
+	    // : this._NODE_CONNECTION.end()
 
 	  this.state = 3
 		return this
