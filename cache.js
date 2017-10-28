@@ -22,6 +22,7 @@ Object.assign( weave.cache, {
       let cachedFile = this.fileEntries[ path ]
 
       if ( cachedFile && cachedFile.stats.mtime.getTime() === stats.mtime.getTime() ) {
+        cachedFile.fromCache = true
         fulfill( cachedFile )
         // TODO: Keep track of what files are being pulled from the cache the most
         // so that they don't get cleared from memory when the cache fills
