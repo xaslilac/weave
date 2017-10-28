@@ -1,0 +1,15 @@
+environment:
+  nodejs_version: "8"
+
+install:
+  - ps: Install-Product node $env:nodejs_version
+  - npm install
+
+# Runs after clone and install
+test_script:
+  - node --version
+  - npm --version
+  - npm run test-appveyor
+
+# Don't actually build.
+build: off
