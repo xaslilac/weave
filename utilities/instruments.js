@@ -1,7 +1,7 @@
 // MIT License / Copyright Kayla Washburn 2014
 "use strict";
 
-let weave = require( '../weave' )
+let weave = require( '..' )
 let garden = new weave.Garden( 'weave developer/instruments' )
 
 let util = require( 'util' )

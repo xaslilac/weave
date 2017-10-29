@@ -1,7 +1,7 @@
 // MIT License / Copyright 2015
 "use strict";
 
-let weave = require( './weave' )
+let weave = require( '..' )
 let garden = new weave.Garden( 'weave.Manifest' )
 
 weave.Manifest = class Manifest {

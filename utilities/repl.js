@@ -1,7 +1,7 @@
 // MIT License / Copyright Kayla Washburn 2014
 "use strict";
 
-let weave = require( '../weave' )
+let weave = require( '..' )
 let repl = require( 'repl' )
 
 weave.connectREPL = exports.connect = function ( input = process.stdin, output = process.stdout ) {

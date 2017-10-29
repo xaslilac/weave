@@ -1,13 +1,13 @@
 // MIT License / Copyright 2015
 "use strict";
 
-let weave = require( './weave' )
+let weave = require( '..' )
 let garden = new weave.Garden( 'weave.App::printer' )
 
 let fs = require( 'fs' )
 let path = require( 'path' )
 let util = require( 'util' )
-let dom = require( './utilities/dom' )
+let dom = require( '../utilities/dom' )
 
 weave.App.prototype.printer = function ( error, manifest, exchange ) {
   // Debug inspecting

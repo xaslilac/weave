@@ -2,6 +2,8 @@
 
 ![Weave Version 0.2.2](https://img.shields.io/badge/weave-v0.2.2-5050DD.svg)
 ![Stability: Alpha](https://img.shields.io/badge/stability-alpha-f04c5e.svg)
+![Travis](https://img.shields.io/travis/partheseas/weave.svg?label=linux)
+![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)
 
 ## Overview
 

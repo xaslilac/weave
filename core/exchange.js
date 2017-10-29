@@ -1,16 +1,17 @@
 // MIT License / Copyright 2015
 "use strict";
 
-let weave = require( './weave' )
+let weave = require( '..' )
 let garden = new weave.Garden( 'weave.Exchange' )
 
 let events = require( 'events' )
 let fs = require( 'fs' )
 let path = require( 'path' )
 let url = require( 'url' )
-let Wildcard = require( './utilities/wildcard' )
+let Wildcard = require( '../utilities/wildcard' )
 
 // end packet buffer for connection: keep-alive
+const n = new Buffer('\r\n')
 const z = new Buffer('0\r\n\r\n')
 
 // The Connection class determines which App is responsible
@@ -271,7 +272,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		this.writeHeader( "Transfer-Encoding", "chunked" )
 			// : this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
 
-	  this._NODE_CONNECTION.write( '\r\n' )
+	  this._NODE_CONNECTION.write( n )
 	  this.state = 2
 
 	  return this
