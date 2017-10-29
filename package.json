@@ -12,7 +12,8 @@
   },
   "scripts": {
     "test": "mocha --opts mocha/tests.opts ./mocha/*.js",
-    "test-appveyor": "npm install ./ && npm test"
+    "test-appveyor": "npm install && npm test",
+    "test-travis": "npm install && npm test"
   },
   "repository": {
     "type": "git",
