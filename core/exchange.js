@@ -124,11 +124,8 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 
     this.app.emit( 'exchange', this )
 
-	  try {
-			this.app.route( this )
-		} catch ( error ) {
-			this.generateErrorPage(new weave.HTTPError( 500, error ))
-		}
+		// Route our freshly configured exchange to the proper place
+		this.app.route( this )
 	}
 
 	static generateUUID() {
