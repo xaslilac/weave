@@ -7,7 +7,7 @@ install:
 test_script:
   - node --version
   - npm --version
-  - npm run test-appveyor
+  - npm test
 
 # We don't need to build anything, just run tests
 build: off

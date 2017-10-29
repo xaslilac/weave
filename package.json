@@ -11,8 +11,7 @@
     "wv": "bin/wv.js"
   },
   "scripts": {
-    "test": "mocha --opts mocha/tests.opts ./mocha/*.js",
-    "test-appveyor": "npm install && npm test"
+    "test": "mocha --opts mocha/tests.opts ./mocha/*.js"
   },
   "repository": {
     "type": "git",
