@@ -1,15 +1,13 @@
-environment:
-  nodejs_version: "8"
-
+# Installs latest release of Node and our dependencies
 install:
-  - ps: Install-Product node $env:nodejs_version
+  - ps: Install-Product node
   - npm install
 
-# Runs after clone and install
+# Run tests once install is complete
 test_script:
   - node --version
   - npm --version
   - npm run test-appveyor
 
-# Don't actually build.
+# We don't need to build anything, just run tests
 build: off

@@ -1,4 +1,17 @@
+# Installs latest release of Node
 language: node_js
+node_js:
+  - "node"
 
+# Install our dependencies
+install:
+  - npm install
+
+# Travis can cache our dependencies as well
+cache:
+  directories:
+    - "node_modules"
+
+# Run the tests
 script:
-- "npm run test-travis"
+  - "npm run test-travis"
