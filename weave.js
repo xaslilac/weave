@@ -15,12 +15,7 @@ Object.assign( weave, {
 weave.Garden.configure( weave.configuration )
 
 require( './app' )
-require( './cache' )
-require( './exchange' )
-require( './interfaces' )
-require( './manifest' )
-require( './printer' )
-require( './router' )
+require( './core' )
 require( './websocket' )
 
 let garden = new weave.Garden( 'weave' )
@@ -64,8 +59,8 @@ Object.assign( weave, {
   flags: {
     awwHeckYes() { console.log( 'Aww heck yes!!' ) },
     weaveVerbose() { weave.verbose() },
-    enableWeaveRepl() { require( './developer/repl' ).connect() },
-    enableWeaveInstruments() { require( './developer/instruments' ) },
+    enableWeaveRepl() { require( './utilities/repl' ).connect() },
+    enableWeaveInstruments() { require( './utilities/instruments' ) },
     enableInterfaceEngine() { weave.configuration.engines = { '.interface': weave.interfaces.engine } }
   }
 })
