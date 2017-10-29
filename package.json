@@ -11,7 +11,8 @@
     "wv": "bin/wv.js"
   },
   "scripts": {
-    "test": "mocha --opts mocha/tests.opts ./mocha/*.js"
+    "test": "mocha --opts mocha/tests.opts ./mocha/*.js",
+    "weave-demo": "weave-demo"
   },
   "repository": {
     "type": "git",
