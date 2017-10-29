@@ -1,1 +1,1 @@
-web: npm install && ./node_modules/.bin/weave-demo
+web: node bin/weave-demo
