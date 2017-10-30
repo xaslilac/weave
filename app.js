@@ -116,12 +116,6 @@ weave.App = class App extends events.EventEmitter {
     if ( this.configuration[ directory ] ) Object.assign( this.configuration[ directory ], configuration )
     else this.configuration[ directory ] = configuration
 
-    // The main reason this event is important is for 3rd party modules
-    // that might alter the configuration, or that need to clear caches
-    // for anything that is based off of a configurable property.
-    // XXX: Is this event even useful?
-    this.emit( 'configured', directory, configuration, this.configuration )
-
     // Return this from all configuration methods so they can be chained.
     return this
   }

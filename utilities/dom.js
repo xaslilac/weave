@@ -1,5 +1,11 @@
 // MIT License / Copyright Kayla Washburn 2014
 
+class Window {
+  constructor() {
+
+  }
+}
+
 class Document {
   constructor( base, docType ) {
     this.docType = docType
@@ -17,6 +23,21 @@ class Document {
 
   createStyleSheet( styles ) {
     return this.head.appendChild( new StyleSheet( styles ) )
+  }
+
+  getElementById( id ) {
+    let found
+    let recurse = children => {
+      return children.some( child => {
+        console.log( child.id, child instanceof Element )
+        if ( child.id === id ) return found = child
+        if ( child instanceof Element ) return recurse( child.children )
+      })
+    }
+
+    recurse( this.baseElement.children )
+
+    return found
   }
 }
 
@@ -69,6 +90,9 @@ class	Element {
   setAttribute( attr, value ) {
     return this.attributes[ attr ] = value
   }
+
+  get id() { return this.attributes.id }
+  set id( value ) { this.attributes.id = value }
 
   get innerHTML() { return this.children.map( child => child.toString() ).join( '' ) }
   set innerHTML( value ) { this.children = [ new TextNode( value ) ] }

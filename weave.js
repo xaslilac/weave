@@ -36,6 +36,9 @@ Object.assign( weave, {
     'headers': { 'X-Powered-By': 'Weave' },
     'cache': { maxCacheSize: 500, maxCachedFileSize: 5 } },
 
+  configure: weave.App.prototype.configure,
+  engine: weave.App.prototype.engine,
+
   util: {
     SHA1_64: data => crypto.createHash( 'sha1' ).update( data ).digest( 'base64' ),
     RNDM_RG: ( min, max, base ) => {
@@ -61,7 +64,7 @@ Object.assign( weave, {
     weaveVerbose() { weave.verbose() },
     enableWeaveRepl() { require( './utilities/repl' ).connect() },
     enableWeaveInstruments() { require( './utilities/instruments' ) },
-    enableInterfaceEngine() { weave.configuration.engines = { '.interface': weave.interfaces.engine } }
+    enableInterfaceEngine() { weave.engine( '.interface', weave.interfaces.engine ) }
   }
 })
 
