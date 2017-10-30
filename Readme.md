@@ -1,6 +1,4 @@
-# Weave
-
-![Weave Version 0.2.2](https://img.shields.io/badge/weave-v0.2.2-5050DD.svg)
+# Weave [![Weave Version 0.2.2](https://img.shields.io/badge/weave-v0.2.2-5050DD.svg)](https://www.npmjs.com/package/wv-http)
 ![Stability: Alpha](https://img.shields.io/badge/stability-alpha-f04c5e.svg)
 [![Travis](https://img.shields.io/travis/partheseas/weave.svg?label=linux)](https://travis-ci.org/partheseas/weave)
 [![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)](https://ci.appveyor.com/project/partheseas/weave)
