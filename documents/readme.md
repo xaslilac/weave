@@ -48,7 +48,7 @@ These properties can be set on the global `weave.configuration` object, on an
 
 ### weave
 ```JavaScript
-const weave = require( 'wv-http' )
+const weave = require( 'weave' )
 weave([ appName,][ behaviors ]) -> app
 weave.version: versionNumber
 weave.servers: { port: server.. }

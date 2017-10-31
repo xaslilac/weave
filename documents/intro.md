@@ -13,7 +13,7 @@ flag. If Weave was loaded succesfully, you should see a cooresponding message lo
 to your console.
 
 ```JavaScript
-const weave = require( 'wv-http' )
+const weave = require( 'weave' )
 ```
 
 ```Shell

@@ -1,4 +1,5 @@
-# Weave [![Weave Version 0.2.2](https://img.shields.io/badge/weave-v0.2.2-5050DD.svg)](https://www.npmjs.com/package/wv-http)
+# Weave
+[![Weave Version 0.2.2](https://img.shields.io/badge/weave-v0.2.2-5050DD.svg)](https://www.npmjs.com/package/weave)
 ![Stability: Alpha](https://img.shields.io/badge/stability-alpha-f04c5e.svg)
 [![Travis](https://img.shields.io/travis/partheseas/weave.svg?label=linux)](https://travis-ci.org/partheseas/weave)
 [![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)](https://ci.appveyor.com/project/partheseas/weave)
@@ -12,7 +13,7 @@ Weave runs in Node along side your own code that configures and controls it.
 
 ## Installation
 ```Shell
-npm install wv-http
+npm install weave
 ```
 or just download a .zip and throw it into a node_modules folder somewhere. You should be good to go.
 
