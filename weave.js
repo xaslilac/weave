@@ -64,7 +64,8 @@ Object.assign( weave, {
     weaveVerbose() { weave.verbose() },
     enableWeaveRepl() { require( './utilities/repl' ).connect() },
     enableWeaveInstruments() { require( './utilities/instruments' ) },
-    enableInterfaceEngine() { weave.engine( '.interface', weave.interfaces.engine ) }
+    enableInterfaceEngine() { weave.engine( '.interface', weave.interfaces.engine ) },
+    enableReactEngine() { require( './react' ) }
   }
 })
 

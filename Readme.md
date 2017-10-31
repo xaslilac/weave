@@ -5,11 +5,14 @@
 [![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)](https://ci.appveyor.com/project/partheseas/weave)
 
 ## Overview
-
 Weave is a very unique server made for Node.js. It takes a different approach to resolving
-file locations and gives you great control over the behavior of the server.
+file locations and gives you great control over what files to serve for each request.
+Weave runs in Node along side your own code that configures and controls it, with plenty of
+API points for server side processing of your static files and request inputs.
 
-Weave runs in Node along side your own code that configures and controls it.
+### React + Weave
+[React](https://reactjs.org/) and Weave compliment each other perfectly. React's dependence
+on server-side transpiling goes hand in hand with Weave's ability to set up such an environment easily.
 
 ## Installation
 ```Shell
