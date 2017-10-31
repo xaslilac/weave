@@ -9,7 +9,7 @@ const weave = module.exports = exports = ( ...conf ) => new weave.App( ...conf )
 
 Object.assign( weave, {
   Dictionary: require( './utilities/mimedictionary' ),
-  Garden: require( './utilities/garden' )
+  Garden: require( 'gardens' )
 })
 
 weave.Garden.configure( weave.configuration )
