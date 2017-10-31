@@ -100,6 +100,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  // The longest match should always be the most specific configuration.
 	  if ( this.app.cache.parentDirectories[ i.url ] ) {
 	    this.directory = this.app.cache.parentDirectories[ i.url ]
+			this.configuration = this.app.configuration[ this.directory ]
 	  } else {
 	    Object.keys( this.app.configuration ).forEach( dir => {
         // The 2nd condition ensures that the client is requesting *this*
@@ -110,21 +111,24 @@ weave.Exchange = class Exchange extends events.EventEmitter {
         && ( i.url === dir || i.url.charAt( dir.length ) === "/" )
         && dir.length > this.directory.length ) {
           this.directory = this.app.cache.parentDirectories[ i.url ] = dir
+					this.configuration = this.app.configuration[ this.directory ]
         }
 	    })
 	  }
 
-	  if ( this.directory ) {
-			// If we found a matching directory, shorten the URL relative to the directory.
-			this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
-			this.configuration = this.app.configuration[ this.directory ]
-
-			if ( this.configuration.type === 'interface' ) return weave.interfaces.handle( connection )
+	  if ( this.configuration ) {
+			// If we found a matching directory with a configured location,
+			// shorten the URL relative to the directory.
+			if ( this.configuration.location ) {
+				this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
+				this.url.prefix = this.directory
+			} else if ( this.configuration.type === 'interface' ) {
+				return weave.interfaces.handle( this )
+			}
 		}
 
+		// Send our freshly configured exchange to the proper places
     this.app.emit( 'exchange', this )
-
-		// Route our freshly configured exchange to the proper place
 		this.app.route( this )
 	}
 
