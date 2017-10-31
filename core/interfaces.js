@@ -1,9 +1,11 @@
 "use strict";
 
-let vm = require( 'vm' )
-let dom = require( '../utilities/dom' )
 let weave = require( '..' )
 let garden = new weave.Garden( 'abyss' )
+
+let dom = require( '../utilities/dom' )
+let path = require( 'path' )
+let vm = require( 'vm' )
 
 weave.interfaces = {
   engine( content, manifest, exchange ) {

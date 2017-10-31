@@ -26,21 +26,21 @@ weave( 'default', {
     '404': '404.md'
   },
   'engines': {
-    '.md': ( buffer, manifest, connection ) => {
+    '.md': ( buffer, manifest, exchange ) => {
       return new Promise( ( fulfill, reject ) => {
         stat( mdWrapperPath, ( error, stats ) => {
           if ( error ) return reject( error )
 
-          let cacheDate = connection.detail( 'if-modified-since' )
+          let cacheDate = exchange.detail( 'if-modified-since' )
           if ( cacheDate ) {
             cacheDate = Math.floor( cacheDate.getTime() / 1000 )
             let mdDate = Math.floor( manifest.stats.mtime.getTime() / 1000 )
             let wrDate = Math.floor( stats.mtime.getTime() / 1000 )
-            if ( cacheDate === mdDate || cacheDate === wrDate ) return connection.redirect( 304 )
+            if ( cacheDate === mdDate || cacheDate === wrDate ) return exchange.redirect( 304 )
           }
 
           let content = marked( buffer.toString() )
-          let title = `weave - ${path.relative( connection.behavior( 'location' ), manifest.path )}`
+          let title = `weave - ${path.basename( path.relative( exchange.behavior( 'location' ), manifest.path ), '.md' )}`
 
           // In the future the content could be cached by us directly, without the stat call.
           // It will be useful while working on the website though for quick changes.
@@ -54,8 +54,11 @@ weave( 'default', {
     }
   }
 })
-.subdirectory( '/docs', {
-  'location': path.join( __dirname, '../documents' ),
-  'indexes': { 'readme.md': 0 }
-})
-.link( process.env.PORT || 80 )
+  .subdirectory( '/docs', {
+    'location': path.join( __dirname, '../documents' ),
+    'indexes': { 'readme.md': 0 }
+  })
+  .subdirectory( '/resources', {
+    'location': path.join( __dirname, '../http/shared' )
+  })
+  .link( process.env.PORT || 80 )

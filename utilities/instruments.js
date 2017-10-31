@@ -19,16 +19,18 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
   }
 
   app.subdirectory( instrumentsUrl, {
-    'location': path.join( __dirname, '../http/instruments' ),
-    'favoredExtensions': [ '.html' ],
-    'mimeTypes': {
-      '.html': 'text/html',
-      '.css':  'text/css',
-      '.js':   'application/javascript'
-    }
-  })
-
-  app.interface( path.join( instrumentsUrl, '/enabled-instruments' ), connection => connection.end("['repl','log']") )
+      'location': path.join( __dirname, '../http/instruments' ),
+      'favoredExtensions': [ '.html' ],
+      'mimeTypes': {
+        '.html': 'text/html',
+        '.css':  'text/css',
+        '.js':   'application/javascript'
+      }
+    })
+    .subdirectory( path.join( instrumentsUrl, 'resources' ), {
+      'location': path.join( __dirname, '../http/shared' )
+    })
+    .interface( path.join( instrumentsUrl, 'enabled-instruments' ), exchange => exchange.end("['repl','log']") )
 
 
 
@@ -74,7 +76,7 @@ weave.attachInstruments = function ( app, instrumentsUrl ) {
     //     data: util.inspect( log.data.length > 1 ? log.data : log.data[0] )
     //   }) )
     // }
-
+    //
     // weave.zen.on( 'log', logPipe )
     // connection.on( 'close', function {
     //   weave.zen.events.removeListener( 'log', logPipe )
