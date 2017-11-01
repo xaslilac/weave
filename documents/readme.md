@@ -22,6 +22,7 @@ $ myWeaveApp --weave-verbose # Equivalent to weave.Garden.verbose = true
 $ myWeaveApp --enable-weave-repl # Will enable a command line repl
 $ myWeaveApp --enable-weave-instruments # Will allow calls to weave.attachInstruments
 $ myWeaveApp --enable-interface-engine # Enables experimental implementation
+$ myWeaveApp --enable-react-engine # Enables transpiling of `.jsx` files
 ```
 
 ## Configuration behaviors
@@ -38,10 +39,11 @@ These properties can be set on the global `weave.configuration` object, on an
 'mimeTypes': dictionary
 'errorPages': { errorCode: str pathToFile.. }
 'engines': { '.ext': engine( content, details, exchange ) -> Promise.. }
-// Can only be configured via weave.configuration as caches are global and shared
+// Can only be configured via weave.configuration as the cache is global and shared
 'cache': { maxCacheSize: num megabytes, maxCachedFileSize: num megabytes }
 'redirect': { fromUrl: str toUrl }
 'headers': { 'Header-Name': str 'value' }
+'logOutputPath': str 'path.log'
 ```
 
 ## Everything you need to know

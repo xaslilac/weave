@@ -14,8 +14,6 @@ Object.assign( weave, {
   createGarden: gardens.createGarden
 })
 
-gardens.configure( weave.configuration )
-
 require( './app' )
 require( './core' )
 require( './websocket' )
@@ -36,7 +34,8 @@ Object.assign( weave, {
   configuration: {
     'urlCleaning': true,
     'headers': { 'X-Powered-By': 'Weave' },
-    'cache': { maxCacheSize: 500, maxCachedFileSize: 5 } },
+    'cache': { maxCacheSize: 500, maxCachedFileSize: 5 },
+    set logOutputPath( outputPath ) { gardens.configure({ outputPath }) } },
 
   configure: weave.App.prototype.configure,
   engine: weave.App.prototype.engine,
