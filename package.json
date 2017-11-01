@@ -1,6 +1,6 @@
 {
   "name": "weave",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A super duper good Node.js server!",
   "engines": {
     "node": ">=8.6.0"
@@ -28,7 +28,7 @@
   "dependencies": {
     "babel-core": "^6.26.0",
     "babel-preset-react": "^6.24.1",
-    "gardens": "^1.0.0",
+    "gardens": "^1.1.0",
     "highlight.js": "^9.12.0",
     "marked": "^0.3.6"
   },

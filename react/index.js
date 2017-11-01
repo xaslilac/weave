@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = new weave.Garden( 'weave + react' )
+let garden = weave.createGarden( 'weave + react' )
 
 let babel = require( 'babel-core' )
 let reactPreset = require( 'babel-preset-react' )

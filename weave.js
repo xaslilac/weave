@@ -4,31 +4,32 @@
 
 let crypto = require( 'crypto' )
 let http = require( 'http' )
+let gardens = require( '../utilities/gardens' )
 
 const weave = module.exports = exports = ( ...conf ) => new weave.App( ...conf )
 
 Object.assign( weave, {
   Dictionary: require( './utilities/mimedictionary' ),
-  Garden: require( 'gardens' )
+  createGarden: gardens.createGarden
 })
 
-weave.Garden.configure( weave.configuration )
+gardens.configure( weave.configuration )
 
 require( './app' )
 require( './core' )
 require( './websocket' )
 
-let garden = new weave.Garden( 'weave' )
+let garden = weave.createGarden( 'weave' )
 
 Object.assign( weave, {
-  version: '0.2.2',
+  version: '0.2.3',
 
   servers: {}, apps: { anonymous: [] }, hosts: {},
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
                HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH,
                STATUS_CODES: http.STATUS_CODES },
 
-  verbose( verbose = true ) { weave.Garden.verbose = verbose },
+  verbose( verbose = true ) { gardens.verbose = verbose },
   silent() { this.verbose( false ) },
 
   configuration: {

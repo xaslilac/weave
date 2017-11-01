@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( './weave' )
-let garden = new weave.Garden( 'weave.WebSocket' )
+let garden = weave.createGarden( 'weave.WebSocket' )
 
 let events = require( 'events' )
 

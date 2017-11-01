@@ -1,4 +1,4 @@
-// MIT License / Copyright Kayla Washburn 2014
+// MIT License / Copyright 2014
 
 class Window {
   constructor() {

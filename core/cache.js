@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = new weave.Garden( 'weave.cache' )
+let garden = weave.createGarden( 'weave.cache' )
 let fs = require( 'fs' )
 
 weave.cache = ( path, stats ) => weave.cache.retrieveFile( path, stats )

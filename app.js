@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( './weave' )
-let garden = new weave.Garden( 'weave.App' )
+let garden = weave.createGarden( 'weave.App' )
 
 let events = require( 'events' )
 let http = require( 'http' )
@@ -26,7 +26,7 @@ weave.App = class App extends events.EventEmitter {
       }
     }
 
-    this.garden = new weave.Garden( `${appName || 'anonymous'} instanceof weave.App` )
+    this.garden = weave.createGarden( `${appName || 'anonymous'} instanceof weave.App` )
     this.configuration = configuration || {}
     this.cache = {
       parentDirectories: {},

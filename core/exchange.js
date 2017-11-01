@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = new weave.Garden( 'weave.Exchange' )
+let garden = weave.createGarden( 'weave.Exchange' )
 
 let events = require( 'events' )
 let fs = require( 'fs' )

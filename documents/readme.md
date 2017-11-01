@@ -162,7 +162,7 @@ exchange.generateErrorPage( httpError ) -> undefined
 weave.cache( filePath, stats ) -> Promise ? contents : error
 ```
 
-#### weave.Garden
+#### Gardens
 **IMPORTANT NOTE:** Each piece of Weave (each file) and each instance of `weave.App`
 has it's own unique garden that it logs to in order to help debugging and tracing
 where things are happening. For things that might be *our* fault, we should use the garden
@@ -170,7 +170,7 @@ instance in the context of where we made as error. Anything that we want to log
 that is *directly* due to receiving invalid input from a user should be logged to
 the `app.garden` on the corresponding app.
 ```JavaScript
-new weave.Garden( gardenName, verbose ) -> garden
+weave.createGarden( gardenName, verbose ) -> garden
 // Universal override for being verbose
 Garden.verbose: bool
 garden.verbose: bool

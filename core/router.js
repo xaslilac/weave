@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = new weave.Garden( 'weave.App::router' )
+let garden = weave.createGarden( 'weave.App::router' )
 
 let fs = require( 'fs' )
 let path = require( 'path' )

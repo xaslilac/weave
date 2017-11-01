@@ -1,7 +1,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = new weave.Garden( 'abyss' )
+let garden = weave.createGarden( 'abyss' )
 
 let dom = require( '../utilities/dom' )
 let path = require( 'path' )

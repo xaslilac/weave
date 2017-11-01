@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = new weave.Garden( 'weave.App::printer' )
+let garden = weave.createGarden( 'weave.App::printer' )
 
 let fs = require( 'fs' )
 let path = require( 'path' )

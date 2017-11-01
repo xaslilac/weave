@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = new weave.Garden( 'weave.Manifest' )
+let garden = weave.createGarden( 'weave.Manifest' )
 
 weave.Manifest = class Manifest {
   isDirectory() { return this.type === "directory" }
