@@ -8,7 +8,7 @@ let mdWrapperPath = path.join( __dirname, '../http/default/default.html' )
 
 marked.setOptions({ highlight: code => highlight( 'js', code ).value })
 
-let garden = new weave.Garden( 'demo' )
+let garden = weave.createGarden( 'weave-demo' )
 
 weave( 'default', {
   'location': path.join( __dirname, '../http/default' ),

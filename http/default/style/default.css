@@ -70,6 +70,13 @@ a {
   background-color: #efffff;
 }
 
+p code {
+  background-color: #aadcf5;
+  padding: 3px 3px 0px 3px;
+
+  border-bottom: solid 3px #b3caf9;
+}
+
 #content {
   grid-area: center;
   padding: 35px;
@@ -99,13 +106,15 @@ a {
 }
 
 pre {
-  background-color: #22252a;
-  color: #efffff;
-
   max-width: 750px;
   padding: 8px;
   border-radius: 4px;
   overflow-x: auto;
+}
+
+pre, pre code {
+  background-color: #22252a;
+  color: #efffff;
 }
 
 code {

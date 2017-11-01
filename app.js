@@ -93,7 +93,7 @@ weave.App = class App extends events.EventEmitter {
   subdirectory( directory, inherit, configuration ) {
     if ( typeof directory !== 'string' ) return this.garden.typeerror( 'Argument directory must be a string!')
     if ( !path.isAbsolute( directory ) ) return this.garden.error( 'Argument directory must be absolute!' )
-    if ( directory.length < 2 ) return garden.error( 'Argument directory cannot be root!')
+    if ( directory.length < 2 ) return this.garden.error( 'Root is not a subdirectory! Use configure instead!' )
     // Clear the cache so that the configuration can be modified and
     // not conflict with previously caches requests.
     this.cache.parentDirectories = {}
