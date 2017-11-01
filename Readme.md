@@ -19,7 +19,8 @@ or just download a .zip and throw it into a node_modules folder somewhere. You s
 ## Features
 # React + Weave
 [React](https://reactjs.org/) and Weave compliment each other perfectly. React's dependence
-on server-side transpiling goes hand in hand with Weave's ability to set up such an environment [easily](/documents/react.md).
+on server-side transpiling goes hand in hand with Weave's ability to [set up such an environment easily](/documents/react.md).
+### Other cool things
 - Extensive and powerful customization
 - Unique and versatile path resolving
 - Quick and easy to setup WebSocket implementation

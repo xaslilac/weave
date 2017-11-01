@@ -10,24 +10,30 @@ let path = require( 'path' )
 let Wildcard = require( './utilities/wildcard' )
 
 weave.App = class App extends events.EventEmitter {
-  constructor( appName, configuration ) {
+  constructor( main, configuration ) {
     // Make it an EventEmitter
     super()
 
-    if ( appName ) {
-      if ( typeof appName === 'string' ) {
-        if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! App '${appName}' already exists!` )
-        this.appName = appName
-        weave.apps[ appName ] = this
-      } else {
-        weave.apps.anonymous.push( this )
-        configuration = appName
-        appName = configuration.appName
-      }
+    let appName
+
+    if ( main ) {
+      if ( typeof main !== 'string' ) {
+        configuration = main
+        if ( typeof configuration.appName === 'string' ) appName = configuration.appName
+      } else appName = main
     }
 
-    this.garden = weave.createGarden( `${appName || 'anonymous'} instanceof weave.App` )
-    this.configuration = configuration || {}
+    if ( appName ) {
+      if ( weave.apps[ appName ] ) return garden.error( `App names must be unique! A '${appName}' app already exists!` )
+      this.appName = appName
+      weave.apps[ appName ] = this
+    } else {
+      appName = 'anonymous'
+      weave.apps.anonymous.push( this )
+    }
+
+    this.garden = weave.createGarden( `${appName} instanceof weave.App` )
+    this.configuration = Object.assign( {}, configuration )
     this.cache = {
       parentDirectories: {},
       resolvedPaths: {}

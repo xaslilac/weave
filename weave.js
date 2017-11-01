@@ -11,6 +11,7 @@ const weave = module.exports = exports = ( ...conf ) => new weave.App( ...conf )
 
 Object.assign( weave, {
   Dictionary: require( './utilities/mimedictionary' ),
+  createDictionary( ...from ) { return new weave.Dictionary( ...from ) },
   createGarden: gardens.createGarden
 })
 

@@ -66,7 +66,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  // If there isn't one, check against wildcards, filtering out hosts
 	  // that don't contain at least one wildcard since they won't match.
 	  if ( weave.hosts[ this.host ] ) {
-	    this.app = weave.hosts[ this.host ].app
+	    this.app = weave.hosts[ this.host ]
 	  } else if ( weave.cache.hostMatches[ this.host ] ) {
 	    this.app = weave.hosts[ weave.cache.hostMatches[ this.host ] ]
 	  } else {
