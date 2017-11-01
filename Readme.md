@@ -12,7 +12,7 @@ API points for server side processing of your static files and request inputs.
 
 ### React + Weave
 [React](https://reactjs.org/) and Weave compliment each other perfectly. React's dependence
-on server-side transpiling goes hand in hand with Weave's ability to set up such an environment easily.
+on server-side transpiling goes hand in hand with Weave's ability to set up such an environment [easily](/documents/react.md).
 
 ## Installation
 ```Shell
@@ -37,53 +37,53 @@ or just download a .zip and throw it into a node_modules folder somewhere. You s
 
 ##### Completed milestones
 ##### Groundwork - v0.1 (WebSocks) ✔
-Get the basics in, along with a couple of goodies. Be generally reliable,
-strong routing features, a base WebSocket implementation, document generation
-through a server-side DOM tree for error pages, etc., basic caching ground work.
+Get the basics in, along with a couple of goodies.
+- Be generally reliable, strong routing features
+- A base WebSocket implementation, document generation
+- Server-side DOM tree for error pages, etc.
+- Basic caching ground work.
 
 ### Upcoming
 ## Logging and testing - v0.2 (Sun Screen)
-Build a robust error and warning backend system with the ability to log to files.
-Implement a full (or at least mostly full) test suite.
+Improve the debugging and testing experience, protect from crashes and unexpected
+bad things.
+- Build a robust error and warning backend system with the ability to log to files.
+- Implement a (mostly) full test suite.
 
-### Remote debugging / Admin panel - v0.3 (Gooey)
-Add the ability to have an online debug console/admin panel that you would
-activate with App.addInterface( "/net-internals", new weave.AdminPanel(App) )
-or something similar. You'd be able to monitor an incoming request queue,
-interface directly with the App collection from a secure, remote, GUI/REPL with
-syntax highlighting, pretty printing, and more.
+### Remote debugging, monitoring instruments - v0.3 (Gooey)
+Improve the instruments greatly, to where they may actually be useful
+- Allow cross-app monitoring for control over access
+- Encryption and login credentials
+- Ability to monitor an incoming request queue, measure performance
+- REPL output syntax highlighting
+- Caching controls, configuration tweaks
 
 ### Command Line Interface - v0.4 (Quiet Librarian)
-Could be helpful for things like clearing a cache or updating a setting.
-The main reason this would be important, is it would provide a simple way
-to actively maintain your server while it is running, without needing to
-close a process, and open a new one. You could essentially "hot-swap" your
-configuration of the directory by using the command line. This could also
-also provide a simple way to start a server from the command line without
-directly handling a node process instance. This would allow you to close
-your terminal window when it's unneeded instead of leaving it open all the
-time. This is something that I've wanted to be able to do for a while, but
-is incredibly hard to implement, and would need to be outlined in detail.
+Use all the hooks from our web instruments to enable the same control locally, as
+well as the ability to have a 'headless' process. Continue using your console for
+running other commands without your server blocking the console process.
+- Finalized cluster implementation
+- Self updating
+  - Ability to quickly iterate on new features with incomplete code without needing
+  to constantly restart the process or deal with crashes.
 
-### File system caching, chunking - v0.5 (Snacks)
-Read large files in chunks rather than entirely at once to avoid eating memory.
-Cache smaller files in memory for quick access, with easily set parameters for
-how much we can store.
-
-### Partial downloads, uploads, streaming - v0.6 (Ice-Stream)
-Enable the ability to stream a video file from a certain time stamp, to
+### File system chunking - v0.5 (Snacks)
+Stream larger files and enable partial downloads
+- Read large files in chunks rather than entirely at once to avoid eating memory.
+- Enable the ability to stream a video file from a certain time stamp, to
 resume a disrupted download at a later time, and to accept user uploads.
 
-### Standalone operation - v0.7
-Polish the CLI enough to be able to run entirely from the command line.
+### 100% test coverage - v0.7
+All features should be 100% tested and passing
+- Run the tests on a local machine in a virtual environment
+- Test in a real world scenario by setting up a browser testing environment
+  - Ensure that everything behaves properly in browsers across the board
 
-### HTTP/2, HTTPS, compression support - v0.8
-Add support for Google's SPDY protocol and for HTTP 2.0. HTTPS support is
-hard for me to implement without access to any sort of secure certificate
-of my own to work with, and is a requirement for SPDY.
-So it seems that HTTPS support is simply creating an extra server, using
-certificates supplied, and doing some extra stuff to hook up the server
-to the app. Not sure how supporting multiple certificates would work.
+### HTTPS, HTTP/2, compression support - v0.8
+- Control HTTP and HTTPS from one app
+  - Force HTTPS on certain subdirectories or the entire app
+- HTTP/2 implementation
+  - Compression is necessary for this
 
 ### Stability & fine tuned error/warning reporting - v0.9
 As we approach feature completeness and having a production ready product,
