@@ -10,10 +10,6 @@ file locations and gives you great control over what files to serve for each req
 Weave runs in Node along side your own code that configures and controls it, with plenty of
 API points for server side processing of your static files and request inputs.
 
-# React + Weave
-[React](https://reactjs.org/) and Weave compliment each other perfectly. React's dependence
-on server-side transpiling goes hand in hand with Weave's ability to set up such an environment [easily](/documents/react.md).
-
 ## Installation
 ```Shell
 npm install weave
@@ -21,10 +17,12 @@ npm install weave
 or just download a .zip and throw it into a node_modules folder somewhere. You should be good to go.
 
 ## Features
+# React + Weave
+[React](https://reactjs.org/) and Weave compliment each other perfectly. React's dependence
+on server-side transpiling goes hand in hand with Weave's ability to set up such an environment [easily](/documents/react.md).
 - Extensive and powerful customization
 - Unique and versatile path resolving
 - Quick and easy to setup WebSocket implementation
-- Built-in support for React .jsx files
 
 ### Coming soon...
 - An easy to use and robust command line interface
