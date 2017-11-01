@@ -4,6 +4,7 @@
 
 let crypto = require( 'crypto' )
 let http = require( 'http' )
+let os = require( 'os' )
 let gardens = require( '../utilities/gardens' )
 
 const weave = module.exports = exports = ( ...conf ) => new weave.App( ...conf )
@@ -26,8 +27,7 @@ Object.assign( weave, {
 
   servers: {}, apps: { anonymous: [] }, hosts: {},
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
-               HOME: process.env.HOME || process.env.HOMEDRIVE + process.env.HOMEPATH,
-               STATUS_CODES: http.STATUS_CODES },
+               HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES },
 
   verbose( verbose = true ) { gardens.verbose = verbose },
   silent() { this.verbose( false ) },
