@@ -27,7 +27,8 @@ Object.assign( weave, {
 
   servers: {}, apps: { anonymous: [] }, hosts: {},
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
-               HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES },
+               HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES,
+               CPU_CORES: os.cpus().length },
 
   verbose( verbose = true ) { return gardens.verbose = verbose },
   silent() { return weave.verbose( false ) },

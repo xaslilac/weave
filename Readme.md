@@ -23,13 +23,14 @@ or just download a .zip and throw it into a node_modules folder somewhere. You s
 ## Features
 - Extensive and powerful customization
 - Unique and versatile path resolving
-- Easy access to server side scripting in any language
 - Quick and easy to setup WebSocket implementation
-
+- Built-in support for React .jsx files
 
 ### Coming soon...
 - An easy to use and robust command line interface
 - A simple web interface to control remotely or locally monitor internal data
+- Pre-caching/compilation of resources for production ready apps
+- Cluster support for fast performance
 - HTTP/2 support
 
 ## Roadmap
