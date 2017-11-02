@@ -1,6 +1,6 @@
 {
   "name": "weave",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "A super duper good Node.js server!",
   "engines": {
     "node": ">=8.6.0"

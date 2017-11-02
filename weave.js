@@ -22,7 +22,7 @@ require( './websocket' )
 let garden = weave.createGarden( 'weave' )
 
 Object.assign( weave, {
-  version: '0.2.3',
+  version: '0.3.0',
 
   cluster: [], // For using multiple threads to process requests, WIP
 

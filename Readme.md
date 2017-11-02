@@ -1,5 +1,5 @@
 # Weave
-[![Weave Version 0.2.3](https://img.shields.io/badge/weave-v0.2.3-5050DD.svg)](https://www.npmjs.com/package/weave)
+[![Weave Version 0.3.0](https://img.shields.io/badge/weave-v0.3.0-5050DD.svg)](https://www.npmjs.com/package/weave)
 ![Stability: Alpha](https://img.shields.io/badge/stability-alpha-f04c5e.svg)
 [![Travis](https://img.shields.io/travis/partheseas/weave.svg?label=linux)](https://travis-ci.org/partheseas/weave)
 [![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)](https://ci.appveyor.com/project/partheseas/weave)
@@ -42,13 +42,13 @@ Get the basics in, along with a couple of goodies.
 - Server-side DOM tree for error pages, etc.
 - Basic caching ground work.
 
-### Upcoming
-## Logging and testing - v0.2 (Sun Screen)
+###### Logging and testing - v0.2 (Sun Screen) ✔
 Improve the debugging and testing experience, protect from crashes and unexpected
 bad things.
 - Build a robust error and warning backend system with the ability to log to files.
-- Implement a (mostly) full test suite.
+- Begin implementing a test suite.
 
+### Upcoming
 ### Remote debugging, monitoring instruments - v0.3 (Gooey)
 Improve the instruments greatly, to where they may actually be useful
 - Allow cross-app monitoring for control over access
@@ -79,8 +79,8 @@ All features should be 100% tested and passing
   - Ensure that everything behaves properly in browsers across the board
 
 ### HTTPS, HTTP/2, compression support - v0.8
-- Control HTTP and HTTPS from one app
-  - Force HTTPS on certain subdirectories or the entire app
+- Control HTTP and HTTPS from one app ✔
+  - Force HTTPS on certain subdirectories or the entire app ✔
 - HTTP/2 implementation
   - Compression is necessary for this
 
