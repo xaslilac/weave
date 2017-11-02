@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-let weave = require( '..' )
+// let weave = require( '..' )
 let readline = require( 'readline' )
 
 let progress = 0
@@ -10,7 +10,7 @@ console.log( 'here we go' )
 
 function start() {
   process.stdout.write( '[' )
-  process.stdout.write( '-'.repeat( width ) )
+  process.stdout.write( ' '.repeat( width ) )
   process.stdout.write( ']' )
   readline.moveCursor( process.stdout, width * -1 - 1, 0 )
 
@@ -20,9 +20,9 @@ function start() {
 function tick() {
   if ( progress >= width ) return;
 
-  process.stdout.write( '+' )
+  process.stdout.write( '-' )
   progress++
   setTimeout( tick, 100 )
 }
 
-start()
+setTimeout( start, 5000 )

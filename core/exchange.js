@@ -18,7 +18,7 @@ const z = new Buffer('0\r\n\r\n')
 // for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
 weave.Exchange = class Exchange extends events.EventEmitter {
-	constructor( i, o ) {
+	constructor( i, o, secure ) {
 		// Make it an EventEmitter
 		super()
 
@@ -56,8 +56,8 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  // Normalize the url to prevent anyone being sneaky with, say, some "../../"
 	  // tomfoolery to get low level file system access, and fill in the blanks.
 		this.url = url.parse( path.normalize( i.url ) )
-	  this.url.protocol = "http:"
-	  this.url.slashes = "//"
+	  this.url.protocol = secure ? 'https:' : 'http:'
+	  this.url.slashes = '//'
 		this.url.hostname = hostMatch[1]
 	  this.url.port = i.connection.localPort
 	  this.host = this.url.host = this.url.hostname + ':' + this.url.port
@@ -125,7 +125,26 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 			} else if ( this.configuration.type === 'interface' ) {
 				return weave.interfaces.handle( this )
 			}
+
+			// Refuse access if specified to do so
+			if ( this.configuration.hasOwnProperty( 'access' ) ) {
+				console.log( this.url.path )
+				if ( this.configuration.access === false
+				  || this.configuration.access[ this.url.path ] === false )
+					return this.generateErrorPage( new weave.HTTPError( 403, 'Access to this URL has been blocked.' ) )
+			}
 		}
+
+		// Enforce default domains
+		console.log( this.url.hostname )
+		let domain = this.behavior( 'domain' )
+		if ( typeof domain === 'string' && domain !== this.url.hostname )
+			return this.redirect( url.format( Object.assign( this.url, { host: `${domain}:${this.url.port}` } ) ))
+
+		// Enforce secure connections
+		let force = this.behavior( 'secure' )
+		if ( force && !secure )
+      return this.redirect( url.format( Object.assign( this.url, { protocol: 'https:', host: `${this.url.hostname}:443` } ) ))
 
 		// Send our freshly configured exchange to the proper places
     this.app.emit( 'exchange', this )
@@ -160,13 +179,13 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	        if ( nests.every( nest => cursor = cursor[ nest ] ) ) {
 	          behavior = cursor
 						point = x
-	          return true;
+
+						return true;
 	        }
 	      }
 	  } )
 
 		// If the location begins with ~, replace it with the users home directory.
-		// weave.constants.HOME normalizes the API for Node across different platforms.
 		if ( name === 'location' && typeof behavior === 'string' )
 			behavior = behavior.replace( /^~/, weave.constants.HOME )
 
@@ -176,7 +195,6 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		&& point > 0 && scopes[ point ].location ) {
 			behavior = path.join( path.relative( this.configuration.location, scopes[ point ].location ), behavior )
 		}
-
 
 	  // Return the matching behavior. If we didn't find one this should
 	  // still just be undefined.

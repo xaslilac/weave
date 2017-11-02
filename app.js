@@ -6,8 +6,28 @@ let garden = weave.createGarden( 'weave.App' )
 
 let events = require( 'events' )
 let http = require( 'http' )
+let https = require( 'https' )
 let path = require( 'path' )
 let Wildcard = require( './utilities/wildcard' )
+
+function createServer( port, security ) {
+  if ( weave.servers[ port ] ) return this.emit( 'listening' )
+
+  let server = security
+    ? https.createServer( security )
+    : http.createServer();
+
+  ['request', 'upgrade'].forEach( event =>
+    server.on( event, ( req, res ) => new weave.Exchange( req, res, !!security ) ) )
+
+  // Used to determine if any servers are active yet when an error is encountered.
+  server.on( 'listening', () => { weave._ACTIVE = true; this.emit( 'listening' ) } )
+  server.listen( port, '::' )
+
+  weave.servers[ port ] = server
+
+  return server
+}
 
 weave.App = class App extends events.EventEmitter {
   constructor( main, configuration ) {
@@ -32,12 +52,19 @@ weave.App = class App extends events.EventEmitter {
       weave.apps.anonymous.push( this )
     }
 
-    this.garden = weave.createGarden( `${appName} instanceof weave.App` )
+    this.garden = weave.createGarden( `weave.App(${appName})` )
     this.configuration = Object.assign( {}, configuration )
     this.cache = {
       parentDirectories: {},
       resolvedPaths: {}
     }
+  }
+
+  _attachServer( port ) { return createServer.call( this, port ) }
+
+  secure( security, host = 443 ) {
+    this._attachServer = function ( port ) { return createServer.call( this, port, security ) }
+    this.link( host )
   }
 
   link( ...hosts ) {
@@ -69,20 +96,8 @@ weave.App = class App extends events.EventEmitter {
 
       // Link the app to it's hostname
       weave.hosts[ host ] = this
+      this._attachServer( port )
 
-      // If there isn't a server on this port yet, then create one. Assign it
-      // to listen on all interfaces ('::') for IPv4 and IPv6.
-      // TODO: Maybe we should make this configurable?
-      if ( weave.servers[ port ] ) {
-        return this.emit( 'listening' )
-      }
-
-      let server = weave.servers[ port ] = http.createServer();
-      // Accept incoming requests on the server
-      ['request', 'upgrade'].forEach( event => server.on( event, ( ...streams ) => new weave.Exchange( ...streams ) ) )
-      // Used to determine if any servers are active yet when an error is encountered.
-      server.on( 'listening', () => { weave._ACTIVE = true; this.emit( 'listening' ) } )
-      server.listen( port, '::' )
     })
 
     // Return this from all configuration methods so they can be chained.

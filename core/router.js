@@ -52,7 +52,7 @@ weave.App.prototype.route = function ( exchange ) {
 
     cursor = path.join( cursor, '..' )
     exchange.url.path = path.join( exchange.url.path, '..' )
-    exchange.url.description = path.relative( exchange.url.path, exchange.url.pathname )
+    exchange.url.description = path.relative( path.join( exchange.directory, exchange.url.path ), exchange.url.pathname )
     exchange.url.depth++
     search()
   }
@@ -103,11 +103,12 @@ weave.App.prototype.route = function ( exchange ) {
                 } else next()
               })
             }) ).then( () => {
+              console.log( exchange.url )
               if ( exchange.url.depth === 0 && exchange.behavior( 'htmlDirectoryListings' ) ) {
                 print({ path: cursor, stats: stats, type: 'directory' })
               } else if ( exchange.behavior( 'jsonDirectoryListings' )
               && exchange.url.depth === 1 && exchange.url.description === 'directory.json' ) {
-                  print({ path: cursor, stats: stats, type: 'directory'})
+                  print({ path: cursor, stats: stats, type: 'directory' })
               } else {
                 exchange.generateErrorPage( new weave.HTTPError( 404, 'The file you requested does not exist.' ) )
               }

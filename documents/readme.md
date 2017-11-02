@@ -18,7 +18,7 @@ All flags are exposed as functions on `weave.flags` and follow camelCase naming.
 ```Shell
 $ weave-demo # Starts a server that will present a demo website on port 80
 $ myWeaveApp --aww-heck-yes # Try it for yourself! :)
-$ myWeaveApp --weave-verbose # Equivalent to weave.Garden.verbose = true
+$ myWeaveApp --weave-verbose
 $ myWeaveApp --enable-weave-repl # Will enable a command line repl
 $ myWeaveApp --enable-weave-instruments # Will allow calls to weave.attachInstruments
 $ myWeaveApp --enable-interface-engine # Enables experimental implementation
@@ -39,11 +39,15 @@ These properties can be set on the global `weave.configuration` object, on an
 'mimeTypes': dictionary
 'errorPages': { errorCode: str pathToFile.. }
 'engines': { '.ext': engine( content, details, exchange ) -> Promise.. }
-// Can only be configured via weave.configuration as the cache is global and shared
+// Can only be configured via weave.configuration
 'cache': { maxCacheSize: num megabytes, maxCachedFileSize: num megabytes }
 'redirect': { fromUrl: str toUrl }
 'headers': { 'Header-Name': str 'value' }
+// Can only be configured via weave.logOutputPath
 'logOutputPath': str 'path.log'
+'access': bool | obj { 'path': bool }
+'domain': str 'forceddomain.com'
+'secure': bool
 ```
 
 ## Everything you need to know
@@ -80,7 +84,12 @@ app.interface( dirName, handle( exchange, manifest ) -> promise[, str method | a
 app.engine( str extension, handle( fileBuffer, manifest, exchange ) -> promise)
 app.redirect( str from, str to )
 app.header( str name, str value )
-app#configured( dirName, dirConf, appConf )
+// settings takes the same values as node's https.createServer. host is optional.
+// If not included, Weave will automatically forward all connections on port 443
+// to this app. It should be noted that all calls to app.link after this will be
+// linked as secure servers using the provided settings. Any unsecured hosts that
+// you wish to use must be linked before securing the app.
+app.secure( obj settings[, host ] )
 app#exchange( exchange )
 app.router( exchange ) -> undefined
 app.printer( httpError, manifest, exchange ) -> undefined                   

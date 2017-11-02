@@ -24,10 +24,11 @@ let garden = weave.createGarden( 'weave' )
 Object.assign( weave, {
   version: '0.2.3',
 
+  cluster: [], // For using multiple threads to process requests, WIP
+
   servers: {}, apps: { anonymous: [] }, hosts: {},
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
-               HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES,
-               CPU_CORES: os.cpus().length },
+               HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES },
 
   verbose( verbose = true ) { return gardens.verbose = verbose },
   silent() { return weave.verbose( false ) },
