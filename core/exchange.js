@@ -128,7 +128,6 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 
 			// Refuse access if specified to do so
 			if ( this.configuration.hasOwnProperty( 'access' ) ) {
-				console.log( this.url.path )
 				if ( this.configuration.access === false
 				  || this.configuration.access[ this.url.path ] === false )
 					return this.generateErrorPage( new weave.HTTPError( 403, 'Access to this URL has been blocked.' ) )
@@ -136,7 +135,6 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		}
 
 		// Enforce default domains
-		console.log( this.url.hostname )
 		let domain = this.behavior( 'domain' )
 		if ( typeof domain === 'string' && domain !== this.url.hostname )
 			return this.redirect( url.format( Object.assign( this.url, { host: `${domain}:${this.url.port}` } ) ))

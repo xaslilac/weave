@@ -4,13 +4,13 @@ let fs = require( "fs" )
 
 module.exports = class MimeDictionary {
   constructor( map ) {
-    if ( typeof map === 'string' ) {
-      this.fromApacheFile( map )
-    } else if ( Array.isArray( map ) ) {
-      map.forEach( ind => this.fromApacheFile( ind ) )
-    } else {
-      this.define.apply( this, arguments )
-    }
+    if ( typeof map === 'string' ) this.fromApacheFile( map )
+    else if ( Array.isArray( map ) ) map.forEach( ind => this.fromApacheFile( ind ) )
+    else this.define.apply( this, arguments )
+  }
+
+  static createDictionary( ...conf ) {
+    return new MimeDictionary( ...conf )
   }
 
   define( type, extensions ) {
@@ -33,8 +33,8 @@ module.exports = class MimeDictionary {
     return this
   }
 
-  fromApacheFile( path, encoding ) {
-    fs.readFile( path, encoding || "UTF-8", ( error, content ) => {
+  fromApacheFile( path, encoding = 'utf-8' ) {
+    fs.readFile( path, encoding, ( error, content ) => {
       if ( error ) return console.error( error )
 
       // Remove all empty lines and comments and then split the file into lines.

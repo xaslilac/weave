@@ -25,7 +25,9 @@ weave.interfaces = {
       }
 
       vm.runInNewContext( script, {
-        document, garden, console: garden,
+        // XXX: Enabling require this way seems unsafe, see if there is a better way
+        document, garden, console: garden, require: require,
+        __dirname: path.dirname( manifest.path ), __filename: path.basename( manifest.path ),
         weave: handle => {
           if ( typeof handle === 'function' ) handle( exchange, manifest )
           else return { exchange, manifest }

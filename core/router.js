@@ -68,10 +68,11 @@ weave.App.prototype.route = function ( exchange ) {
         // Search for any files with favored extensions.
         // Favored extensions only work on a depth of 0, and if the url ends in
         // a character that would be valid in a filename.
-        if ( exchange.url.depth === 0
-        && Array.isArray( exchange.behavior( 'favoredExtensions' ) )
+        let extensions = exchange.behavior( 'extensions' )
+
+        if ( exchange.url.depth === 0 && Array.isArray( extensions )
         && exchange.url.pathname.charAt( exchange.url.pathname.length - 1 ).match( /[A-Za-z0-9\-\_]/ ) ) {
-          Promise.all( exchange.behavior( 'favoredExtensions' ).map( extension => {
+          Promise.all( extensions.map( extension => {
             return new Promise( ( next, print ) => {
               fs.stat( cursor + extension, ( error, stats ) => {
                 if ( error || !stats.isFile() ) return next()
@@ -103,7 +104,6 @@ weave.App.prototype.route = function ( exchange ) {
                 } else next()
               })
             }) ).then( () => {
-              console.log( exchange.url )
               if ( exchange.url.depth === 0 && exchange.behavior( 'htmlDirectoryListings' ) ) {
                 print({ path: cursor, stats: stats, type: 'directory' })
               } else if ( exchange.behavior( 'jsonDirectoryListings' )

@@ -6,12 +6,12 @@ let crypto = require( 'crypto' )
 let http = require( 'http' )
 let os = require( 'os' )
 let gardens = require( 'gardens' )
+let dictionaries = require( './utilities/mimedictionary' )
 
 const weave = module.exports = exports = ( ...conf ) => new weave.App( ...conf )
 
 Object.assign( weave, {
-  Dictionary: require( './utilities/mimedictionary' ),
-  createDictionary( ...from ) { return new weave.Dictionary( ...from ) },
+  createDictionary: dictionaries.createDictionary,
   createGarden: gardens.createGarden
 })
 

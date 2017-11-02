@@ -12,19 +12,10 @@ let garden = weave.createGarden( 'weave-demo' )
 
 weave( 'default', {
   'location': path.join( __dirname, '../http/default' ),
-
   'indexes': { 'home.md': 0 },
   'favoredExtensions': [ '.md' ],
-  'mimeTypes': {
-    '.md': 'text/html',
-    '.html': 'text/html',
-    '.css':  'text/css',
-    '.js':   'application/javascript',
-    '.ttf': 'application/octet-stream'
-  },
-  'errorPages': {
-    '404': '404.md'
-  },
+  'mimeTypes': weave.createDictionary( path.join( __dirname, '../http/shared/basics.mimes' ) ),
+  'errorPages': { '404': '404.md' },
   'engines': {
     '.md': ( buffer, manifest, exchange ) => {
       return new Promise( ( fulfill, reject ) => {

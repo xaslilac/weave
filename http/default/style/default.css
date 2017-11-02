@@ -1,6 +1,6 @@
 html {
   background-color: #202333;
-  background-image: url( '../images/background.jpg' );
+  background-image: url( '../resources/images/background.jpg' );
   background-size: cover;
   background-attachment: fixed;
 }

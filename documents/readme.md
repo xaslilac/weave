@@ -33,7 +33,7 @@ These properties can be set on the global `weave.configuration` object, on an
 'location': str pathToRootWebDirectory
 // Set maximumFolderDepth to 0 for a "traditional" directory index behavior.
 'indexes': { 'indexFileName': num maximumFolderDepth.. }
-'favoredExtensions': [ str '.ext'.. ]
+'extensions': [ str '.ext'.. ]
 'htmlDirectoryListings': bool enabled
 'jsonDirectoryListings': bool enabled
 'mimeTypes': dictionary
