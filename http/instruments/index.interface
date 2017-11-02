@@ -1,0 +1,9 @@
+let path = require( 'path' )
+
+weave( ( exchange, manifest ) => {
+  manifest.type = 'file'
+  manifest.path = path.join( __dirname, 'index.html' )
+  exchange.app.printer( null, manifest, exchange )
+
+  garden.log( 'Successful print!' )
+})

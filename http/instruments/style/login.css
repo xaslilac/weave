@@ -1,0 +1,64 @@
+html {
+  background-image: url( '../resources/images/background.jpg' );
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 1fr 500px 1fr;
+  grid-template-rows: 1fr 200px 1fr;
+  grid-template-areas:
+    "left   title  right"
+    "left   login  right"
+    "bottom bottom bottom";
+}
+
+#title {
+  grid-area: title;
+  text-align: center;
+  font-family: brush;
+  font-size: 120pt;
+  text-shadow: black 0px 0px 10px;
+
+  color: #efffff;
+}
+
+#login {
+  grid-area: login;
+}
+
+#password {
+  box-shadow: inset black 0px 0px 5px;
+  border-radius: 13px;
+  border: none;
+
+  width: 500px;
+  padding: 15px 0px;
+  font-size: 45px;
+
+  text-align: center;
+}
+
+#submit {
+  box-shadow: inset black 0px 0px 5px;
+  background-color: #6774ee;
+  border-radius: 7px;
+  border: none;
+
+  font-family: "Century Gothic";
+
+  margin: 35px 50px 0px 50px;
+
+  width: 400px;
+  height: 50px;
+  font-size: 28px;
+}
