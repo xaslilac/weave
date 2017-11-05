@@ -15,7 +15,7 @@ html, body {
 body {
   display: grid;
   grid-template-columns: 1fr 500px 1fr;
-  grid-template-rows: 1fr 200px 1fr;
+  grid-template-rows: 1fr 120px 1fr;
   grid-template-areas:
     "left   title  right"
     "left   login  right"
@@ -38,27 +38,27 @@ body {
 
 #password {
   box-shadow: inset black 0px 0px 5px;
-  border-radius: 13px;
+  border-radius: 7px;
   border: none;
 
   width: 500px;
-  padding: 15px 0px;
-  font-size: 45px;
+  padding: 8px 0px;
+  font-size: 22px;
 
   text-align: center;
 }
 
 #submit {
   box-shadow: inset black 0px 0px 5px;
-  background-color: #6774ee;
-  border-radius: 7px;
+  background-color: #a3a6ee;
+  border-radius: 5px;
   border: none;
 
   font-family: "Century Gothic";
 
-  margin: 35px 50px 0px 50px;
+  margin: 35px 150px;
 
-  width: 400px;
-  height: 50px;
-  font-size: 28px;
+  width: 200px;
+  height: 30px;
+  font-size: 17px;
 }

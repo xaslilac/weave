@@ -30,7 +30,7 @@ Object.assign( weave, {
   constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
                HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES },
 
-  verbose( verbose = true ) { return gardens.verbose = verbose },
+  verbose( verbose = true ) { return gardens.configure({ verbose }) },
   silent() { return weave.verbose( false ) },
 
   configuration: {

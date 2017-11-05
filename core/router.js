@@ -15,17 +15,12 @@ weave.App.prototype.route = function ( exchange ) {
 	let manifest = new weave.Manifest( { url: exchange.url } )
   let print = more => this.printer( undefined, manifest.extend( more ), exchange )
 
-  // Set the initial depth to 0. Depth is used to keep track of
-  // how many directories we've moved up from the original url.
-  // This is used for directory indexes with finite depth.
-  exchange.url.depth = 0
-
   // Upgrades are only supported via interfaces.
   // TODO: Let's emit an upgrade event here as one last attempt
   // at saving the connection before we destroy it.
   if ( exchange.isUpgrade ) {
     exchange.destroy()
-    return exchange.generateErrorPage( new weave.HTTPError( 501, "Cannot Upgrade" ) )
+    return exchange.generateErrorPage( new weave.HTTPError( 501, 'Cannot Upgrade' ) )
   }
 
   // If the request type isn't GET, HEAD, or POST, then we don't know how to
@@ -35,29 +30,30 @@ weave.App.prototype.route = function ( exchange ) {
   if ( !'GET HEAD POST'.includes( exchange.method ) )
     return exchange.generateErrorPage( new weave.HTTPError( 405, `Only GET, HEAD, and POST methods are supported.` ) )
 
-  let redirect = exchange.behavior( `redirect ${exchange.url.path}`)
+  let redirect = exchange.behavior( `redirect ${exchange.url.pathname}`)
   if ( redirect ) return exchange.redirect( redirect )
 
   // cursor points to where ever we're searching for files.
   let location = exchange.behavior( 'location' )
   if ( typeof location !== 'string' ) return garden.error( `No location set for ${exchange.url.pathname}! Cannot route!` )
-  let cursor = path.join( location, unescape( exchange.url.path ) )
+  let cursor = path.join( location, unescape( exchange.url.pathname ) )
 
   // This function makes depth adjustments, and is called rather than calling
   // search directly if a recursive search is necessary.
   let reroute = function () {
     // If there's room to step back and keep searching for files then we do so.
-    if ( !path.relative( '/', exchange.url.path ) )
+    if ( !path.relative( '/', exchange.url.pathname ) )
       return exchange.generateErrorPage( new weave.HTTPError( 404 ) )
 
     cursor = path.join( cursor, '..' )
-    exchange.url.path = path.join( exchange.url.path, '..' )
-    exchange.url.description = path.relative( path.join( exchange.directory, exchange.url.path ), exchange.url.pathname )
+    exchange.url.pathname = path.join( exchange.url.pathname, '..' )
+    exchange.url.description = path.relative( path.join( exchange.directory, exchange.url.pathname ), exchange.url.original )
     exchange.url.depth++
     search()
   }
 
   let indexes = exchange.behavior( 'indexes' )
+  let extensions = exchange.behavior( 'extensions' )
 
   // Define our search function
   const search = () => {
@@ -68,8 +64,6 @@ weave.App.prototype.route = function ( exchange ) {
         // Search for any files with favored extensions.
         // Favored extensions only work on a depth of 0, and if the url ends in
         // a character that would be valid in a filename.
-        let extensions = exchange.behavior( 'extensions' )
-
         if ( exchange.url.depth === 0 && Array.isArray( extensions )
         && exchange.url.pathname.charAt( exchange.url.pathname.length - 1 ).match( /[A-Za-z0-9\-\_]/ ) ) {
           Promise.all( extensions.map( extension => {
@@ -89,8 +83,8 @@ weave.App.prototype.route = function ( exchange ) {
           print({ path: cursor, stats: stats, type: "file" })
         } else if ( stats.isDirectory() ) {
           if ( exchange.url.depth === 0 && exchange.behavior( 'urlCleaning' )
-          && !exchange.url.pathname.endsWith('/') ) {
-            exchange.redirect( exchange.url.pathname + '/' )
+          && !exchange.url.original.endsWith('/') ) {
+            exchange.redirect( exchange.url.original + '/' )
           } else if ( indexes ) {
             Promise.all( Object.keys( indexes ).map( index => {
               return new Promise( ( next, print ) => {

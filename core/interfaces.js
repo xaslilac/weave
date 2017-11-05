@@ -1,7 +1,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = weave.createGarden( 'abyss' )
+let garden = weave.createGarden( 'weave interfaces' )
 
 let dom = require( '../utilities/dom' )
 let path = require( 'path' )
@@ -14,6 +14,7 @@ weave.interfaces = {
     return new Promise( ( fulfill, reject ) => {
       let script = content.toString( 'utf-8' )
       let split = /\<\!DOCTYPE|\<html/i.exec( script )
+      let garden = weave.createGarden( `weave.Engine(${exchange.url.pathname})` )
       let html, document;
 
       if ( split ) {
@@ -40,7 +41,7 @@ weave.interfaces = {
     let handle = exchange.configuration[ exchange.method ] || exchange.configuration.any
     if ( typeof handle !== 'function' ) return exchange.generateErrorPage(new weave.HTTPError( 405 ))
 
-    exchange.url.description = path.relative( exchange.directory, exchange.url.pathname )
+    exchange.url.description = exchange.url.pathname
     let manifest = new weave.Manifest( { url: exchange.url, type: 'interface' } )
 
     exchange.app.emit( 'interface exchange', exchange )

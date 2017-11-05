@@ -22,21 +22,23 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		// Make it an EventEmitter
 		super()
 
-		// For time tracking and caching purposes, save the time that
-	  // the connection first began processing. Initialize the state.
-	  this.date = new Date()
+		// Give each connection a UUID for a little bit of tracing.
+		this.UUID = weave.Exchange.generateUUID()
+    garden.time( this.UUID )
+		// Set directory to an empty string for length comparisons.
+		this.directory = ''
+    this.date = new Date()
 	  this.state = 0
 
 	  // What kind of Connection are we dealing with?
 	  this.method = i.method
 	  this.isKeepAlive = /keep-alive/i.test( i.headers.connection )
 	  this.isUpgrade = /upgrade/i.test( i.headers.connection )
+		let hostMatch = i.headers.host && /^([A-Za-z0-9\-\.\[\]\:]+?)(\:(\d{1,5}))?$/.exec( i.headers.host )
 
 	  // If we don't have a valid Host header then there's no way to figure
 	  // out which app is supposed to be used to handle the Connection.
-	  if ( !i.headers.host ) return this.generateErrorPage( new weave.HTTPError( 400, 'Request must have a Host header.' ) )
-		let hostMatch = i.headers.host.match( /^(.+?)(\:([0-9]{1,5}))?$/ )
-		if ( !hostMatch ) return this.generateErrorPage( new weave.HTTPError( 400, 'Invalid Host header.' ) )
+	  if ( !hostMatch ) return this.generateErrorPage( new weave.HTTPError( 400, 'Request must have a valid Host header.' ) )
 
 	  // Save these here, mainly for internal use with the classes methods.
 	  // Ideally these wouldn't be used outside of Weave. All interactions
@@ -62,6 +64,14 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  this.url.port = i.connection.localPort
 	  this.host = this.url.host = this.url.hostname + ':' + this.url.port
 
+    // Keep the original pathname safe, set a blank prefix, and set out initial depth.
+    this.url.original = this.url.pathname
+    this.url.prefix = ''
+    this.url.depth = 0
+
+    // Debug inspecting
+    garden.debug( this.METHOD, this.url )
+
 	  // Check for a direct host match, or a cached wildcard match.
 	  // If there isn't one, check against wildcards, filtering out hosts
 	  // that don't contain at least one wildcard since they won't match.
@@ -79,7 +89,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
       	// We're trying to pretend that there isn't a server connected but
 	      // is that really a good idea? We should probably tell someone that
 	      // the server is connected and just not active. Maybe a 501.
-				garden.warning( "Incoming connection rejected. No app found." )
+				garden.warning( 'Incoming connection rejected. No app found.' )
 	      return i.connection.destroy()
 			}
 
@@ -87,11 +97,6 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 			weave.cache.hostMatches[ this.host ] = appHostName
 			this.app = weave.hosts[ appHostName ]
 		}
-
-		// Give each connection a UUID for a little bit of tracing.
-		this.UUID = weave.Exchange.generateUUID()
-		// Set directory to an empty string for length comparisons.
-		this.directory = ''
 
 	  // Check to see if we've already found the configuration for this path.
 	  // If not check to see if there's a directory with a configuration that
@@ -120,7 +125,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 			// If we found a matching directory with a configured location,
 			// shorten the URL relative to the directory.
 			if ( this.configuration.location ) {
-				this.url.path = path.join( '/', path.relative( this.directory, this.url.path ) )
+				this.url.pathname = path.join( '/', path.relative( this.directory, this.url.original ) )
 				this.url.prefix = this.directory
 			} else if ( this.configuration.type === 'interface' ) {
 				return weave.interfaces.handle( this )
@@ -233,7 +238,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	}
 
 	status( status ) {
-	  // Check to make sure the status is valid, and has not yet been written.
+    // Check to make sure the status is valid, and has not yet been written.
 	  if ( this.state !== 0 ) return garden.error( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` )
 		if ( typeof status !== 'number' ) return garden.typeerror( `Status ${status} is not a number!` )
 
@@ -339,6 +344,8 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  // this.isKeepAlive ?
 	  this._NODE_CONNECTION.write( z )
 	    // : this._NODE_CONNECTION.end()
+
+    garden.timeEnd( this.UUID )
 
 	  this.state = 3
 		return this

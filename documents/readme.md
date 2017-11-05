@@ -182,9 +182,6 @@ that is *directly* due to receiving invalid input from a user should be logged t
 the `app.garden` on the corresponding app.
 ```JavaScript
 weave.createGarden( gardenName, verbose ) -> garden
-// Universal override for being verbose
-Garden.verbose: bool
-garden.verbose: bool
 garden.isVerbose() -> bool garden.verbose | Garden.verbose
 // Only prints when garden.verbose is true
 garden.debug( things.. ) -> undefined
