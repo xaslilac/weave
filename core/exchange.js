@@ -10,6 +10,9 @@ let path = require( 'path' )
 let url = require( 'url' )
 let Wildcard = require( '../utilities/wildcard' )
 
+// Import our exchange states as constants, for verbosity
+let [ NEW, HEAD, BODY, COMPLETE ] = [ 0, 1, 2, 3 ]
+
 // end packet buffer for connection: keep-alive
 const n = new Buffer('\r\n')
 const z = new Buffer('0\r\n\r\n')
@@ -22,29 +25,37 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		// Make it an EventEmitter
 		super()
 
-		// Give each connection a UUID for a little bit of tracing.
-		this.UUID = weave.Exchange.generateUUID()
-    garden.time( this.UUID )
-		// Set directory to an empty string for length comparisons.
-		this.directory = ''
-    this.date = new Date()
-	  this.state = 0
+    // Give each connection a UUID for a little bit of tracing.
+    let UUID = weave.Exchange.generateUUID()
+    garden.time( UUID )
 
-	  // What kind of Connection are we dealing with?
-	  this.method = i.method
-	  this.isKeepAlive = /keep-alive/i.test( i.headers.connection )
-	  this.isUpgrade = /upgrade/i.test( i.headers.connection )
-		let hostMatch = i.headers.host && /^([A-Za-z0-9\-\.\[\]\:]+?)(\:(\d{1,5}))?$/.exec( i.headers.host )
+    Object.assign( this, {
+      // Set constants
+  		UUID, NEW, HEAD, BODY, COMPLETE,
 
-	  // If we don't have a valid Host header then there's no way to figure
+      // Save these here, mainly for internal use with the classes methods.
+  	  // Ideally these wouldn't be used outside of Weave. All interactions
+  	  // with them should be through using methods of the Connection class.
+      _NODE_CONNECTION: i.connection,
+      _NODE_REQUEST: i,
+      _NODE_RESPONSE: o,
+
+  		// Set directory to an empty string for length comparisons.
+  		directory: '',
+      date: new Date(),
+  	  state: NEW,
+
+  	  // What kind of Connection are we dealing with?
+  	  method: i.method,
+  	  isKeepAlive: /keep-alive/i.test( i.headers.connection ),
+  	  isUpgrade: /upgrade/i.test( i.headers.connection ),
+      secure
+    })
+
+    // If we don't have a valid Host header then there's no way to figure
 	  // out which app is supposed to be used to handle the Connection.
+		let hostMatch = i.headers.host && /^([A-Za-z0-9\-\.\[\]\:]+?)(\:(\d{1,5}))?$/.exec( i.headers.host )
 	  if ( !hostMatch ) return this.generateErrorPage( new weave.HTTPError( 400, 'Request must have a valid Host header.' ) )
-
-	  // Save these here, mainly for internal use with the classes methods.
-	  // Ideally these wouldn't be used outside of Weave. All interactions
-	  // with them should be through using methods of the Connection class.
-	  this._NODE_CONNECTION = i.connection,
-	  this._NODE_REQUEST = i, this._NODE_RESPONSE = o
 
 		// This is so that we don't start forwarding data until someone is listening
 		// to it, since we don't implement a Readable Stream, we just forward events.
@@ -239,13 +250,13 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 
 	status( status ) {
     // Check to make sure the status is valid, and has not yet been written.
-	  if ( this.state !== 0 ) return garden.error( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` )
+	  if ( this.state !== NEW ) return garden.error( `Cannot write status ${status} to HTTP stream, already wrote ${this._WRITTEN_STATUS}!` )
 		if ( typeof status !== 'number' ) return garden.typeerror( `Status ${status} is not a number!` )
 
 	  this._NODE_CONNECTION.write( `HTTP/1.1 ${status} ${weave.constants.STATUS_CODES[status]}\r\n` )
 		this._WRITTEN_STATUS = status
 		this._WRITTEN_HEADERS = {}
-	  this.state = 1
+	  this.state = HEAD
 
 	  return this
 	}
@@ -253,9 +264,9 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	writeHeader( header, value = true ) {
 		// To write headers we must have a status, no body, and a valid header name.
 		if ( typeof header !== 'string' ) return garden.typeerror( 'Header arugment must be a string' )
-	  if ( this.state > 1 ) return garden.error( 'Headers already sent!' )
+	  if ( this.state > HEAD ) return garden.error( 'Headers already sent!' )
 
-		if ( this.state === 0 ) this.status( 200 )
+		if ( this.state === NEW ) this.status( 200 )
 
 		// You can't cache an error!
 		if ( header.toLowerCase() === "last-modified" && this._STATUS >= 300 ) {
@@ -291,17 +302,17 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		this.writeHead( Object.assign( { 'Date': this.date.toUTCString() }, this.behavior( 'headers' ) ) )
 
 		// this.isKeepAlive ?
-		this.writeHeader( "Transfer-Encoding", "chunked" )
+		this.writeHeader( 'Transfer-Encoding', 'chunked' )
 			// : this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
 
 	  this._NODE_CONNECTION.write( n )
-	  this.state = 2
+	  this.state = BODY
 
 	  return this
 	}
 
 	hasBody() {
-		return this.method !== "HEAD" && this._STATUS !== 304
+		return this.method !== 'HEAD' && this._STATUS !== 304
 	}
 
 	// XXX: Is the connection keep-alive or close?
@@ -310,9 +321,9 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	// TODO: Check before writing the Date header as well. Or disallow anyone else
 	// from writing it with a condition in ::writeHeader().
 	write( content, encoding ) {
-	  if ( this.state === 3 ) return garden.error( "Cannot write data, response has already been completed." )
-	  if ( this.state < 2 ) this.endHead()
-		if ( typeof content !== 'string' && !content instanceof Buffer )
+	  if ( this.state === COMPLETE ) return garden.error( 'Cannot write data, response has already been completed.' )
+	  if ( this.state < BODY ) this.endHead()
+		if ( typeof content !== 'string' && !Buffer.isBuffer( content ) )
 			return garden.typeerror( 'Content must be a string or buffer' )
 
 		if ( this.hasBody() ) {
@@ -338,7 +349,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  if ( args.length > 0 ) this.write( ...args )
 		// Firefox will hang on requests if there is no body present,
 		// such as 3xx redirects, so write a blank one.
-		if ( this.state < 2 ) this.write('')
+		if ( this.state < BODY ) this.write('')
 
 	  // Keep the connection alive or kill it
 	  // this.isKeepAlive ?
@@ -347,7 +358,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 
     garden.timeEnd( this.UUID )
 
-	  this.state = 3
+	  this.state = COMPLETE
 		return this
 	}
 
