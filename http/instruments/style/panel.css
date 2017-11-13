@@ -1,0 +1,46 @@
+html {
+  background-image: url( '../resources/images/background.jpg' );
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas:
+    "title   header"
+    "sidebar content";
+}
+
+#title {
+  grid-area: title;
+  text-align: center;
+  font-family: brush;
+  font-size: 42px;
+  text-shadow: black 0px 0px 10px;
+
+  color: #efffff;
+}
+
+#sidebar {
+  grid-area: sidebar;
+
+  background-color: #242332;
+  box-shadow: black 0px 0px 7px;
+}
+
+#content {
+  grid-area: content;
+
+  background-color: #f42d88;
+  box-shadow: black 0px 0px 7px;
+}

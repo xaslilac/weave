@@ -7,12 +7,16 @@
 
   <link rel="stylesheet" type="text/css" href="resources/fonts.css" />
   <link rel="stylesheet" type="text/css" href="style/login.css" />
+
+  <script type="application/javascript">
+    if ( location.search === '?incorrect' ) alert( 'Incorrect password' )
+  </script>
 </head>
 <body>
 
 <h1 id="title">weave</h1>
 
-<form id="login" action="login" method="post">
+<form id="login" action="auth" method="post">
 
 <div><input id="password" type="password" name="adminpassword" placeholder="password" /></div>
 <div><input id="submit" type="submit" value="submit" /></div>

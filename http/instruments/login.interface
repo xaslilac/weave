@@ -1,8 +1,0 @@
-weave( ( exchange, manifest ) => {
-  exchange.on( 'data', data => {
-    let [ name, password ] = data.toString( 'utf-8' ).split( '=' )
-    let referer = exchange.detail( 'referer' )
-
-    if ( password !== 'password' ) exchange.redirect( referer.includes( '?incorrect' ) ? referer : referer + '?incorrect' )
-  })
-})
