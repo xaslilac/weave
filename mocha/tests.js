@@ -71,15 +71,15 @@ context( 'weave', function () {
     })
   })
 
-  describe( 'resolve index depths', function () {
-    [ 'Test A', 'Test B', 'Test C', 'Test D' ].forEach( ( name, depth ) => {
-      it( `should resolve to the correct index based on depth ${depth}`, function ( done ) {
-        test( '/depth'.repeat( depth ) )
-          .then( text => garden.log( text ) )
-          .then( () => done() )
-      })
-    })
-  })
+  // describe( 'resolve index depths', function () {
+  //   [ 'Test A', 'Test B', 'Test C', 'Test D' ].forEach( ( name, depth ) => {
+  //     it( `should resolve to the correct index based on depth ${depth}`, function ( done ) {
+  //       test( '/depth'.repeat( depth ) )
+  //         .then( text => garden.log( text ) )
+  //         .then( () => done() )
+  //     })
+  //   })
+  // })
 })
 
 
