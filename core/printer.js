@@ -35,7 +35,7 @@ weave.App.prototype.printer = function ( error, manifest, exchange ) {
 function printError( error, manifest, exchange ) {
   let document = dom.createHtmlDocument( `${error.statusCode} ${error.status}` )
   document.body.appendChild( document.createElement( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
-  if ( error.description ) {
+  if ( typeof error.description === 'string' ) {
     let desc = document.body.appendChild( document.createElement( 'p' ) )
     desc.children = error.description.split( '\n' ).map( line => {
       return new dom.TextNode( line.replace( /\s/g, '&nbsp;' ).replace( weave.constants.HOME, '~' ) + '<br />' )
