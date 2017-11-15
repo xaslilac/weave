@@ -17,7 +17,19 @@ let [ NEW, HEAD, BODY, COMPLETE ] = [ 0, 1, 2, 3 ]
 const n = new Buffer('\r\n')
 const z = new Buffer('0\r\n\r\n')
 
-// The Connection class determines which App is responsible
+Object.assign( weave.util, {
+  generateUUID() {
+    return weave.util.RNDM_RG(0x10000000,  0xFFFFFFFF,  16) + "-" +
+           weave.util.RNDM_RG(0x1000,      0xFFFF,      16) + "-" +
+           weave.util.RNDM_RG(0x4000,      0x4FFF,      16) + "-" +
+           weave.util.RNDM_RG(0x8000,      0xBFFF,      16) + "-" +
+           weave.util.RNDM_RG(0x100000,    0xFFFFFF,    16) + // The last range has to be split into
+           weave.util.RNDM_RG(0x100000,    0xFFFFFF,    16)   // two calls because it has more digits
+                                                              // than Math.random() generates
+    }
+})
+
+// The Exchange class determines which App is responsible
 // for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
 weave.Exchange = class Exchange extends events.EventEmitter {
@@ -26,7 +38,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		super()
 
     // Give each connection a UUID for a little bit of tracing.
-    let UUID = weave.Exchange.generateUUID()
+    let UUID = weave.util.generateUUID()
     garden.time( UUID )
 
     Object.assign( this, {
@@ -165,15 +177,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		this.app.route( this )
 	}
 
-	static generateUUID() {
-		return weave.util.RNDM_RG(0x10000000,     0xFFFFFFFF,     16) + "-" +
-					 weave.util.RNDM_RG(0x1000,         0xFFFF,         16) + "-" +
-					 weave.util.RNDM_RG(0x4000,         0x4FFF,         16) + "-" +
-					 weave.util.RNDM_RG(0x8000,         0xBFFF,         16) + "-" +
-					 weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16) + // The last range has to be split into
-					 weave.util.RNDM_RG(0x100000,       0xFFFFFF,       16)   // two calls because it has more digits
-																																		// than Math.random() generates
-	}
+  // Methods for getting information about the request
 
 	behavior( name ) {
 		if ( typeof name !== 'string' ) return garden.typeerror( 'Configuration behavior must be a string' )
@@ -233,9 +237,10 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	        // I think this is how we parse cookies but I suck at them???
 					if ( typeof header === 'string' ) {
 						let data = {}
+            let value
 						header.split( ';' ).forEach( cookie => {
-							cookie = cookie.trim().split( '=' )
-							data[cookie.shift()] = cookie.length ? cookie.join( '=' ) : true
+              [ cookie, ...value ] = cookie.trim().split( '=' )
+							data[ cookie ] = value || true
 						})
 						return data
 					}
@@ -247,6 +252,8 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  // is true then just return the header as a normal string.
 	  return header
 	}
+
+  // Methods for sending a response for the client.
 
 	status( status ) {
     // Check to make sure the status is valid, and has not yet been written.
@@ -261,7 +268,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  return this
 	}
 
-	writeHeader( header, value = true ) {
+	header( header, value = true ) {
 		// To write headers we must have a status, no body, and a valid header name.
 		if ( typeof header !== 'string' ) return garden.typeerror( 'Header arugment must be a string' )
 	  if ( this.state > HEAD ) return garden.error( 'Headers already sent!' )
@@ -279,34 +286,16 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  return this
 	}
 
-	writeHead( status, headers ) {
+	head( status, headers ) {
 		if ( typeof status !== 'number' ) {
 			headers = status
 			status = 200
 		}
 
-		if ( !headers ) return garden.error( 'No headers given to weave.Exchange::writeHead!' )
+		if ( !headers ) return garden.error( 'No headers given to weave.Exchange::head!' )
 
 	  if ( !this._WRITTEN_STATUS ) this.status( status )
-	  Object.keys( headers ).forEach( name => this.writeHeader( name, headers[ name ] ) )
-
-	  return this
-	}
-
-	endHead( header, value ) {
-	  // If there's an actual header to right, then right it.
-	  // Then end the header and start righting the body.
-	  if ( header ) this.writeHeader( header, value )
-
-		// Write preconfigured constant headers, if they are specified, and a Date header.
-		this.writeHead( Object.assign( { 'Date': this.date.toUTCString() }, this.behavior( 'headers' ) ) )
-
-		// this.isKeepAlive ?
-		this.writeHeader( 'Transfer-Encoding', 'chunked' )
-			// : this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
-
-	  this._NODE_CONNECTION.write( n )
-	  this.state = BODY
+	  Object.keys( headers ).forEach( name => this.header( name, headers[ name ] ) )
 
 	  return this
 	}
@@ -322,9 +311,20 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	// from writing it with a condition in ::writeHeader().
 	write( content, encoding ) {
 	  if ( this.state === COMPLETE ) return garden.error( 'Cannot write data, response has already been completed.' )
-	  if ( this.state < BODY ) this.endHead()
 		if ( typeof content !== 'string' && !Buffer.isBuffer( content ) )
 			return garden.typeerror( 'Content must be a string or buffer' )
+
+    if ( this.state < BODY ) {
+      // Write preconfigured constant headers, if they are specified, and a Date header.
+  		this.head( Object.assign( { 'Date': this.date.toUTCString() }, this.behavior( 'headers' ) ) )
+
+  		// this.isKeepAlive ?
+  		this.header( 'Transfer-Encoding', 'chunked' )
+  			// : this.writeHeader( "Content-Length", 0 ) // content.length ) uhh how does this work now that I moved it???
+
+  	  this._NODE_CONNECTION.write( n )
+  	  this.state = BODY
+    }
 
 		if ( this.hasBody() ) {
 	    if ( this.isKeepAlive ) {
@@ -362,23 +362,29 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		return this
 	}
 
+  // Utilities for quickly finishing responses
+
 	redirect( location, status = 301 ) {
 		if ( location === 304 ) return this.status( 304 ).end()
 		if ( typeof location !== 'string' ) return garden.typeerror( 'Redirect location is not a string!' ) && this.generateErrorPage( 500 )
 		if ( typeof status !== 'number' || status < 300 || status > 399 ) return garden.error( 'Invalid redirect status!' ) && this.generateErrorPage( 500 )
 
-		return this.writeHead( status, { 'Location': location } ).end()
+		return this.head( status, { 'Location': location } ).end()
 	}
 
 	generateErrorPage( error ) {
-		// Make sure we can generate a valid error page
+		// Make sure we can generate a valid error page.
 		if ( typeof error === 'number' ) error = new weave.HTTPError( error )
-		else if ( !error instanceof weave.HTTPError ) return garden.error( 'generateErrorPage requires a weave.HTTPError argument!' )
-		if ( error.statusCode >= 500 ) garden.error( error.description )
+		else if ( !error instanceof weave.HTTPError ) return garden.error( 'generateErrorPage requires an instance of weave.HTTPError or a number!' )
+
+    // If it was a server error, log it
+    if ( error.statusCode >= 500 ) garden.log( error.description )
 
 		// Get the manifest ready for the printer, and make the printer easy to call.
-		let manifest = new weave.Manifest( { url: this.url } )
+		let manifest = new weave.Manifest({ url: this.url })
 		let print = more => weave.App.prototype.printer( error, manifest.extend( more ), this )
+
+    // Search for a path for an error file.
     let cursor = this.app && this.behavior( 'location' )
     let errorPageName = this.behavior( `errorPages ${error.statusCode}` )
 		if ( !errorPageName ) return print()

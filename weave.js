@@ -5,6 +5,7 @@
 let crypto = require( 'crypto' )
 let http = require( 'http' )
 let os = require( 'os' )
+
 let gardens = require( 'gardens' )
 let dictionaries = require( './utilities/mimedictionary' )
 
@@ -12,7 +13,13 @@ const weave = module.exports = exports = ( ...conf ) => new weave.App( ...conf )
 
 Object.assign( weave, {
   createDictionary: dictionaries.createDictionary,
-  createGarden: gardens.createGarden
+  createGarden: gardens.createGarden,
+
+  util: {
+    SHA1_64: data => crypto.createHash( 'sha1' ).update( data ).digest( 'base64' ),
+    RNDM_RG: ( min, max, base ) => {
+      let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
+      return base ? r.toString( base ) : r } }
 })
 
 require( './app' )
@@ -42,16 +49,9 @@ Object.assign( weave, {
   configure: weave.App.prototype.configure,
   engine: weave.App.prototype.engine,
 
-  util: {
-    SHA1_64: data => crypto.createHash( 'sha1' ).update( data ).digest( 'base64' ),
-    RNDM_RG: ( min, max, base ) => {
-      let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
-      return base ? r.toString( base ) : r } },
-
   HTTPError: class HTTPError {
     constructor( code, desc ) {
-      if ( typeof code !== 'number' ) garden.typeerror( 'HTTPError requires argument code to be a number!' )
-
+      if ( typeof code !== 'number' ) return garden.typeerror( 'HTTPError requires argument code to be a number!' )
       if ( desc instanceof Error ) desc = `${desc.name}: ${desc.message}\n${desc.stack}`
 
       Object.defineProperties( this, {

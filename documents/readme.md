@@ -158,9 +158,8 @@ new weave.Exchange( clientRequest, serverResponse ) -> exchange
 exchange.behavior( behaviorName ) -> behaviorValue
 exchange.detail( headerName[, untampered ] ) -> headerValue
 exchange.status( statusCode ) -> exchange
-exchange.writeHeader( headerName, headerValue ) -> exchange
-exchange.writeHead([ status,] objOfHeaders ) -> exchange
-exchange.endHead( headerName, headerValue ) -> exchange
+exchange.header( headerName, headerValue ) -> exchange
+exchange.head([ status,] objOfHeaders ) -> exchange
 exchange.hasBody() -> bool
 exchange.write( content[, encoding] ) -> exchange
 exchange.end( content[, encoding] ) -> exchange
@@ -182,16 +181,8 @@ that is *directly* due to receiving invalid input from a user should be logged t
 the `app.garden` on the corresponding app.
 ```JavaScript
 weave.createGarden( gardenName, verbose ) -> garden
-garden.isVerbose() -> bool garden.verbose | Garden.verbose
-// Only prints when garden.verbose is true
-garden.debug( things.. ) -> undefined
-// Only prints when garden.verbose is true
-garden.trace( things.. ) -> undefined
-garden.log( things.. ) -> undefined
-garden.warning( things.. ) -> undefined
-garden.error( things.. ) -> undefined
-garden.typeerror( things.. ) -> undefined
 ```
+For more information on how Gardens work, look up "gardens" on npm.
 
 #### weave.HTTPError
 ```JavaScript

@@ -35,6 +35,7 @@ weave.App.prototype.printer = function ( error, manifest, exchange ) {
 function printError( error, manifest, exchange ) {
   let document = dom.createHtmlDocument( `${error.statusCode} ${error.status}` )
   document.body.appendChild( document.createElement( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
+  console.log( typeof error.description )
   if ( typeof error.description === 'string' ) {
     let desc = document.body.appendChild( document.createElement( 'p' ) )
     desc.children = error.description.split( '\n' ).map( line => {
@@ -76,9 +77,9 @@ function printFile( error, manifest, exchange ) {
 function printFileHead( error, manifest, exchange ) {
   let extname = path.extname( manifest.path )
   exchange.status( error ? error.statusCode : 200 )
-    .writeHeader( 'Content-Type', exchange.behavior( `mimeTypes ${extname}` ) )
+    .header( 'Content-Type', exchange.behavior( `mimeTypes ${extname}` ) )
   // Don't cache error pages
-  if ( !error ) exchange.writeHeader( "Last-Modified", manifest.stats.mtime.toUTCString() )
+  if ( !error ) exchange.header( "Last-Modified", manifest.stats.mtime.toUTCString() )
   return exchange
 }
 
@@ -87,12 +88,12 @@ function printDirectory( error, manifest, exchange ) {
     if ( derror ) return exchange.generateErrorPage( 500 )
 
     if ( exchange.url.description === 'directory.json' ) {
-      exchange.writeHeader( 'Content-Type', 'application/json' )
+      exchange.header( 'Content-Type', 'application/json' )
       return exchange.end( JSON.stringify( files ) )
     }
 
     // If it's not JSON, it must be HTML.
-    exchange.writeHeader( 'Content-Type', 'text/html' )
+    exchange.header( 'Content-Type', 'text/html' )
 
     // Basic document setup
     let document = dom.createHtmlDocument( `Contents of ${exchange.url.pathname}` )
