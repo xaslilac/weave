@@ -52,7 +52,7 @@ class StyleSheet {
       Object.keys( this.selectors ).map( selector => {
         return `${selector} {\n${
         Object.keys( this.selectors[ selector ] ).map( prop => {
-          return `  ${prop}: ${this.selectors[ selector ][ prop ]}`
+          return `  ${ prop.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`) }: ${this.selectors[ selector ][ prop ]}`
         }).join(';\n')}\n}`
       }).join('\n\n')}\n</style>\n`
   }
