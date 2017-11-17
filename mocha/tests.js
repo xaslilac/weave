@@ -52,7 +52,7 @@ context( 'weave', function () {
     newApp = new weave.App({ appName: 'test2' })
     anonymous = weave()
 
-    weaveApp.link( 'localhost:8378' )
+    // weaveApp.link( 'localhost:8378' )
   })
 
   describe( 'constructing a new app', function () {
