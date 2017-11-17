@@ -50,14 +50,20 @@ Object.assign( weave, {
   engine: weave.App.prototype.engine,
 
   HTTPError: class HTTPError {
-    constructor( code, desc ) {
+    constructor( code, error ) {
+      let desc, stack
       if ( typeof code !== 'number' ) return garden.typeerror( 'HTTPError requires argument code to be a number!' )
-      if ( desc instanceof Error ) desc = `${desc.name}: ${desc.message}\n${desc.stack}`
+      if ( typeof error === 'string' ) desc = error
+      else if ( error != null ) {
+        desc = `${error.name}: ${error.message}`
+        stack = error.stack
+      }
 
       Object.defineProperties( this, {
         status: { value: weave.constants.STATUS_CODES[ code ], enumerable: true },
         statusCode: { value: code, enumerable: true },
-        description: { value: desc, enumerable: true }
+        description: { value: desc, enumerable: true },
+        stack: { value: stack, enumberable: !!stack }
       })
     }
   },

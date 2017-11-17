@@ -9,10 +9,42 @@ let path = require( 'path' )
 let util = require( 'util' )
 let dom = require( '../utilities/dom' )
 
+weave.style = new dom.StyleSheet({
+  'html, body': {
+    padding: 0,
+    margin: 0,
+
+    width: '100%',
+    height: '100%'
+  },
+  'h1': {
+    padding: '15px',
+    margin: 0,
+
+    backgroundColor: '#5050DD',
+    fontFamily: 'sans-serif',
+    color: 'white'
+  },
+  'pre': {
+    padding: '15px',
+    margin: '15px',
+    overflow: 'auto',
+
+    borderRadius: '7px',
+
+    backgroundColor: '#242332',
+    color: 'white'
+  },
+
+  '.directory a': { 'color': '#11a9f4' },
+  '.file      a': { 'color': '#11f4e6' }
+})
+
 weave.App.prototype.printer = function ( error, manifest, exchange ) {
   // Debug inspecting
   garden.debug( error, manifest )
 
+  // Check if we are printing an error
   if ( error ) {
     if ( error instanceof weave.HTTPError ) return ( manifest.isFile() ? printFile : printError )( error, manifest, exchange )
     else {
@@ -21,6 +53,7 @@ weave.App.prototype.printer = function ( error, manifest, exchange ) {
     }
   }
 
+  // Ensure we have a path to print
   if ( !manifest.path ) {
     exchange.generateErrorPage( 500 )
     return garden.error( 'No path given!', manifest )
@@ -34,11 +67,19 @@ weave.App.prototype.printer = function ( error, manifest, exchange ) {
 
 function printError( error, manifest, exchange ) {
   let document = dom.createHtmlDocument( `${error.statusCode} ${error.status}` )
-  document.body.appendChild( document.createElement( 'h1' ) ).innerHTML = `${error.statusCode} ${error.status}`
-  console.log( typeof error.description )
+  document.head.appendChild( weave.style )
+
+  let header = document.body.appendChild( document.createElement( 'h1' ) )
+
   if ( typeof error.description === 'string' ) {
-    let desc = document.body.appendChild( document.createElement( 'p' ) )
-    desc.children = error.description.split( '\n' ).map( line => {
+    header.innerHTML = error.description
+  } else {
+    header.innerHTML = `${error.statusCode} ${error.status}`
+  }
+
+  if ( typeof error.stack === 'string' ) {
+    let stack = document.body.appendChild( document.createElement( 'pre' ) )
+    stack.children = error.stack.split( '\n' ).map( line => {
       return new dom.TextNode( line.replace( /\s/g, '&nbsp;' ).replace( weave.constants.HOME, '~' ) + '<br />' )
     })
   }
@@ -97,14 +138,14 @@ function printDirectory( error, manifest, exchange ) {
 
     // Basic document setup
     let document = dom.createHtmlDocument( `Contents of ${exchange.url.pathname}` )
-    let header = document.createElement( 'h1' )
-    let list = document.createElement( 'ul' )
+    document.head.appendChild( weave.style )
+
+    let header = document.body.appendChild( document.createElement( 'h1' ) )
+    let list = document.body.appendChild( document.createElement( 'ul' ) )
+
     header.innerHTML = document.title
-    document.body.appendChild( header )
-    document.body.appendChild( list )
-    document.createStyleSheet({
-       '.directory a': { 'color': '#11a9f4' },
-       '.file      a': { 'color': '#11f4e6' } })
+
+
 
     // Don't waste our time with empty directories
     if ( files.length === 0 ) {

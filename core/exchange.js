@@ -375,10 +375,10 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	generateErrorPage( error ) {
 		// Make sure we can generate a valid error page.
 		if ( typeof error === 'number' ) error = new weave.HTTPError( error )
-		else if ( !error instanceof weave.HTTPError ) return garden.error( 'generateErrorPage requires an instance of weave.HTTPError or a number!' )
+		else if ( !( error instanceof weave.HTTPError ) ) return garden.error( 'generateErrorPage requires an instance of weave.HTTPError or a number!' )
 
     // If it was a server error, log it
-    if ( error.statusCode >= 500 ) garden.log( error.description )
+    if ( error.statusCode >= 500 ) garden.catch( error.description )
 
 		// Get the manifest ready for the printer, and make the printer easy to call.
 		let manifest = new weave.Manifest({ url: this.url })
