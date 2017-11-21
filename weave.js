@@ -51,13 +51,11 @@ Object.assign( weave, {
 
   HTTPError: class HTTPError {
     constructor( code, error ) {
-      let desc, stack
       if ( typeof code !== 'number' ) return garden.typeerror( 'HTTPError requires argument code to be a number!' )
+
+      let desc, stack
       if ( typeof error === 'string' ) desc = error
-      else if ( error != null ) {
-        desc = `${error.name}: ${error.message}`
-        stack = error.stack
-      }
+      else if ( error != null ) [desc, stack] = [ `${error.name}: ${error.message}`, error.stack ]
 
       Object.defineProperties( this, {
         status: { value: weave.constants.STATUS_CODES[ code ], enumerable: true },
@@ -80,7 +78,7 @@ Object.assign( weave, {
 
 // Read command line configuration options
 process.argv.forEach( ( arg, index ) => {
-  if ( arg.indexOf( '--' ) === 0 ) {
+  if ( arg.startsWith( '--' ) ) {
     let narg = weave.flags[ arg.substring( 2 ).toLowerCase()
       .replace( /\-([a-z])/g, ( whole, letter ) => letter.toUpperCase() ) ]
 

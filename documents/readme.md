@@ -182,12 +182,14 @@ the `app.garden` on the corresponding app.
 ```JavaScript
 weave.createGarden( gardenName, verbose ) -> garden
 ```
-For more information on how Gardens work, look up "gardens" on npm.
+For more information on how Gardens work, see [gardens](https://www.npmjs.com/package/gardens) on npm.
 
 #### weave.HTTPError
 ```JavaScript
-new weave.HTTPError( statusCode[, description ] ) -> httpError
+new weave.HTTPError( statusCode[, description: str | error ] ) -> httpError
 httpError.status: str statusName
 httpError.statusCode: num statusCode
 httpError.description: str description
+// If description is an error object the stack will also be available
+httpError.stack: str callstack
 ```

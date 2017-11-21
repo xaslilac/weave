@@ -47,10 +47,9 @@ weave.App.prototype.printer = function ( error, manifest, exchange ) {
   // Check if we are printing an error
   if ( error ) {
     if ( error instanceof weave.HTTPError ) return ( manifest.isFile() ? printFile : printError )( error, manifest, exchange )
-    else {
-      printError( new weave.HTTPError( 500 ), manifest, exchange )
-      return garden.typeerror( 'Error argument was not a weave.HTTPError!', error )
-    }
+
+    printError( new weave.HTTPError( 500 ), manifest, exchange )
+    return garden.typeerror( 'Error argument was not a weave.HTTPError!', error )
   }
 
   // Ensure we have a path to print
@@ -69,12 +68,14 @@ function printError( error, manifest, exchange ) {
   let document = dom.createHtmlDocument( `${error.statusCode} ${error.status}` )
   document.head.appendChild( weave.style )
 
-  let header = document.body.appendChild( document.createElement( 'h1' ) )
+  let description = document.body.appendChild( document.createElement( 'h1' ) )
+  let status = document.body.appendChild( document.createElement( 'h2' ) )
+  status.innerHTML = `${error.statusCode} ${error.status}`
 
   if ( typeof error.description === 'string' ) {
-    header.innerHTML = error.description
+    description.innerHTML = error.description
   } else {
-    header.innerHTML = `${error.statusCode} ${error.status}`
+    description.innerHTML = `Something went wrong..`
   }
 
   if ( typeof error.stack === 'string' ) {
@@ -83,6 +84,10 @@ function printError( error, manifest, exchange ) {
       return new dom.TextNode( line.replace( /\s/g, '&nbsp;' ).replace( weave.constants.HOME, '~' ) + '<br />' )
     })
   }
+
+  let report = document.body.appendChild( document.createElement( 'a' ) )
+  report.innerHTML = 'Report an issue'
+  report.href = 'https://github.com/partheseas/weave/issues'
 
   return exchange.status( error.statusCode ).end( document.toString() )
 }
@@ -137,15 +142,13 @@ function printDirectory( error, manifest, exchange ) {
     exchange.header( 'Content-Type', 'text/html' )
 
     // Basic document setup
-    let document = dom.createHtmlDocument( `Contents of ${exchange.url.pathname}` )
+    let document = dom.createHtmlDocument( `Contents of ${exchange.url.original}` )
     document.head.appendChild( weave.style )
 
     let header = document.body.appendChild( document.createElement( 'h1' ) )
     let list = document.body.appendChild( document.createElement( 'ul' ) )
 
     header.innerHTML = document.title
-
-
 
     // Don't waste our time with empty directories
     if ( files.length === 0 ) {
@@ -163,7 +166,7 @@ function printDirectory( error, manifest, exchange ) {
 
           yes({
             type: isDir ? 'directory' : 'file',
-            href: path.join( '/', exchange.url.pathname, name ),
+            href: path.join( '/', exchange.url.original, name ),
             name: name
           })
         } )
