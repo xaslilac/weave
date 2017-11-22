@@ -37,13 +37,9 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 		// Make it an EventEmitter
 		super()
 
-    // Give each connection a UUID for a little bit of tracing.
-    let UUID = weave.util.generateUUID()
-    garden.time( UUID )
-
     Object.assign( this, {
-      // Set constants
-  		UUID, NEW, HEAD, BODY, COMPLETE,
+      // Set UUID, state constants, and garden
+  		UUID: weave.util.generateUUID(), NEW, HEAD, BODY, COMPLETE,
 
       // Save these here, mainly for internal use with the classes methods.
   	  // Ideally these wouldn't be used outside of Weave. All interactions
@@ -94,6 +90,10 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 
     // Debug inspecting
     garden.debug( this.METHOD, this.url )
+
+    // Create a garden for the exchange
+    this.garden = weave.createGarden( `weave.Exchange({${this.UUID.slice( 0, 13 )}}, ${this.url.original})` )
+    this.garden.time( 'response' )
 
 	  // Check for a direct host match, or a cached wildcard match.
 	  // If there isn't one, check against wildcards, filtering out hosts
@@ -253,6 +253,19 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  return header
 	}
 
+  read( encoding = 'utf-8', timeout = 3000 ) {
+    return new Promise( ( fulfill, reject ) => {
+      let temper = setTimeout( () => {
+        reject( this.garden.warn( 'No data to read!' ) )
+      }, timeout )
+
+      this.once( 'data', data => {
+        clearTimeout( temper )
+        fulfill( data.toString( encoding ) )
+      })
+    })
+  }
+
   // Methods for sending a response for the client.
 
 	status( status ) {
@@ -356,7 +369,7 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 	  this._NODE_CONNECTION.write( z )
 	    // : this._NODE_CONNECTION.end()
 
-    garden.timeEnd( this.UUID )
+    this.garden.timeEnd( 'response' )
 
 	  this.state = COMPLETE
 		return this

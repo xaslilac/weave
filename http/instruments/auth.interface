@@ -1,18 +1,17 @@
-weave( ( exchange, manifest ) => {
-  exchange.on( 'data', data => {
-    let [ name, password ] = data.toString( 'utf-8' ).split( '=' )
+weave( async function( exchange, manifest ) {
+  try {
+    let [ name, password ] = (await exchange.read()).split( '=' )
     let referer = exchange.detail( 'referer' )
 
     console.log( `'${password}'` )
 
     if ( password === 'password' ) {
-      exchange.status( 301 ).writeHead({
+      exchange.status( 301 ).head({
         'Location': referer,
-        'Set-Cookie': `Token=${exchange.UUID}; Path=${referer}; Max-Age: 10;${exchange.secure ? 'Secure; ' : ''} HTTPOnly;`
+        'Set-Cookie': `Token=${exchange.UUID}; Path=${referer}; Max-Age: 10;${exchange.secure ? ' Secure;' : ''} HTTPOnly;`
       }).end()
     } else exchange.redirect( referer.includes( '?incorrect' ) ? referer : referer + '?incorrect' )
-
-
-
-  })
+  } catch ( error ) {
+    exchange.generateErrorPage( 400 )
+  }
 })
