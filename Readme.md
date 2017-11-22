@@ -1,5 +1,5 @@
 # Weave
-[![Weave Version 0.3.0](https://img.shields.io/badge/weave-v0.3.0-5050DD.svg)](https://www.npmjs.com/package/weave)
+[![Weave v0.3.0](https://img.shields.io/badge/weave-v0.3.0-5050DD.svg)](https://www.npmjs.com/package/weave)
 ![Stability: Alpha](https://img.shields.io/badge/stability-alpha-f04c5e.svg)
 [![Travis](https://img.shields.io/travis/partheseas/weave.svg?label=linux)](https://travis-ci.org/partheseas/weave)
 [![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)](https://ci.appveyor.com/project/partheseas/weave)
@@ -51,46 +51,32 @@ bad things.
 ### Upcoming
 ### Remote debugging, monitoring instruments - v0.3 (Gooey)
 Improve the instruments greatly, to where they may actually be useful
-- Allow cross-app monitoring for control over access
+- Allow creation of an admin app with limited accessability to control your public production app
 - Encryption and login credentials
-- Ability to monitor an incoming request queue, measure performance
+- Request inspecting, performance metrics
 - REPL output syntax highlighting
-- Caching controls, configuration tweaks
+- Control caching behavior and server configurations on the fly
 
-### Command Line Interface - v0.4 (Quiet Librarian)
-Use all the hooks from our web instruments to enable the same control locally, as
-well as the ability to have a 'headless' process. Continue using your console for
-running other commands without your server blocking the console process.
-- Finalized cluster implementation
-- Self updating
-  - Ability to quickly iterate on new features with incomplete code without needing
-  to constantly restart the process or deal with crashes.
-
-### File system chunking - v0.5 (Snacks)
+### File system chunking - v0.4 (Snacks)
 Stream larger files and enable partial downloads
 - Read large files in chunks rather than entirely at once to avoid eating memory.
 - Enable the ability to stream a video file from a certain time stamp, to
 resume a disrupted download at a later time, and to accept user uploads.
 
-### 100% test coverage - v0.7
+### 100% test coverage/passing - v0.5 (Comfy)
 All features should be 100% tested and passing
 - Run the tests on a local machine in a virtual environment
-- Test in a real world scenario by setting up a browser testing environment
-  - Ensure that everything behaves properly in browsers across the board
+- Test in a real world scenario by setting up a browser based testing environment
+- Ensure that everything behaves properly in browsers across the board
 
-### HTTPS, HTTP/2, compression support - v0.8
-- Control HTTP and HTTPS from one app ✔
-  - Force HTTPS on certain subdirectories or the entire app ✔
+### HTTPS, HTTP/2, compression, production pre-caching and precompiling - v0.6 (Cozy)
+- Control HTTP and HTTPS requests with the same code ✔
+- Force HTTPS on apps ✔
 - HTTP/2 implementation
-  - Compression is necessary for this
+  - Compression is necessary for HTTP/2
+- Read files from web directories into memory for fast response times
+  - Run files through engines and compress them in advance
 
-### Stability & fine tuned error/warning reporting - v0.9
-As we approach feature completeness and having a production ready product,
-fine tune the stability of the Weave to ensure that one request being mishandled
-or any third party code is never able to completely break the process. try, catch
-pairs on any calls to external resources, argument checking on all built in methods,
-and ensuring that any and all errors are incredibly tracable to make debugging
-quick and painless.
-
-### Release - v1.0
-All desired features polished and in place for the world to see!
+### Clusters - v0.7 (Orion)
+- Finalized cluster implementation
+- Stability against crashes, multiple respawning threads provides safety and performace
