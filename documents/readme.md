@@ -13,8 +13,11 @@ they expect, what values they should hold and return, etc.
 ### Command Line
 When installed using the npm `-g` flag, you will be given the command `weave-demo`
 which, as the name implies, runs a demo server which will host a website on port 80.
-All flags are exposed as functions on `weave.flags` and follow camelCase naming.
-(e.g. `---aww-heck-yes` and `weave.flags.awwHeckYes()`)
+Flags can be set programmatically by passing an array or args to `weave`, like so:
+```JavaScript
+weave([ '--aww-heck-yes' ])
+```
+
 ```Shell
 $ weave-demo # Starts a server that will present a demo website on port 80
 $ myWeaveApp --aww-heck-yes # Try it for yourself! :)

@@ -18,5 +18,5 @@ quick iteration, encouraging productivity, reducing stress, and building great t
 high-performance transpiling of `.jsx` files on your server, just include the
 `--enable-react-engine` flag in your command, or add the following to your code.
 ```
-weave.flags.enableReactEngine()
+weave([ '--enable-react-engine' ])
 ```
