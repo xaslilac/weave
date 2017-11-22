@@ -69,6 +69,7 @@ void (function (...names) {
 
 weave.engine = weave.App.prototype.engine
 
+// Read flag options
 commander.option(
   '--aww-heck-yes',
   'Share your enthusiasm',
@@ -89,4 +90,4 @@ commander.option(
   '--enable-react-engine',
   'Transpile files with .jsx extensions for React',
   () => require( './utilities/react' )
-)
+).parse( process.argv )
