@@ -1,17 +1,26 @@
 // MIT License / Copyright Kayla Washburn 2015
 
-"use strict";
+'use strict';
 
 let crypto = require( 'crypto' )
 let http = require( 'http' )
 let os = require( 'os' )
 
-let gardens = require( 'gardens' )
-let dictionaries = require( './utilities/mimedictionary' )
+let dom = require( './utilities/dom' )
+const dictionaries = require( './utilities/mimedictionary' )
+const gardens = require( 'gardens' )
+const commander = require( 'commander' )
 
-const weave = module.exports = exports = ( ...conf ) => new weave.App( ...conf )
+const weave = module.exports = exports = ( a, b ) =>
+  Array.isArray( a ) ? commander.parse( a ) : new weave.App( a, b )
 
 Object.assign( weave, {
+  version: '0.3.0',
+
+  createPageFromTemplate: title => {
+    let document = dom.createHtmlDocument( title )
+    document.head.appendChild( weave.configuration.documentStyle )
+    return document },
   createDictionary: dictionaries.createDictionary,
   createGarden: gardens.createGarden,
 
@@ -19,23 +28,11 @@ Object.assign( weave, {
     SHA1_64: data => crypto.createHash( 'sha1' ).update( data ).digest( 'base64' ),
     RNDM_RG: ( min, max, base ) => {
       let r = Math.floor( ( Math.random() * ( ( max + 1 ) - min ) ) + min );
-      return base ? r.toString( base ) : r } }
-})
-
-require( './app' )
-require( './core' )
-require( './websocket' )
-
-let garden = weave.createGarden( 'weave' )
-
-Object.assign( weave, {
-  version: '0.3.0',
-
-  cluster: [], // For using multiple threads to process requests, WIP
+      return base ? r.toString( base ) : r } },
 
   servers: {}, apps: { anonymous: [] }, hosts: {},
-  constants: { WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
-               HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES },
+  constants: { HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES,
+               WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11' },
 
   verbose( verbose = true ) { return gardens.configure({ verbose }) },
   silent() { return weave.verbose( false ) },
@@ -44,44 +41,52 @@ Object.assign( weave, {
     'urlCleaning': true,
     'headers': { 'X-Powered-By': 'Weave' },
     'cache': { maxCacheSize: 500, maxCachedFileSize: 5 },
-    set logOutputPath( outputPath ) { gardens.configure({ outputPath }) } },
-
-  configure: weave.App.prototype.configure,
-  engine: weave.App.prototype.engine,
-
-  HTTPError: class HTTPError {
-    constructor( code, error ) {
-      if ( typeof code !== 'number' ) return garden.typeerror( 'HTTPError requires argument code to be a number!' )
-
-      let desc, stack
-      if ( typeof error === 'string' ) desc = error
-      else if ( error != null ) [desc, stack] = [ `${error.name}: ${error.message}`, error.stack ]
-
-      Object.defineProperties( this, {
-        status: { value: weave.constants.STATUS_CODES[ code ], enumerable: true },
-        statusCode: { value: code, enumerable: true },
-        description: { value: desc, enumerable: true },
-        stack: { value: stack, enumberable: !!stack }
-      })
-    }
-  },
-
-  flags: {
-    awwHeckYes() { console.log( 'Aww heck yes!!' ) },
-    weaveVerbose() { weave.verbose() },
-    enableWeaveRepl() { require( './utilities/repl' ).connect() },
-    enableWeaveInstruments() { require( './utilities/instruments' ) },
-    enableInterfaceEngine() { weave.engine( '.interface', weave.interfaces.engine ) },
-    enableReactEngine() { require( './react' ) }
-  }
+    set logOutputPath( outputPath ) { gardens.configure({ outputPath }) },
+    documentStyle: new dom.StyleSheet({
+      'html, body': {
+        padding: 0, margin: 0,
+        width: '100%', height: '100%' },
+      'h1': {
+        padding: '15px', margin: 0,
+        color: 'white', backgroundColor: '#5050DD',
+        fontFamily: 'sans-serif' },
+      'pre': {
+        padding: '15px', margin: '15px',
+        overflow: 'auto',
+        borderRadius: '7px',
+        color: 'white', backgroundColor: '#242332' },
+      '.directory a': { 'color': '#11a9f4' },
+      '.file      a': { 'color': '#11f4e6' }
+    }) }
 })
 
-// Read command line configuration options
-process.argv.forEach( ( arg, index ) => {
-  if ( arg.startsWith( '--' ) ) {
-    let narg = weave.flags[ arg.substring( 2 ).toLowerCase()
-      .replace( /\-([a-z])/g, ( whole, letter ) => letter.toUpperCase() ) ]
+// Import all of our classes and libraries
+void (function (...names) {
+  names.forEach( name => require( `./lib/${name}` ) )
+})( 'app', 'cache', 'exchange', 'instruments', 'interfaces', 'printer', 'router', 'websocket' )
 
-    if ( typeof narg === 'function' ) narg( ...process.argv.slice( index + 1 ) )
-  }
-})
+
+
+weave.engine = weave.App.prototype.engine
+
+commander.option(
+  '--aww-heck-yes',
+  'Share your enthusiasm',
+  () => console.log( 'Aww heck yes!!' )
+).option(
+  '-wv, --weave-verbose',
+  'Log useful debugging internal information',
+  () => weave.verbose()
+).option(
+  '--enable-weave-repl',
+  `Enable a REPL form within Weave's context`,
+  () => require( './utilities/repl' ).connect()
+).option(
+  '--enable-interface-engine',
+  'Enable the engine for .interface files',
+  () => weave.engine( '.interface', weave.interfaces.engine )
+).option(
+  '--enable-react-engine',
+  'Transpile files with .jsx extensions for React',
+  () => require( './utilities/react' )
+)
