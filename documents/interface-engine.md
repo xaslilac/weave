@@ -1,11 +1,13 @@
 # This one's a wild one broh.
+## This API is definitely not finalized and is definitely likely for changes.
 
 Using the interface engine is similar to how regular interfaces work, with a few differences.
 
 `app.interface` | Interface engine
 --------------- | ----------------
 Must be hard coded into the main process | Can be updated on the fly, code lives on a live file system
-More flexibility in setting an API path | Easily generate response pages with a built in DOM
+More flexibility in setting an API path and request methods | Easily generate response pages with a built in DOM
+Greater stability and API access | Limited API access and currently tends to be a little fragile
 
 To use the interface engine, you just set the `--enable-interface-engine` flag,
 and create a file somewhere in your web directory with the '.interface' extension.

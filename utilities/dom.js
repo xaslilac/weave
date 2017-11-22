@@ -2,7 +2,10 @@
 
 class Window {
   constructor() {
-
+    Object.assign( this, {
+      setTimeout, setInterval, clearTimeout, clearInterval,
+      document: dom.createHtmlDocument()
+    })
   }
 }
 

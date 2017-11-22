@@ -23,7 +23,6 @@ $ weave-demo # Starts a server that will present a demo website on port 80
 $ myWeaveApp --aww-heck-yes # Try it for yourself! :)
 $ myWeaveApp --weave-verbose
 $ myWeaveApp --enable-weave-repl # Will enable a command line repl
-$ myWeaveApp --enable-weave-instruments # Will allow calls to weave.attachInstruments
 $ myWeaveApp --enable-interface-engine # Enables experimental implementation
 $ myWeaveApp --enable-react-engine # Enables transpiling of `.jsx` files
 ```
@@ -77,22 +76,22 @@ weave.attachInstruments( app, instrumentsUrl ) -> undefined
 
 ### weave.App
 ```JavaScript
-new weave.App([ appName,][ behaviors ]) -> app
+new weave.App([ appName: string,][ behaviors ]) -> app
 app.garden: garden
-app.link( str 'hostname:port' | num port ) -> app
+app.link( 'hostname:port': string | port: number ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
 app.subdirectory( dirName[, superDirName | superDirBehaviors], dirBehaviors ) -> app
-app.interface( dirName, handle( exchange, manifest ) -> promise[, str method | array ['methods'..]] ) -> app
-app.engine( str extension, handle( fileBuffer, manifest, exchange ) -> promise)
-app.redirect( str from, str to )
-app.header( str name, str value )
+app.interface( dirName: string, handle( exchange, manifest ) -> promise[, str method | array ['methods'..]] ) -> app
+app.engine( extension: string, handle( fileBuffer, manifest, exchange ) -> promise)
+app.redirect( from: string, to: string )
+app.header( name: string, value: string )
 // settings takes the same values as node's https.createServer. host is optional.
 // If not included, Weave will automatically forward all connections on port 443
 // to this app. It should be noted that all calls to app.link after this will be
 // linked as secure servers using the provided settings. Any unsecured hosts that
 // you wish to use must be linked before securing the app.
-app.secure( obj settings[, host ] )
+app.secure( settings: object[, host: string ] )
 app#exchange( exchange )
 app.router( exchange ) -> undefined
 app.printer( httpError, manifest, exchange ) -> undefined                   
