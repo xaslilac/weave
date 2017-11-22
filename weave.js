@@ -12,7 +12,7 @@ const gardens = require( 'gardens' )
 const commander = require( 'commander' )
 
 const weave = module.exports = exports = ( a, b ) =>
-  Array.isArray( a ) ? commander.parse( a ) : new weave.App( a, b )
+  Array.isArray( a ) ? commander.parse( process.argv.slice( 0, 2 ).concat( a ) ) : new weave.App( a, b )
 
 Object.assign( weave, {
   version: '0.3.0',
@@ -75,7 +75,7 @@ commander.option(
   'Share your enthusiasm',
   () => console.log( 'Aww heck yes!!' )
 ).option(
-  '-wv, --weave-verbose',
+  '--weave-verbose',
   'Log useful debugging internal information',
   () => weave.verbose()
 ).option(
