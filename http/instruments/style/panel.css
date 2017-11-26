@@ -33,14 +33,67 @@ body {
 
 #sidebar {
   grid-area: sidebar;
+  color: white;
+}
 
-  background-color: #242332;
-  box-shadow: black 0px 0px 7px;
+#sidebar-options {
+  list-style-type: none;
+  margin: 15px 0 15px 15px;
+  padding: 20px;
+
+  font-size: 20px;
+}
+
+.sidebar-active {
+  background-color: #EFEFEF;
+  background-color: rgba( 240, 240, 240, 0.9 );
+  color: black;
+
+  border-radius: 7px 0px 0px 7px;
 }
 
 #content {
   grid-area: content;
 
-  background-color: #e87dae;
+  background-color: #242332;
+  background-color: rgba( 24, 23, 32, 0.9 );
   box-shadow: black 0px 0px 7px;
+}
+
+#console {
+  overflow-x: auto;
+  overflow-y: scroll;
+
+  padding: 5px;
+}
+
+#console-output {
+  width: 100%;
+
+  padding: 0px;
+}
+
+#console pre, #console-input {
+  font-family: m1, monospace;
+  font-size: 15px;
+
+  margin: 0px;
+  padding: 0px;
+}
+
+.input { color: #12e6c6; }
+.output { color: #34aaff; }
+.error { color: #f16349; }
+.log { color: #89eb0c; }
+
+#console-input {
+  background-color: transparent;
+  border: none;
+
+  width: 100%;
+  resize: none;
+}
+
+#console-input:focus {
+  outline-width: 0;
 }
