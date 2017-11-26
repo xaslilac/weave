@@ -10,10 +10,10 @@ marked.setOptions({ highlight: code => highlight( 'js', code ).value })
 
 let garden = weave.createGarden( 'weave-demo' )
 
-weave( 'default', {
+weave({
   'location': path.join( __dirname, '../http/default' ),
   'indexes': { 'home.md': 0 },
-  'favoredExtensions': [ '.md' ],
+  'extensions': [ '.md' ],
   'mimeTypes': weave.createDictionary( path.join( __dirname, '../http/shared/basics.mimes' ) ),
   'errorPages': { '404': '404.md' },
   'engines': {
