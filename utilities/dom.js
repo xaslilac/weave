@@ -1,5 +1,7 @@
 // MIT License / Copyright 2014
 
+'use strict';
+
 class Window {
   constructor() {
     Object.assign( this, {
@@ -32,7 +34,6 @@ class Document {
     let found
     let recurse = children => {
       return children.some( child => {
-        console.log( child.id, child instanceof Element )
         if ( child.id === id ) return found = child
         if ( child instanceof Element ) return recurse( child.children )
       })
@@ -55,7 +56,7 @@ class StyleSheet {
       Object.keys( this.selectors ).map( selector => {
         return `${selector} {\n${
         Object.keys( this.selectors[ selector ] ).map( prop => {
-          return `  ${ prop.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`) }: ${this.selectors[ selector ][ prop ]}`
+          return `  ${prop.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`)}: ${this.selectors[ selector ][ prop ]}`
         }).join(';\n')}\n}`
       }).join('\n\n')}\n</style>\n`
   }
@@ -69,7 +70,6 @@ class StyleSheet {
     return this
   }
 }
-
 
 class	Element {
   constructor( tag ) {
