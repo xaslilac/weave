@@ -2,17 +2,16 @@
 
 'use strict';
 
-let crypto = require( 'crypto' )
-let http = require( 'http' )
-let os = require( 'os' )
+const crypto = require( 'crypto' )
+const http = require( 'http' )
+const os = require( 'os' )
 
-let dom = require( './utilities/dom' )
+const dom = require( './utilities/dom' )
 const dictionaries = require( './utilities/mimedictionary' )
 const gardens = require( 'gardens' )
-const commander = require( 'commander' )
 
 const weave = module.exports = exports = ( a, b ) =>
-  Array.isArray( a ) ? commander.parse( process.argv.slice( 0, 2 ).concat( a ) ) : new weave.App( a, b )
+  Array.isArray( a ) ? weave.flags( a ) : new weave.App( a, b )
 
 Object.assign( weave, {
   version: '0.3.0',
@@ -61,33 +60,28 @@ Object.assign( weave, {
 })
 
 // Import all of our classes and libraries
-void (function (...names) {
+void function ( ...names ) {
   names.forEach( name => require( `./lib/${name}` ) )
-})( 'app', 'cache', 'exchange', 'instruments', 'interfaces', 'printer', 'router', 'websocket' )
-
-
-
-weave.engine = weave.App.prototype.engine
+}( 'app', 'cache', 'exchange', 'instruments', 'interfaces', 'printer', 'router', 'websocket' )
 
 // Read flag options
-commander.option(
-  '--aww-heck-yes',
-  'Share your enthusiasm',
-  () => console.log( 'Aww heck yes!!' )
-).option(
-  '--weave-verbose',
-  'Log useful debugging internal information',
-  () => weave.verbose()
-).option(
-  '--enable-weave-repl',
-  `Enable a REPL form within Weave's context`,
-  () => require( './utilities/repl' ).connect()
-).option(
-  '--enable-interface-engine',
-  'Enable the engine for .interface files',
-  () => weave.engine( '.interface', weave.interfaces.engine )
-).option(
-  '--enable-react-engine',
-  'Transpile files with .jsx extensions for React',
-  () => require( './utilities/react' )
-).parse( process.argv )
+function flags( list, names ) {
+  names.forEach( ( name, index ) => {
+    if ( typeof list[ name ] === 'function' ) list[ name ]( ...names.slice( index + 1 ) )
+  })
+}
+
+weave.flags = function ( ...names ) {
+  if ( Array.isArray( names[ 0 ] ) ) return weave.flags( ...names[ 0 ] )
+  flags({
+    '--aww-heck-yes': () => console.log( 'Aww heck yes!!' ),
+    '--weave-verbose': () => weave.verbose(),
+    '--enable-weave-repl': () => require( './utilities/repl' ).connect(),
+    '--enable-interface-engine': () => weave.engine( '.interface', weave.interfaces.engine ),
+    '--enable-react-engine': () => require( './utilities/react' )
+  }, names )
+}
+
+weave.flags( process.argv )
+
+weave.engine = weave.App.prototype.engine
