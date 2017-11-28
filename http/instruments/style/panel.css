@@ -21,6 +21,10 @@ body {
     "sidebar content";
 }
 
+a {
+  color: white;
+}
+
 #title {
   grid-area: title;
 
@@ -33,6 +37,35 @@ body {
   color: #efffff;
 }
 
+#header {
+  grid-area: header;
+  text-align: right;
+}
+
+#header-options {
+  list-style-type: none;
+
+  margin: 0;
+  padding: 0;
+
+  font-size: 20px;
+
+  color: white;
+}
+
+#header-options li {
+  display: inline-block;
+
+  padding: 15px 30px;
+}
+
+#header-options select {
+  background-color: transparent;
+  border: none;
+
+  color: white;
+}
+
 #sidebar {
   grid-area: sidebar;
 }
@@ -40,8 +73,8 @@ body {
 #sidebar-options {
   list-style-type: none;
 
-  margin: 15px 0 15px 15px;
-  padding: 20px;
+  margin: 0;
+  padding: 150px 0 15px 10px;
 
   font-family: sans-serif;
   font-size: 20px;
@@ -49,6 +82,11 @@ body {
   text-transform: lowercase;
 
   color: white;
+}
+
+#sidebar-options li {
+  margin: 15px 0 15px 15px;
+  padding: 15px;
 }
 
 .sidebar-active {
@@ -62,17 +100,26 @@ body {
 
 #content {
   grid-area: content;
+  display: grid;
 
   background-color: rgb(  24, 23, 32 );
   background-color: rgba( 24, 23, 32, 0.9 );
   box-shadow: black 0px 0px 7px;
+
+  grid-template-columns: 2fr 1fr;
+  grid-template-areas: "main console";
 
   max-height: 100%;
   overflow: auto;
 }
 
 #console {
+  grid-area: console;
   overflow: auto;
+
+  background-color: rgb(  24, 23, 32 );
+  background-color: rgba( 24, 23, 32, 0.9 );
+  box-shadow: black 0px 0px 7px;
 
   padding: 5px;
 }
