@@ -3,6 +3,8 @@ Here, we will quickly go over how to get your first Weave app up and running. If
 you already have an existing static HTTPD server then transitioning will be easy,
 and give you access to quite a few interesting, unique, and helpful features.
 
+If you would like a more detailed overview [read this](/documents/readme.md).
+
 ## Installation
 To begin using Weave, just download a zip or tarball from [my GitHub](https://github.com/partheseas/weave)
 and extract the contents into the node_modules folder of your choosing, or use `npm`.

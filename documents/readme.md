@@ -1,6 +1,8 @@
-# This is a quick and dirty run down of the entire API.
+# This is a quick and dirty run down of the entire API for pros.
 It gives bare-minimum information on all functions and properties. What arguments
 they expect, what values they should hold and return, etc.
+
+If you would like a more gentle introduction [read this](/documents/intro.md).
 
 - `::` will be used to symbolize .prototype for classes
 - `#` will be used to symbolize events that may be emitted
@@ -32,24 +34,24 @@ These properties can be set on the global `weave.configuration` object, on an
 `app.configuration` object, using the `app.configure` method, or using the `app.subdirectory` method.
 
 ```JavaScript
-'location': str pathToRootWebDirectory
+'location': string
 // Set maximumFolderDepth to 0 for a "traditional" directory index behavior.
 'indexes': { 'indexFileName': num maximumFolderDepth.. }
 'extensions': [ str '.ext'.. ]
-'htmlDirectoryListings': bool enabled
-'jsonDirectoryListings': bool enabled
+'htmlDirectoryListings': boolean
+'jsonDirectoryListings': boolean
 'mimeTypes': dictionary
 'errorPages': { errorCode: str pathToFile.. }
 'engines': { '.ext': engine( content, details, exchange ) -> Promise.. }
 // Can only be configured via weave.configuration
-'cache': { maxCacheSize: num megabytes, maxCachedFileSize: num megabytes }
-'redirect': { fromUrl: str toUrl }
-'headers': { 'Header-Name': str 'value' }
+'cache': { maxCacheSize: megabytes: number, maxCachedFileSize: megabytes: number }
+'redirect': { fromUrl: toUrl: string }
+'headers': { 'Header-Name': string }
 // Can only be configured via weave.logOutputPath
 'logOutputPath': str 'path.log'
-'access': bool | obj { 'path': bool }
-'domain': str 'forceddomain.com'
-'secure': bool
+'access': boolean | object{ 'path': boolean }
+'domain': string
+'secure': boolean
 ```
 
 ## Everything you need to know
@@ -78,7 +80,10 @@ weave.attachInstruments( app, instrumentsUrl ) -> undefined
 ```JavaScript
 new weave.App([ appName: string,][ behaviors ]) -> app
 app.garden: garden
-app.link( 'hostname:port': string | port: number ) -> app
+app.link( 'hostname:port': string or port: number ) -> app
+app.secure( settings: object[, host: string or port: number ] ) -> app
+// Listens to both HTTP and HTTPS connections on the default ports
+app.hitch( settings: object ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
 app.subdirectory( dirName[, superDirName | superDirBehaviors], dirBehaviors ) -> app
@@ -86,12 +91,6 @@ app.interface( dirName: string, handle( exchange, manifest ) -> promise[, str me
 app.engine( extension: string, handle( fileBuffer, manifest, exchange ) -> promise)
 app.redirect( from: string, to: string )
 app.header( name: string, value: string )
-// settings takes the same values as node's https.createServer. host is optional.
-// If not included, Weave will automatically forward all connections on port 443
-// to this app. It should be noted that all calls to app.link after this will be
-// linked as secure servers using the provided settings. Any unsecured hosts that
-// you wish to use must be linked before securing the app.
-app.secure( settings: object[, host: string ] )
 app#exchange( exchange )
 app.router( exchange ) -> undefined
 app.printer( httpError, manifest, exchange ) -> undefined                   
