@@ -23,31 +23,39 @@ body {
 
 #title {
   grid-area: title;
-  text-align: center;
+
   font-family: brush;
   font-size: 42px;
+  text-align: center;
   text-shadow: black 0px 0px 10px;
+  text-transform: lowercase;
 
   color: #efffff;
 }
 
 #sidebar {
   grid-area: sidebar;
-  color: white;
 }
 
 #sidebar-options {
   list-style-type: none;
+
   margin: 15px 0 15px 15px;
   padding: 20px;
 
+  font-family: sans-serif;
   font-size: 20px;
+  font-style: italic;
+  text-transform: lowercase;
+
+  color: white;
 }
 
 .sidebar-active {
-  background-color: #EFEFEF;
-  background-color: rgba( 240, 240, 240, 0.9 );
-  color: black;
+  background-color: rgb(  17, 21, 74 );
+  background-color: rgba( 17, 21, 74, 0.9 );
+  /*background-color: rgba( 240, 240, 240, 0.9 );*/
+  /*color: black;*/
 
   border-radius: 7px 0px 0px 7px;
 }
@@ -55,16 +63,33 @@ body {
 #content {
   grid-area: content;
 
-  background-color: #242332;
+  background-color: rgb(  24, 23, 32 );
   background-color: rgba( 24, 23, 32, 0.9 );
   box-shadow: black 0px 0px 7px;
+
+  max-height: 100%;
+  overflow: auto;
 }
 
 #console {
-  overflow-x: auto;
-  overflow-y: scroll;
+  overflow: auto;
 
   padding: 5px;
+}
+
+#console::-webkit-scrollbar {
+  background-color: transparent;
+  width: 5px;
+  height: 5px;
+}
+
+#console::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+#console::-webkit-scrollbar-thumb {
+  background-color: white;
+  border-radius: 2px;
 }
 
 #console-output {

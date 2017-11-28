@@ -10,6 +10,9 @@ file locations and gives you great control over what files to serve for each req
 Weave runs in Node along side your own code that configures and controls it, with plenty of
 API points for server side processing of your static files and request inputs.
 
+### Usage
+For usage information, see [the API overview](/documents/readme.md).
+
 ## Installation
 ```Shell
 npm install weave

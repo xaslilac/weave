@@ -29,7 +29,7 @@ window.addEventListener( 'DOMContentLoaded', function () {
     input.disabled = true
   })
 
-  document.getElementById( 'console' ).addEventListener( 'click', function () {
+  document.getElementById( 'content' ).addEventListener( 'click', function () {
     input.focus()
   })
 

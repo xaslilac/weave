@@ -121,7 +121,7 @@ dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
 dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
 ```
 
-### weave.WebSocket
+### [weave.WebSocket and weave.WebSocketConnection](/documents/websocket.md)
 ```JavaScript
 new weave.WebSocket( app, webSocketUrl, connectionListener ) -> ws
 ws.attach( app, socketUrl ) -> ws
