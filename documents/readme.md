@@ -122,13 +122,13 @@ dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
 ```
 
 ### [weave.WebSocket and weave.WebSocketConnection](/documents/websocket.md)
+Create a WebSocket entry point
 ```JavaScript
 new weave.WebSocket( app, webSocketUrl, connectionListener ) -> ws
 ws.attach( app, socketUrl ) -> ws
 ws#connection( wsConnection )
 ```
-
-### weave.WebSocketConnection
+Interface with incoming connections
 ```JavaScript
 new weave.WebSocketConnection( ws, exchange ) -> wsConnection
 wsConnection#message( message{ buffer decoded[, str data] } )

@@ -7,7 +7,7 @@ channel between the browser and your server.
 ## Usage
 
 ```JavaScript
-let webSocket = new weave.WebSocket( appName || app, url )
+let webSocket = new weave.WebSocket( app: weave.App or string, url: string )
 
 webSocket.on( 'connection', connection => {
   connection.on( 'message', message => {
