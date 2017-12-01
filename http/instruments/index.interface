@@ -1,6 +1,7 @@
 let path = require( 'path' )
 
 weave( ( exchange, manifest ) => {
+  const v = 1
   // TODO: Here we need to perform a check to see if we are logged in or not,
   // if we are logged in, and the session is not expired then we should
   // instead set the path to the panel page and print that.
