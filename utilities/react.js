@@ -7,7 +7,9 @@ let garden = weave.createGarden( 'weave + react' )
 let babel = require( 'babel-core' )
 let reactPreset = require( 'babel-preset-react' )
 
-weave.engine( '.jsx', ( content, manifest, exchange ) => {
+if ( !weave.configuration.engines ) weave.configuration.engines = {}
+
+weave.configuration.engines[ '.jsx' ] = ( content, manifest, exchange ) => {
   return new Promise( ( fulfill, reject ) => {
     let cacheDate = exchange.detail( 'if-modified-since' )
     if ( cacheDate ) {
@@ -20,4 +22,4 @@ weave.engine( '.jsx', ( content, manifest, exchange ) => {
 
     fulfill( babeled.code )
   })
-})
+}

@@ -10,8 +10,7 @@ const dom = require( './utilities/dom' )
 const dictionaries = require( './utilities/mimedictionary' )
 const gardens = require( 'gardens' )
 
-const weave = module.exports = exports = ( a, b ) =>
-  Array.isArray( a ) ? weave.flags( a ) : new weave.App( a, b )
+const weave = module.exports = ( a, b ) => new weave.App( a, b )
 
 Object.assign( weave, {
   version: '0.3.0',
@@ -35,6 +34,23 @@ Object.assign( weave, {
 
   verbose( verbose = true ) { return gardens.configure({ verbose }) },
   silent() { return weave.verbose( false ) },
+
+  options: {
+    '--aww-heck-yes': () => console.log( 'Aww heck yes!!' ),
+    '--weave-verbose': () => weave.verbose(),
+    '--weave-repl': () => require( './utilities/repl' ).connect(),
+    '--weave-interface-engine': () => weave.configuration.engines[ '.interface' ] = weave.interfaces.engine, // XXX: BORKEN AND DUMB
+    '--weave-react-engine': () => require( './utilities/react' )
+  },
+
+  withOptionsEnabled( ...options ) {
+    process.argv.push( ...options )
+    options.forEach( ( name, index ) => {
+      if ( typeof weave.options[ name ] === 'function' ) weave.options[ name ]( ...options.slice( index + 1 ) )
+    })
+
+    return weave
+  },
 
   configuration: {
     'urlCleaning': true,
@@ -64,24 +80,4 @@ void function ( ...names ) {
   names.forEach( name => require( `./lib/${name}` ) )
 }( 'app', 'cache', 'exchange', 'instruments', 'interfaces', 'printer', 'router', 'websocket' )
 
-// Read flag options
-function flags( list, names ) {
-  names.forEach( ( name, index ) => {
-    if ( typeof list[ name ] === 'function' ) list[ name ]( ...names.slice( index + 1 ) )
-  })
-}
-
-weave.flags = function ( ...names ) {
-  if ( Array.isArray( names[ 0 ] ) ) return weave.flags( ...names[ 0 ] )
-  flags({
-    '--aww-heck-yes': () => console.log( 'Aww heck yes!!' ),
-    '--weave-verbose': () => weave.verbose(),
-    '--enable-weave-repl': () => require( './utilities/repl' ).connect(),
-    '--enable-interface-engine': () => weave.engine( '.interface', weave.interfaces.engine ),
-    '--enable-react-engine': () => require( './utilities/react' )
-  }, names )
-}
-
-weave.flags( process.argv )
-
-weave.engine = weave.App.prototype.engine
+weave.withOptionsEnabled( process.argv )

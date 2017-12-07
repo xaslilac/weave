@@ -26,6 +26,9 @@
   ],
   "author": "Kayla Washburn",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/partheseas/weave/issues"
+  },
   "dependencies": {
     "babel-core": "^6.26.0",
     "babel-preset-react": "^6.24.1",
