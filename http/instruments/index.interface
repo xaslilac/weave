@@ -8,13 +8,13 @@ weave( ( exchange, manifest ) => {
   let cookies = exchange.detail( 'cookie' )
 
   if ( cookies && cookies.Token ) {
-    exchange.app.printer( null, Object.assign( manifest, {
+    exchange.printer( null, Object.assign( manifest, {
       type: 'file', path: path.join( __dirname, 'panel.html' )
     }), exchange )
   } else {
     manifest.type = 'file'
     manifest.path = path.join( __dirname, 'login.html' )
-    exchange.app.printer( null, manifest, exchange )
+    exchange.printer( null, manifest, exchange )
   }
 
 })
