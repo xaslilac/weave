@@ -10,7 +10,7 @@ const dom = require( './utilities/dom' )
 const dictionaries = require( './utilities/mimedictionary' )
 const gardens = require( 'gardens' )
 
-const weave = module.exports = ( a, b ) => new weave.App( a, b )
+const weave = module.exports = ( ...x ) => new weave.App( ...x )
 
 Object.assign( weave, {
   version: '0.3.0',
@@ -39,7 +39,7 @@ Object.assign( weave, {
     '--aww-heck-yes': () => console.log( 'Aww heck yes!!' ),
     '--weave-verbose': () => weave.verbose(),
     '--weave-repl': () => require( './utilities/repl' ).connect(),
-    '--weave-interface-engine': () => weave.configuration.engines[ '.interface' ] = weave.interfaces.engine, // XXX: BORKEN AND DUMB
+    '--weave-interface-engine': () => weave.configuration.engines[ '.interface' ] = require( './lib/interfaces.js'), // XXX: BORKEN AND DUMB
     '--weave-react-engine': () => require( './utilities/react' )
   },
 
@@ -75,9 +75,9 @@ Object.assign( weave, {
     }) }
 })
 
+weave.withOptionsEnabled( process.argv )
+
 // Import all of our classes and libraries
 void function ( ...names ) {
   names.forEach( name => require( `./lib/${name}` ) )
-}( 'app', 'cache', 'exchange', 'instruments', 'interfaces', 'printer', 'router', 'websocket' )
-
-weave.withOptionsEnabled( process.argv )
+}( 'app', 'cache', 'exchange', 'instruments', 'printer', 'router', 'websocket' )

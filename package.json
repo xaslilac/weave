@@ -34,13 +34,13 @@
     "babel-preset-react": "^6.24.1",
     "gardens": "^2.0.0",
     "highlight.js": "^9.12.0",
-    "marked": "^0.3.6",
-    "react": "^16.1.1",
-    "react-dom": "^16.1.1",
+    "marked": "^0.3.7",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
     "string-spirits": "^0.1.1"
   },
   "devDependencies": {
-    "eslint": "^4.11.0",
+    "eslint": "^4.13.0",
     "eslint-plugin-react": "^7.5.1",
     "mocha": "^4.0.1"
   }
