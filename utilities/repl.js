@@ -7,7 +7,7 @@ let garden = weave.createGarden( 'weave repl' )
 let repl = require( 'repl' )
 let readline = require( 'readline' )
 
-weave.connectREPL = exports.connect = function ( input = process.stdin, output = process.stdout ) {
+exports.connect = function ( input = process.stdin, output = process.stdout ) {
   process.nextTick( () => {
     let $ = repl.start( {
         prompt: '', input, output
