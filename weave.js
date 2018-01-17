@@ -40,6 +40,8 @@ Object.assign( weave, {
     if ( component.filters ) Object.keys( component.filters ).forEach( filter => {
       weave.filter( filter, component.filters[ filter ] )
     })
+
+    return weave
   },
 
   options: {
