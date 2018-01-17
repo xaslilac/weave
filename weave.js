@@ -35,6 +35,13 @@ Object.assign( weave, {
   verbose( verbose = true ) { return gardens.configure({ verbose }) },
   silent() { return weave.verbose( false ) },
 
+  mount( component ) {
+    if ( typeof component.mount === 'function' ) component.mount( weave )
+    if ( component.filters ) Object.keys( component.filters ).forEach( filter => {
+      weave.filter( filter, component.filters[ filter ] )
+    })
+  },
+
   options: {
     '--aww-heck-yes': () => console.log( 'Aww heck yes!!' ),
     '--weave-verbose': () => weave.verbose(),
@@ -72,9 +79,35 @@ Object.assign( weave, {
         color: 'white', backgroundColor: '#242332' },
       '.directory a': { 'color': '#11a9f4' },
       '.file      a': { 'color': '#11f4e6' }
-    }) }
+    }) },
+
+  filter( extension, engine ) {
+    if ( this.configuration.engines ) this.configuration.engines[ extension ] = engine
+    else this.configuration.engines = { [ extension ]: engine }
+
+    // Return this from all configuration methods so they can be chained.
+    return this
+  },
+
+  redirect( from, to ) {
+    if ( this.configuration.redirect ) this.configuration.redirect[ from ] = to
+    else this.configuration.redirect = { [ from ]: to }
+
+    // Return this from all configuration methods so they can be chained.
+    return this
+  },
+
+  header( name, value ) {
+    // XXX: Should we incorporate template string tags into this some how?
+    if ( this.configuration.headers ) this.configuration.headers[ name ] = value
+    else this.configuration.headers = { [ name ]: value }
+
+    // Return this from all configuration methods so they can be chained.
+    return this
+  }
 })
 
+// Enable all options specified in argv
 weave.withOptionsEnabled( process.argv )
 
 // Import all of our classes and libraries
