@@ -69,8 +69,10 @@ Object.assign( weave, {
       'html, body': {
         padding: 0, margin: 0,
         width: '100%', height: '100%' },
+      'body > *': {
+        padding: '20px', margin: 0
+      },
       'h1': {
-        padding: '15px', margin: 0,
         color: 'white', backgroundColor: '#5050DD',
         fontFamily: 'sans-serif' },
       'pre': {
@@ -79,7 +81,8 @@ Object.assign( weave, {
         borderRadius: '7px',
         color: 'white', backgroundColor: '#242332' },
       '.directory a': { 'color': '#11a9f4' },
-      '.file      a': { 'color': '#11f4e6' }
+      '.file      a': { 'color': '#11f4e6' },
+      'a': { 'font-weight': 'bold' }
     }) },
 
   filter( extension, engine ) {
