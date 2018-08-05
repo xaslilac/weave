@@ -21,7 +21,7 @@
     "url": "https://github.com/weave-js/weave/issues"
   },
   "dependencies": {
-    "gardens": "^3.0.1",
-    "string-spirits": "^0.2.1"
+    "gardens": "^3.0.2",
+    "string-spirits": "^0.2.2"
   }
 }
