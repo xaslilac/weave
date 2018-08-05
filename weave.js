@@ -20,7 +20,7 @@ Object.assign( weave, {
     document.head.appendChild( weave.configuration.documentStyle )
     return document },
   createDictionary: dictionaries.createDictionary,
-  createGarden: gardens.createGarden,
+  createGarden: scope => new gardens.constructor( scope ),
 
   util: {
     SHA1_64: data => crypto.createHash( 'sha1' ).update( data ).digest( 'base64' ),

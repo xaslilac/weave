@@ -3,19 +3,12 @@
   "version": "0.3.0",
   "description": "A super duper good Node.js server!",
   "engines": {
-    "node": ">=8.6.0"
+    "node": ">=10.0.0"
   },
   "main": "weave.js",
-  "bin": {
-    "wv": "bin/wv.js"
-  },
-  "scripts": {
-    "test": "mocha --opts mocha/tests.opts ./mocha/*.js",
-    "lint": "eslint ."
-  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/partheseas/weave.git"
+    "url": "https://github.com/weave-js/weave.git"
   },
   "keywords": [
     "httpd",
@@ -25,15 +18,10 @@
   "author": "Kayla Washburn",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/partheseas/weave/issues"
+    "url": "https://github.com/weave-js/weave/issues"
   },
   "dependencies": {
-    "gardens": "^2.0.1",
-    "string-spirits": "^0.1.1"
-  },
-  "devDependencies": {
-    "eslint": "^4.13.0",
-    "eslint-plugin-react": "^7.5.1",
-    "mocha": "^4.0.1"
+    "gardens": "^3.0.1",
+    "string-spirits": "^0.2.1"
   }
 }
