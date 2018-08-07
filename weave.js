@@ -48,7 +48,6 @@ Object.assign( weave, {
     '--aww-heck-yes': () => console.log( 'Aww heck yes!!' ),
     '--weave-verbose': () => weave.verbose(),
     '--weave-repl': () => require( './utilities/repl' ).connect(),
-    '--weave-interface-engine': () => weave.configuration.engines[ '.interface' ] = require( './lib/interfaces.js'), // XXX: BORKEN AND DUMB
   },
 
   withOptionsEnabled( ...options ) {
