@@ -13,7 +13,7 @@ const gardens = require( 'gardens' )
 const weave = module.exports = ( ...x ) => new weave.App( ...x )
 
 Object.assign( weave, {
-  version: '0.3.0',
+  version: require( './package.json' ).version,
 
   createPageFromTemplate: title => {
     let document = dom.createHtmlDocument( title )
