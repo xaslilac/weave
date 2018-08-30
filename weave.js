@@ -32,6 +32,8 @@ Object.assign( weave, {
   constants: { HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES,
                WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11' },
 
+  cache: { hostMatches: {} },
+
   verbose( verbose = true ) { return gardens.configure({ verbose }) },
   silent() { return weave.verbose( false ) },
 
@@ -116,4 +118,4 @@ weave.withOptionsEnabled( process.argv )
 // Import all of our classes and libraries
 void function ( ...names ) {
   names.forEach( name => require( `./lib/${name}` ) )
-}( 'app', 'cache', 'exchange', 'instruments', 'printer', 'router', 'websocket' )
+}( 'app', 'exchange', 'printer', 'router' )
