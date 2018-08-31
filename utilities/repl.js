@@ -2,7 +2,7 @@
 "use strict";
 
 let weave = require( '..' )
-let garden = weave.createGarden( 'weave repl' )
+let garden = require( 'gardens' ).createScope( 'weave repl' )
 
 let repl = require( 'repl' )
 let readline = require( 'readline' )

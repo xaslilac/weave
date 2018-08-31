@@ -23,6 +23,6 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "gardens": "^3.1.2",
-    "string-spirits": "^0.2.2"
+    "string-spirits": "^0.2.3"
   }
 }

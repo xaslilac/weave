@@ -20,9 +20,8 @@ Object.assign( weave, {
     document.head.appendChild( weave.configuration.documentStyle )
     return document },
   createDictionary: dictionaries.createDictionary,
-  createGarden: scope => new gardens.constructor( scope ),
 
-  servers: {}, apps: { anonymous: [] }, hosts: {},
+  bindings: {}, // { port: binding{ server, attachments }} -> attachments: { hostname: app }
   constants: { HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES,
                WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11' },
 
