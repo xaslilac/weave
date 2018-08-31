@@ -58,8 +58,6 @@ Object.assign( weave, {
   configuration: {
     'urlCleaning': true,
     'headers': { 'X-Powered-By': 'Weave' },
-    'cache': { maxCacheSize: 500, maxCachedFileSize: 5 },
-    set logOutputPath( outputPath ) { gardens.configure({ outputPath }) },
     documentStyle: new dom.StyleSheet({
       'html, body': {
         padding: 0, margin: 0,
