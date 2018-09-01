@@ -21,11 +21,9 @@ Object.assign( weave, {
     return document },
   createDictionary: dictionaries.createDictionary,
 
-  bindings: {}, // { port: binding{ server, attachments }} -> attachments: { hostname: app }
+  bindings: {},
   constants: { HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES,
                WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11' },
-
-  cache: { hostMatches: {} },
 
   verbose( verbose = true ) { return gardens.configure({ verbose }) },
   silent() { return weave.verbose( false ) },
