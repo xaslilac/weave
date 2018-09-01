@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.1",
-    "gardens": "^3.1.2",
+    "gardens": "^3.1.3",
     "string-spirits": "^0.2.3"
   }
 }
