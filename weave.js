@@ -2,10 +2,6 @@
 
 'use strict';
 
-const crypto = require( 'crypto' )
-const http = require( 'http' )
-const os = require( 'os' )
-
 const dom = require( './utilities/dom' )
 const dictionaries = require( './utilities/mimedictionary' )
 const gardens = require( 'gardens' )
@@ -21,36 +17,7 @@ Object.assign( weave, {
     return document },
   createDictionary: dictionaries.createDictionary,
 
-  bindings: {},
-  constants: { HOME: os.homedir(), STATUS_CODES: http.STATUS_CODES,
-               WebSocketUUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11' },
-
-  verbose( verbose = true ) { return gardens.configure({ verbose }) },
-  silent() { return weave.verbose( false ) },
-
-  mount( component ) {
-    if ( typeof component.mount === 'function' ) component.mount( weave )
-    if ( component.filters ) Object.keys( component.filters ).forEach( filter => {
-      weave.filter( filter, component.filters[ filter ] )
-    })
-
-    return weave
-  },
-
-  options: {
-    '--aww-heck-yes': () => console.log( 'Aww heck yes!!' ),
-    '--weave-verbose': () => weave.verbose(),
-    '--weave-repl': () => require( './utilities/repl' ).connect(),
-  },
-
-  withOptionsEnabled( ...options ) {
-    process.argv.push( ...options )
-    options.forEach( ( name, index ) => {
-      if ( typeof weave.options[ name ] === 'function' ) weave.options[ name ]( ...options.slice( index + 1 ) )
-    })
-
-    return weave
-  },
+  _bindings: {},
 
   configuration: {
     'urlCleaning': true,
