@@ -1,19 +1,20 @@
 // MIT License / Copyright 2015
 
-'use strict';
+import weave from '..'
+// import createScope( 'weave.Exchange' ) as garden from 'gardens'
+import createScope from 'gardens'
+const garden = createScope( 'weave.Exchange' )
 
-const weave = require( '..' )
-const garden = require( 'gardens' ).createScope( 'weave.Exchange' )
-const router = require( './router' )
-const printer = require( './printer' )
+import router from './router'
+import printer from './printer'
 
-const events = require( 'events' )
-const fs = require( 'fs' )
-const http = require( 'http' )
-const os = require( 'os' )
-const path = require( 'path' )
-const url = require( 'url' )
-const Spirit = require( 'string-spirits' )
+import EventEmitter from 'events'
+import fs from 'fs'
+import http from 'http'
+import os from 'os'
+import path from 'path'
+import url from 'url'
+import Spirit from 'string-spirits'
 
 // Declare our exchange states as constants, for verbosity
 const [ NEW, HEAD, BODY, COMPLETE ] = [ 0, 1, 2, 3 ]
@@ -22,48 +23,10 @@ const [ NEW, HEAD, BODY, COMPLETE ] = [ 0, 1, 2, 3 ]
 const n = Buffer.from( '\r\n' )
 const z = Buffer.from( '0\r\n\r\n' )
 
-// A generic class to describe errors to the client.
-weave.HTTPError = class HTTPError {
-  constructor( code, error ) {
-    if ( typeof code !== 'number' ) return garden.typeerror( 'HTTPError requires argument code to be a number!' )
-
-    let desc, stack
-    if ( typeof error === 'string' ) desc = error
-    else if ( error != null ) [desc, stack] = [ `${error.name}: ${error.message}`, error.stack ]
-
-    Object.defineProperties( this, {
-      status: { value: http.STATUS_CODES[ code ], enumerable: true },
-      statusCode: { value: code, enumerable: true },
-      description: { value: desc, enumerable: true },
-      stack: { value: stack, enumberable: !!stack }
-    })
-  }
-}
-
-// Manifest is a small class to describe the *response* to the exchange.
-weave.Manifest = class Manifest {
-  constructor( details ) {
-    if ( details ) this.extend( details )
-  }
-
-  extend( details ) {
-    if ( details != null ) Object.keys( details ).forEach( prop => this[ prop ] = details[ prop ] );
-    return this
-  }
-
-  isDirectory() { return this.type === "directory" }
-  isFile()      { return this.type === "file" }
-  isInterface() { return this.type === "interface" }
-  // XXX: What is this even for?
-  isNA() { return this.type === "na" } // Not applicable.
-                                       // This might not be the best name though.
-}
-
-
 // The Exchange class determines which App is responsible
 // for handling the ClientRequest and ServerResponse
 // as well as interfacing between them.
-weave.Exchange = class Exchange extends events.EventEmitter {
+weave.Exchange = class Exchange extends EventEmitter {
 	constructor( secure, request, response ) {
 		// Make it an EventEmitter
 		super()
@@ -127,10 +90,6 @@ weave.Exchange = class Exchange extends events.EventEmitter {
 				this.removeAllListeners( 'newListener' )
 			}
 		})
-
-    // Debug inspecting
-    garden.debug( this.method, this.requestUrl )
-    garden.time( this.requestUrl.pathname )
 
 	  // Check for a direct host match, or a cached wildcard match.
 	  // If there isn't one, check against wildcards, filtering out hosts

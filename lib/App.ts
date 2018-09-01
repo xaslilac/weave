@@ -1,22 +1,26 @@
 // MIT License / Copyright 2015
 
-'use strict';
+import weave from '..'
+// import createScope( 'weave.App' ) as garden from 'gardens'
+import createScope from 'gardens'
+const garden = createScope( 'weave.App' )
 
-const weave = require( '..' )
-const garden = require( 'gardens' ).createScope( 'weave.App' )
+import * as chalk from 'chalk'
+import EventEmitter from 'events'
+import * as path from 'path'
+import Spirit from 'string-spirits'
 
-const chalk = require( 'chalk' )
-const events = require( 'events' )
-const path = require( 'path' )
-const Spirit = require( 'string-spirits' )
+interface AppOptions {
+  urlCleaning: bool
+}
 
-weave.App = class App extends events.EventEmitter {
+weave.App = class App extends EventEmitter {
   constructor( options ) {
     // Make it an EventEmitter
     super()
 
     this.options = Object.assign( {
-      urlCleaning: 'true',
+      urlCleaning: true,
       headers: { 'X-Powered-By': 'Weave' },
       indexes: {},
       extensions: [],
@@ -29,7 +33,7 @@ weave.App = class App extends events.EventEmitter {
     this._resolvedPaths = {}
   }
 
-  link( binding, hostname = '*' ) {
+  link( binding: weave.Binding, hostname = '*' ) {
     // If host is a port number, it will handle the entire port.
     // If it is not a port number or a string, it is invalid.
     if ( typeof hostname !== 'string' ) return garden.typeerror( "Hostname must be a string." )
@@ -63,15 +67,14 @@ weave.App = class App extends events.EventEmitter {
     return this
   }
 
-  mount( directory, app ) {
-    if ( typeof directory !== 'string' ) return this.garden.typeerror( 'Argument directory must be a string!' )
+  mount( directory: string, app: weave.App ) {
+    if ( typeof directory !== 'string' ) return this.garden.typeerror( 'Argument directory must be a string!' ) // TS
     if ( !path.isAbsolute( directory ) ) return this.garden.error( 'Argument directory must be absolute!' )
     if ( directory.length < 2 ) return this.garden.error( 'Root is not a subdirectory! Use configure instead!' )
 
-    if ( !(app instanceof weave.App) ) return this.garden.typeerror( 'You can only mount apps!' )
+    if ( !(app instanceof weave.App) ) return this.garden.typeerror( 'You can only mount apps!' ) // TS
 
-    // Clear the cache so that the configuration can be modified and
-    // not conflict with previously caches requests.
+    // Clear the cache in case we mounted in a cached directory
     this._mountsPaths = {}
 
     // Keep things consistent on Windows with other platforms.

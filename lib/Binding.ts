@@ -1,43 +1,41 @@
 // MIT License / Copyright 2015
 
-'use strict';
+import weave from '..'
+// import createScope( 'weave.Binding' ) as garden from 'gardens'
+import createScope from 'gardens'
+const garden = createScope( 'weave.Binding' )
 
-const weave = require( '..' )
-const garden = require( 'gardens' ).createScope( 'weave.bind' )
-
-const http = require( 'http' )
-const https = require( 'https' )
+import http from 'http'
+import https from 'https'
 
 weave._bindings = {}
 
 weave.Binding = class Binding {
-  constructor( port, serverOptions ) {
-    if ( typeof port !== 'number' ) garden.error( 'Not given a port to link to!' )
+  constructor( port: number, serverOptions ) {
+    if ( typeof port !== 'number' ) return garden.typeerror( 'Not given a port to link to!' ) // TS
     if ( port < 1 || port > 0xFFFF ) return garden.error( `${port} is not a valid port number.` )
 
     if ( weave._bindings[ port ] ) return weave._bindings[ port ]
 
     let secure = serverOptions && serverOptions.key && serverOptions.cert
 
-    let binding = {
+    Object.assign( this, {
       server: ( secure ? https : http ).createServer( serverOptions ),
       port, attachments: [], cachedMatches: {}
-    }
+    })
 
-    binding.server.on( 'listening', () => binding._active = true )
+    this.server.on( 'listening', () => this._active = true )
 
-    binding.server.on( 'error', error => {
+    this.server.on( 'error', error => {
       garden.catch( error, 'Unable to bind to port, likely insufficient access.\n'
         + chalk.green( 'Did you remember to ' ) + 'sudo' + chalk.green( '?' ) );
       process.exit( 1 );
     })
 
     void ['request', 'upgrade'].forEach( event =>
-      binding.server.on( event, ( ...connection ) => new weave.Exchange( secure, ...connection ) ) )
+      this.server.on( event, ( ...connection ) => new weave.Exchange( secure, ...connection ) ) )
 
-    weave._bindings[ port ] = binding
-    binding.server.listen( port )
-
-    return binding
+    weave._bindings[ port ] = this
+    this.server.listen( port )
   }
 }

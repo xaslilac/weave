@@ -1,49 +1,18 @@
 // MIT License / Copyright 2015
 'use strict';
 
-let weave = require( '..' )
-let garden = require( 'gardens' ).createScope( 'weave:printer' )
+import weave from '..'
+// import createScope( 'weave:printer' ) as garden from 'gardens'
+import createScope from 'gardens'
+const garden = createScope( 'weave:printer' )
 
-let fs = require( 'fs' )
-let path = require( 'path' )
-let util = require( 'util' )
+import fs from 'fs'
+import path from 'path'
+import util from 'util'
 
-let dom = require( '../utilities/dom' )
+import createPageFromTemplate from './dom'
 
-let createPageFromTemplate = title => {
-  let document = dom.createHtmlDocument( title )
-  document.head.appendChild( documentStyle )
-  return document }
-
-let documentStyle = new dom.StyleSheet({
-  'html, body': {
-    padding: 0, margin: 0,
-    width: '100%', height: '100%',
-    fontFamily: 'sans-serif' },
-  'h1': {
-    color: 'white', backgroundColor: '#446bdf',
-    textShadow: '0 0 0.1em black',
-    boxShadow: '0 0 1em black',
-    padding: '20px', margin: 0
-  },
-  'section': {
-    margin: '2em 1.5em'
-  },
-  'pre': {
-    padding: '15px', margin: '15px',
-    overflow: 'auto',
-    borderRadius: '7px',
-    color: 'white', backgroundColor: '#242332' },
-  'li': { padding: '2px' },
-  '#directories a': { color: '#446bdf' },
-  '#files       a': { color: '#108fcd' },
-  'a': { fontWeight: 'bold', color: '#27cb81' }
-})
-
-module.exports = function printer( error, manifest ) {
-  // Debug inspecting
-  garden.debug( error, manifest )
-
+export default function printer( error, manifest ) {
   // Check if we are printing an error
   if ( error ) {
     if ( error instanceof weave.HTTPError ) return ( manifest.isFile() ? printFile : printError )( error, manifest, this )

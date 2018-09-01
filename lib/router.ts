@@ -1,18 +1,16 @@
 // MIT License / Copyright 2015
 'use strict';
 
-let weave = require( '..' )
-let garden = require( 'gardens' ).createScope( 'weave:router' )
-let printer = require( './printer' )
+import weave from '..'
+// import createScope( 'weave:router' ) as garden from 'gardens'
+import createScope from 'gardens'
+const garden = createScope( 'weave:router' )
 
-let fs = require( 'fs' )
-let path = require( 'path' )
+import printer from './printer'
+import fs from 'fs'
+import path from 'path'
 
-
-module.exports = function router() {
-  // Debug inspecting
-  garden.debug( this.requestUrl, this.relativeUrl )
-
+export default function router() {
   // Get the manifest ready for the printer, and make the printer easy to call.
 	let manifest = new weave.Manifest({ url: this.relativeUrl })
 
