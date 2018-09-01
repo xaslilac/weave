@@ -46,14 +46,14 @@ These types of libraries go hand in hand with Weave's ability to [set up such an
 ##### Groundwork - v0.1 (WebSocks) ✔
 Get the basics in, along with a couple of goodies.
 - Be generally reliable, strong routing features
-- A base WebSocket implementation, document generation
+- A base [WebSocket](https://github.com/weave-js/weave-plugin-websocket) implementation, document generation
 - Server-side DOM tree for error pages, etc.
 - Basic caching ground work.
 
 ##### Logging and testing - v0.2 (Sun Screen) ✔
 Improve the debugging and testing experience, protect from crashes and unexpected
 bad things.
-- Build a robust error and warning backend system with the ability to log to files.
+- Build a robust [error and warning backend](https://github.com/partheseas/gardens).
 - Begin implementing a test suite.
 
 ### Upcoming
