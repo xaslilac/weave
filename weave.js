@@ -1,6 +1,5 @@
 // MIT License / Copyright Kayla Washburn 2015
-
-'use strict';
+"use strict";
 
 // Define that basic module
 const weave = module.exports = Object.assign( ( ...x ) => new weave.App( ...x ), {

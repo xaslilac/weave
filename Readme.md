@@ -48,7 +48,6 @@ Get the basics in, along with a couple of goodies.
 - Be generally reliable, strong routing features
 - A base [WebSocket](https://github.com/weave-js/weave-plugin-websocket) implementation, document generation
 - Server-side DOM tree for error pages, etc.
-- Basic caching ground work.
 
 ##### Logging and testing - v0.2 (Sun Screen) ✔
 Improve the debugging and testing experience, protect from crashes and unexpected
@@ -57,12 +56,12 @@ bad things.
 - Begin implementing a test suite.
 
 ### Upcoming
-#### Remote debugging, monitoring instruments - v0.3 (Gooey)
-Improve the instruments greatly, to where they may actually be useful
-- Allow creation of an admin app
-- Request inspecting, performance metrics
-- REPL output syntax highlighting
-- Control caching behavior and server configurations on the fly
+#### Robustness - v0.3 (Wrinkles)
+Fixing design decisions, keep the core code focused and offer additional packages
+to provide functionality, rather than having it all built in.
+- Break out React plugin, WebSocket, demo site, etc.
+- Lay the groundwork for remote debugging
+- Simplify and modularize code where possible to reduce opportunity for bugs.
 
 #### File system chunking - v0.4 (Snacks)
 Stream larger files and enable partial downloads
