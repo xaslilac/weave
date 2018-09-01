@@ -10,4 +10,4 @@ const weave = module.exports = Object.assign( ( ...x ) => new weave.App( ...x ),
 // Import all of our classes and libraries
 void function ( ...names ) {
   names.forEach( name => require( `./lib/${name}` ) )
-}( 'app', 'binding', 'exchange' )
+}( 'App', 'Binding', 'Exchange', 'HttpError', 'Manifest' )
