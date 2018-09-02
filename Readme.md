@@ -60,14 +60,14 @@ bad things.
 Fixing design decisions, keep the core code focused and offer additional packages
 to provide functionality, rather than having it all built in.
 - Break out React plugin, WebSocket, demo site, etc.
-- Lay the groundwork for remote debugging
+- Read large files in chunks rather than entirely at once to avoid eating memory.
+- Enable the ability to stream a video file from a certain time stamp, to resume
+a disrupted download at a later time, and to accept user uploads. (Range HTTP header)
 - Simplify and modularize code where possible to reduce opportunity for bugs.
 
 #### File system chunking - v0.4 (Snacks)
 Stream larger files and enable partial downloads
-- Read large files in chunks rather than entirely at once to avoid eating memory.
-- Enable the ability to stream a video file from a certain time stamp, to
-resume a disrupted download at a later time, and to accept user uploads.
+- Lay the groundwork for remote debugging
 
 #### 100% test coverage/passing - v0.5 (Comfy)
 All features should be 100% tested and passing
