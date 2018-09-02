@@ -12,46 +12,23 @@ If you would like a more gentle introduction [read this](/documents/intro.md).
 - `->` will be used to symbolize a return values
 - `?:` will be used to symbolize fulfill and reject values of a Promise
 
-### Command Line
-When installed using the npm `-g` flag, you will be given the command `weave-demo`
-which, as the name implies, runs a demo server which will host a website on port 80.
-Flags can be set programmatically by passing an array or args to `weave`, like so:
-```JavaScript
-weave([ '--aww-heck-yes' ])
-```
-
-```Shell
-$ weave-demo # Starts a server that will present a demo website on port 80
-$ myWeaveApp --aww-heck-yes # Try it for yourself! :)
-$ myWeaveApp --weave-verbose
-$ myWeaveApp --enable-weave-repl # Will enable a command line repl
-$ myWeaveApp --enable-interface-engine # Enables experimental implementation
-$ myWeaveApp --enable-react-engine # Enables transpiling of `.jsx` files
-```
-
-## Configuration behaviors
-These properties can be set on the global `weave.configuration` object, on an
-`app.configuration` object, using the `app.configure` method, or using the `app.subdirectory` method.
+## App options
+These properties are all stored on `app.options`
 
 ```JavaScript
 'location': string
 // Set maximumFolderDepth to 0 for a "traditional" directory index behavior.
-'indexes': { 'indexFileName': num maximumFolderDepth.. }
-'extensions': [ str '.ext'.. ]
+'indexes': { 'indexFileName': int maximumFolderDepth.. }
+'extensions': string[  '.ext'.. ]
 'htmlDirectoryListings': boolean
 'jsonDirectoryListings': boolean
 'mimeTypes': dictionary
-'errorPages': { errorCode: str pathToFile.. }
-'engines': { '.ext': engine( content, details, exchange ) -> Promise.. }
-// Can only be configured via weave.configuration
-'cache': { maxCacheSize: megabytes: number, maxCachedFileSize: megabytes: number }
-'redirect': { fromUrl: toUrl: string }
-'headers': { 'Header-Name': string }
-// Can only be configured via weave.logOutputPath
-'logOutputPath': str 'path.log'
-'access': boolean | object{ 'path': boolean }
-'domain': string
-'secure': boolean
+'errorPages': { errorCode: pathToFile.. }
+'redirect': { fromUrl: toUrl }
+'headers': { 'Header-Name': 'Value' }
+'forbidden': string[ 'path' ]
+'forceDomain': string
+'forceSecure': boolean
 ```
 
 ## Everything you need to know
@@ -59,41 +36,20 @@ These properties can be set on the global `weave.configuration` object, on an
 ### weave
 ```JavaScript
 const weave = require( 'weave' )
-weave([ appName,][ behaviors ]) -> app
+weave( [behaviors] ) -> app
 weave.version: versionNumber
-weave.servers: { port: server.. }
-weave.apps: { appName: app, anonymous: [ anonymousApps.. ] }
-weave.hosts: { hostName: app }
-weave.cache: { wildcardMatches: { hostname: wildcard } }
-weave.constants.WebSocketUUID: UUID
-weave.constants.HOME: userHomeDir
-weave.constants.STATUS_CODES: { statusCode: statusName.. }
-weave.configuration: { confProp: confValue.. }
-weave.util.SHA1_64( data ) -> sha1Hash
-weave.util.RNDM_RG( min, min, base ) -> randomNum
-// Requires --enable-weave-instruments
-// Navigate your browser to app.host/instrumentUrl/panel to access instruments
-weave.attachInstruments( app, instrumentsUrl ) -> undefined
 ```
 
 ### weave.App
 ```JavaScript
-new weave.App([ appName: string,][ behaviors ]) -> app
-app.garden: garden
-app.link( 'hostname:port': string or port: number ) -> app
-app.secure( settings: object[, host: string or port: number ] ) -> app
-// Listens to both HTTP and HTTPS connections on the default ports
-app.hitch( settings: object ) -> app
+new weave.App( [behaviors] ) -> app
+app.link( binding, hostname ) -> app
 app#listening()
 app.configure( rootDirBehaviors ) -> app
 app.subdirectory( dirName[, superDirName | superDirBehaviors], dirBehaviors ) -> app
-app.interface( dirName: string, handle( exchange, manifest ) -> promise[, str method | array ['methods'..]] ) -> app
+app.intercept( dirName: string, handle( exchange, manifest ) ) -> app
 app.engine( extension: string, handle( fileBuffer, manifest, exchange ) -> promise)
-app.redirect( from: string, to: string )
-app.header( name: string, value: string )
-app#exchange( exchange )
-app.router( exchange ) -> undefined
-app.printer( httpError, manifest, exchange ) -> undefined                   
+app#exchange( exchange )               
 ```
 
 #### Promises
@@ -112,29 +68,13 @@ If the engine can successfully transform the fileBuffer, it should fulfill the
 promise with a new fileBuffer to write to the client. If there is an error, it
 should reject the promise with that error information.
 
-### weave.Dictionary
+### weave/utilities/mimedictionary
 Utility to help manage MIME types
 ```JavaScript
-new weave.Dictionary( apacheFilePath | [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
+let mime = require( 'weave/utilities/mimedictionary' )
+mime.createDictionary( apacheFilePath | [ apacheFilePath.. ] | { type: [ str '.ext'.. ].. } ) -> dictionary
 dictionary.define( type, [ extensions ] | { type: [ str '.ext'.. ] } )
 dictionary.fromApacheFile( apacheFilePath[, encoding[, callback]] )
-```
-
-### [weave.WebSocket and weave.WebSocketConnection](/documents/websocket.md)
-Create a WebSocket entry point
-```JavaScript
-new weave.WebSocket( app, webSocketUrl, connectionListener ) -> ws
-ws.attach( app, socketUrl ) -> ws
-ws#connection( wsConnection )
-```
-Interface with incoming connections
-```JavaScript
-new weave.WebSocketConnection( ws, exchange ) -> wsConnection
-wsConnection#message( message{ buffer decoded[, str data] } )
-wsConnection#close( message{ num code, str reason } )
-wsConnection.send( data ) -> bool success
-wsConnection.ping() -> bool success
-wsConnection.close( code[, reason ] ) -> bool success
 ```
 
 ## Not so important (Private APIs)
@@ -167,23 +107,6 @@ exchange.end( content[, encoding] ) -> exchange
 exchange.redirect( location[, status] ) -> exchange
 exchange.generateErrorPage( httpError ) -> undefined
 ```
-
-#### weave.cache
-```JavaScript
-weave.cache( filePath, stats ) -> Promise ? contents : error
-```
-
-#### Gardens
-**IMPORTANT NOTE:** Each piece of Weave (each file) and each instance of `weave.App`
-has it's own unique garden that it logs to in order to help debugging and tracing
-where things are happening. For things that might be *our* fault, we should use the garden
-instance in the context of where we made as error. Anything that we want to log
-that is *directly* due to receiving invalid input from a user should be logged to
-the `app.garden` on the corresponding app.
-```JavaScript
-weave.createGarden( gardenName, verbose ) -> garden
-```
-For more information on how Gardens work, see [gardens](https://www.npmjs.com/package/gardens) on npm.
 
 #### weave.HTTPError
 ```JavaScript

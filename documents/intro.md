@@ -18,22 +18,13 @@ to your console.
 const weave = require( 'weave' )
 ```
 
-```Shell
-~/$ node example.js --aww-heck-yes
-Aww heck yes!!
-~/$
-```
-
 ## Creating and configuring an app
-Now that you know Weave is loading properly, there are a few ways to create and
+Now that you know Weave is loading properly, there are a two ways to create and
 configure your app depending on your needs and preferences.
 
 ```JavaScript
 weave({ 'location': '~/http/' })
-weave( 'name', { 'location': '~/http/' })
 new weave.App({ 'location': '~/http/' })
-new weave.App( 'name', { 'location': '~/http/' })
-new weave.App( 'name' ).configure({ 'location': '~/http/' })
 ```
 
 Pick which ever way you like. When you decide, you'll just need to link your
@@ -42,16 +33,14 @@ on the specified port.
 
 ```JavaScript
 let app = weave({ 'location': '~/http/' })
-app.link( 80 )
-app.link( '80' )
-app.link( 'localhost:80' )
-app.link( '*.example.com:80' )
-app.link( 'blog.*.com:80' )
+app.link( new weave.Binding( 80 ) )
+app.link( new weave.Binding( 443, { key: ..., cert: ... }))
+app.link( new weave.Binding( 8080 ), 'localhost' )
 ```
 
-You can set specific behaviors for subdirectories in your app as well.
+You can mount apps within other apps as well.
 ```JavaScript
-app.subdirectory( '/secretfolder', { 'location': '~/somewhere/secret/' })
+app.mount( '/secretfolder', weave({ 'location': '~/somewhere/secret/' }) )
 ```
 In the above example, for a request to `/index.html` we would look for that file
 at `~/http/index.html`, but for a request to `/secretfolder/index.html` we would
@@ -67,11 +56,11 @@ app.configure({
   }
 })
 
-app.subdirectory( '/secretfolder', {
+app.mount( '/secretfolder', weave({
   'indexes': {
     'index.html': 0
   }
-})
+}) )
 ```
 
 The Infinity and 0 values assigned to the properties `'index.html'` specify the

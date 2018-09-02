@@ -1,5 +1,7 @@
-# This one's a wild one broh.
-## This API is definitely not finalized and is definitely likely for changes.
+# This API is not a thing anymore. It might come back later, but it currently doesn't exist.
+
+#### This one's a wild one broh.
+##### This API is definitely not finalized and is definitely likely for changes.
 
 Using the interface engine is similar to how regular interfaces work, with a few differences.
 
