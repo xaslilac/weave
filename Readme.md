@@ -56,7 +56,7 @@ bad things.
 - Begin implementing a test suite.
 - Control HTTP and HTTPS requests with the same code
 
-#### Robustness - v0.3 (Wrinkles) ✔
+##### Robustness - v0.3 (Wrinkles) ✔
 Fixing design decisions, keep the core code focused and offer additional packages
 to provide functionality, rather than having it all built in.
 - Force HTTPS on apps
