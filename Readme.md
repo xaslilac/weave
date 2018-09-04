@@ -1,5 +1,5 @@
 # Weave
-[![Weave v0.3.0](https://img.shields.io/badge/weave-v0.3.0-446bdf.svg)](https://www.npmjs.com/package/weave)
+[![Weave v0.4.0](https://img.shields.io/badge/weave-v0.4.0-446bdf.svg)](https://www.npmjs.com/package/weave)
 ![Stability: Alpha](https://img.shields.io/badge/stability-beta-69b0ba.svg)
 <!--[![Travis](https://img.shields.io/travis/partheseas/weave.svg?label=linux)](https://travis-ci.org/weave-js/weave)
 [![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)](https://ci.appveyor.com/project/partheseas/weave)-->
@@ -54,32 +54,34 @@ Improve the debugging and testing experience, protect from crashes and unexpecte
 bad things.
 - Build a robust [error and warning backend](https://github.com/partheseas/gardens).
 - Begin implementing a test suite.
+- Control HTTP and HTTPS requests with the same code
 
-### Upcoming
-#### Robustness - v0.3 (Wrinkles)
+#### Robustness - v0.3 (Wrinkles) ✔
 Fixing design decisions, keep the core code focused and offer additional packages
 to provide functionality, rather than having it all built in.
+- Force HTTPS on apps
 - Break out React plugin, WebSocket, demo site, etc.
 - Read large files in chunks rather than entirely at once to avoid eating memory.
-- Enable the ability to stream a video file from a certain time stamp, to resume
-a disrupted download at a later time, and to accept user uploads. (Range HTTP header)
 - Simplify and modularize code where possible to reduce opportunity for bugs.
 
-#### File system chunking - v0.4 (Snacks)
+### Upcoming
+#### Usability - v0.4 (Snacks)
 Stream larger files and enable partial downloads
-- Lay the groundwork for remote debugging
+- Lay the groundwork for a remote debugging plugin
+- Accept user uploads in a reasonable way
+- Enable the ability to stream a video file from a certain time stamp, to resume
+a disrupted download at a later time, etc. (Range HTTP header)
 
-#### 100% test coverage/passing - v0.5 (Comfy)
+#### 100% test coverage/passing - v0.5 (Sweat Pants)
 All features should be 100% tested and passing
 - Run the tests on a local machine in a virtual environment
 - Test in a real world scenario by setting up a browser based testing environment
 - Ensure that everything behaves properly in browsers across the board
 
-#### HTTPS, HTTP/2, compression, production pre-caching and precompiling - v0.6 (Cozy)
-- Control HTTP and HTTPS requests with the same code ✔
-- Force HTTPS on apps ✔
+#### HTTP/2, compression, production pre-caching and precompiling - v0.6 (Bee)
 - HTTP/2 implementation
   - Compression is necessary for HTTP/2
+  - Node HTTP/2 implementation needs to be reviewed
 - Read files from web directories into memory for fast response times
   - Run files through engines and compress them in advance
 
