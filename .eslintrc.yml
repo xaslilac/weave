@@ -1,13 +1,11 @@
 env:
   node: true
   es6: true
-extends: 'eslint:recommended'
 rules:
   array-bracket-newline: error
   array-bracket-spacing:
     - error
     - always
-    - singleValue: false
   array-callback-return: error
   array-element-newline: 'off'
   arrow-body-style: error
@@ -65,8 +63,7 @@ rules:
   id-blacklist: error
   id-length: 'off'
   id-match: error
-  indent: 'off'
-  indent-legacy: 'off'
+  indent: [ 'error', 2 ]
   init-declarations: 'off'
   jsx-quotes: error
   key-spacing: error
@@ -127,10 +124,11 @@ rules:
   no-lone-blocks: error
   no-lonely-if: error
   no-loop-func: error
-  no-magic-numbers: 'off'
+  no-magic-numbers: off
   no-mixed-operators: error
   no-mixed-requires: error
-  no-multi-assign: 'off'
+  no-mixed-spaces-and-tabs: error
+  no-multi-assign: off
   no-multi-spaces: error
   no-multi-str: error
   no-multiple-empty-lines: error
@@ -165,7 +163,6 @@ rules:
   no-shadow-restricted-names: error
   no-spaced-func: error
   no-sync: error
-  no-tabs: error
   no-template-curly-in-string: error
   no-ternary: 'off'
   no-throw-literal: error

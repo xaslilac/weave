@@ -53,12 +53,9 @@ class StyleSheet {
 
   toString() {
     return `<style type='text/css'>\n${
-      Object.keys( this.selectors ).map( selector => {
-        return `${selector} {\n${
+      Object.keys( this.selectors ).map( selector => `${selector} {\n${
         Object.keys( this.selectors[ selector ] ).map( prop =>
-          `  ${prop.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`)}: ${this.selectors[ selector ][ prop ]}`
-        ).join(';\n')}\n}`
-      }).join('\n\n')}\n</style>\n`
+          `  ${prop.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`)}: ${this.selectors[ selector ][ prop ]}`).join(';\n')}\n}`).join('\n\n')}\n</style>\n`
   }
 
   setStyles( styles ) {
@@ -73,16 +70,16 @@ class StyleSheet {
 
 class Element {
   constructor( tag ) {
-	this.tagName = tag
-	this.children = []
-	this.attributes = {}
-	this.nodeType = 1
+    this.tagName = tag
+    this.children = []
+    this.attributes = {}
+    this.nodeType = 1
   }
 
   toString() {
   	return `\n<${this.tagName}${
       Object.keys( this.attributes ).map( key => ` ${key}='${this.attributes[ key ]}'` ).join( '' )
-    }>` + this.children.map( child => child.toString() ).join( '' ) + `</${this.tagName}>\n`
+    }>${this.children.map( child => child.toString() ).join( '' )}</${this.tagName}>\n`
   }
 
   appendChild( element ) {
@@ -111,7 +108,7 @@ class TextNode {
   constructor( text ) {
     this.text = text
     this.nodeType = 3
-	}
+  }
 
   toString() {
     return this.text
@@ -120,9 +117,9 @@ class TextNode {
 
 class Comment {
   constructor( text ) {
-		this.text = text
-		this.nodeType = 8
-	}
+    this.text = text
+    this.nodeType = 8
+  }
 
   toString() {
     return `<!-- ${this.text} -->`
@@ -130,7 +127,7 @@ class Comment {
 }
 
 let dom = module.exports = exports = {
-	createDocument( base, docType ) { return new Document( base, docType ) },
+  createDocument( base, docType ) { return new Document( base, docType ) },
 
   createHtmlDocument( title, docType = 'html' ) {
     let document = dom.createDocument( 'html', docType );
