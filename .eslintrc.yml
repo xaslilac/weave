@@ -1,17 +1,13 @@
 env:
-  browser: true
-  commonjs: true
+  node: true
   es6: true
 extends: 'eslint:recommended'
-parserOptions:
-  ecmaFeatures:
-    experimentalObjectRestSpread: true
-    jsx: true
-plugins:
-  - react
 rules:
   array-bracket-newline: error
-  array-bracket-spacing: 'off'
+  array-bracket-spacing:
+    - error
+    - always
+    - singleValue: false
   array-callback-return: error
   array-element-newline: 'off'
   arrow-body-style: error
@@ -29,10 +25,8 @@ rules:
   brace-style: 'off'
   callback-return: error
   camelcase: error
-  capitalized-comments:
-    - error
-    - always
-  class-methods-use-this: error
+  capitalized-comments: 'off'
+  class-methods-use-this: warn
   comma-dangle: error
   comma-spacing:
     - error
@@ -45,7 +39,7 @@ rules:
   computed-property-spacing:
     - error
     - always
-  consistent-return: error
+  consistent-return: 'off'
   consistent-this: error
   curly: 'off'
   default-case: error
@@ -60,7 +54,9 @@ rules:
   func-name-matching: error
   func-names: error
   func-style: error
-  function-paren-newline: error
+  function-paren-newline:
+    - error
+    - consistent
   generator-star-spacing: error
   getter-return: error
   global-require: 'off'
@@ -82,17 +78,20 @@ rules:
   linebreak-style:
     - error
     - unix
-  lines-around-comment: error
-  lines-around-directive: error
-  lines-between-class-members: error
+  lines-between-class-members:
+    - error
+    - always
+    - exceptAfterSingleLine: true
   max-depth: error
   max-len: 'off'
   max-lines: error
   max-nested-callbacks: error
   max-params: error
-  max-statements: error
+  max-statements: 'off'
   max-statements-per-line: error
-  multiline-comment-style: error
+  multiline-comment-style:
+    - error
+    - separate-lines
   new-cap: error
   new-parens: error
   newline-after-var: 'off'
@@ -145,9 +144,9 @@ rules:
   no-new-require: error
   no-new-wrappers: error
   no-octal-escape: error
-  no-param-reassign: error
+  no-param-reassign: 'off'
   no-path-concat: error
-  no-plusplus: error
+  no-plusplus: 'off'
   no-process-env: error
   no-process-exit: error
   no-proto: error
@@ -173,10 +172,11 @@ rules:
   no-trailing-spaces: error
   no-undef-init: error
   no-undefined: error
-  no-underscore-dangle: error
+  no-underscore-dangle: 'off'
   no-unmodified-loop-condition: error
   no-unneeded-ternary: error
   no-unused-expressions: error
+  no-unused-vars: warn
   no-use-before-define: 'off'
   no-useless-call: error
   no-useless-computed-key: error
@@ -185,8 +185,8 @@ rules:
   no-useless-rename: error
   no-useless-return: error
   no-var: error
-  no-void: error
-  no-warning-comments: error
+  no-void: 'off'
+  no-warning-comments: warn
   no-whitespace-before-property: error
   no-with: error
   nonblock-statement-body-position: error
@@ -201,15 +201,17 @@ rules:
     - error
     - initializations
   operator-assignment: error
-  operator-linebreak: error
+  operator-linebreak:
+    - error
+    - before
   padded-blocks: 'off'
   padding-line-between-statements: error
   prefer-arrow-callback: error
-  prefer-const: error
+  prefer-const: 'off'
   prefer-destructuring: error
   prefer-numeric-literals: error
-  prefer-promise-reject-errors: error
-  prefer-reflect: error
+  prefer-promise-reject-errors: 'off'
+  prefer-reflect: 'off'
   prefer-rest-params: error
   prefer-spread: error
   prefer-template: error
@@ -217,7 +219,7 @@ rules:
   quotes: 'off'
   radix: error
   require-await: error
-  require-jsdoc: error
+  require-jsdoc: 'off'
   rest-spread-spacing:
     - error
     - never
@@ -250,7 +252,7 @@ rules:
   valid-jsdoc: error
   vars-on-top: error
   wrap-iife: error
-  wrap-regex: error
+  wrap-regex: 'off'
   yield-star-spacing: error
   yoda:
     - error

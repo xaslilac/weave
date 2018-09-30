@@ -1,6 +1,5 @@
 // MIT License / Copyright 2014
-
-'use strict';
+"use strict";
 
 class Window {
   constructor() {
@@ -32,12 +31,13 @@ class Document {
 
   getElementById( id ) {
     let found
-    let recurse = children => {
-      return children.some( child => {
-        if ( child.id === id ) return found = child
-        if ( child instanceof Element ) return recurse( child.children )
+    let recurse = children =>
+      children.some( child => {
+        if ( child.id === id ) {
+          found = child
+          return true
+        } else if ( child instanceof Element ) return recurse( child.children )
       })
-    }
 
     recurse( this.baseElement.children )
 
@@ -55,9 +55,9 @@ class StyleSheet {
     return `<style type='text/css'>\n${
       Object.keys( this.selectors ).map( selector => {
         return `${selector} {\n${
-        Object.keys( this.selectors[ selector ] ).map( prop => {
-          return `  ${prop.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`)}: ${this.selectors[ selector ][ prop ]}`
-        }).join(';\n')}\n}`
+        Object.keys( this.selectors[ selector ] ).map( prop =>
+          `  ${prop.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`)}: ${this.selectors[ selector ][ prop ]}`
+        ).join(';\n')}\n}`
       }).join('\n\n')}\n</style>\n`
   }
 
@@ -71,13 +71,13 @@ class StyleSheet {
   }
 }
 
-class	Element {
+class Element {
   constructor( tag ) {
-		this.tagName = tag
-		this.children = []
-		this.attributes = {}
-		this.nodeType = 1
-	}
+	this.tagName = tag
+	this.children = []
+	this.attributes = {}
+	this.nodeType = 1
+  }
 
   toString() {
   	return `\n<${this.tagName}${
@@ -91,7 +91,7 @@ class	Element {
   }
 
   setAttribute( attr, value ) {
-    return this.attributes[ attr ] = value
+    this.attributes[ attr ] = value
   }
 
   get id() { return this.attributes.id }
@@ -100,11 +100,11 @@ class	Element {
   get innerHTML() { return this.children.map( child => child.toString() ).join( '' ) }
   set innerHTML( value ) { this.children = [ new TextNode( value ) ] }
 
-  get className() { return this.attributes[ 'class' ] }
-  set className( value ) { this.attributes[ 'class' ] = value }
+  get className() { return this.attributes.class }
+  set className( value ) { this.attributes.class = value }
 
-  get href() { return this.attributes[ 'href' ] }
-  set href( value ) { this.attributes[ 'href' ] = value }
+  get href() { return this.attributes.href }
+  set href( value ) { this.attributes.href = value }
 }
 
 class TextNode {
@@ -143,20 +143,20 @@ let dom = module.exports = exports = {
         value: document.baseElement.appendChild( document.createElement( 'body' ) ),
         enumerable: true },
       title: {
-        get: function () {
-          let title
+        get() {
+          let value
           document.head.children.some( child => {
             if ( child.tagName !== 'title' ) return false
 
             title = child.innerHTML
             return true
           })
-          return title
+          return value
         },
-        set: function ( title ) {
+        set( value ) {
           document.head.children.some( child => {
-            if ( child.tagName === 'title' ) child.innerHTML = title
-          }) || ( document.head.appendChild( document.createElement( 'title' ) ).innerHTML = title )
+            if ( child.tagName === 'title' ) child.innerHTML = value
+          }) || ( document.head.appendChild( document.createElement( 'title' ) ).innerHTML = value )
         }
       }
     })
@@ -169,7 +169,7 @@ let dom = module.exports = exports = {
   parseHtml( string ) {
     let document = dom.createHtmlDocument()
     document.body.appendChild( document.createElement( 'p' ) ).innerHTML = 'im trying!!!!'
-    document.body.appendChild( document.createElement( 'pre' ) ).innerHTML = string.replace( /\</g, '&lt;' )
+    document.body.appendChild( document.createElement( 'pre' ) ).innerHTML = string.replace( /</g, '&lt;' )
     return document
   },
 

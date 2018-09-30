@@ -1,16 +1,18 @@
 // MIT License / Copyright 2014
+"use strict";
 
-let fs = require( "fs" )
+const fs = require( 'fs' )
+const garden = require( 'gardens' ).createScope( 'weave/MimeDictionary' )
 
 module.exports = class MimeDictionary {
-  constructor( map ) {
-    if ( typeof map === 'string' ) this.fromApacheFile( map )
-    else if ( Array.isArray( map ) ) map.forEach( ind => this.fromApacheFile( ind ) )
-    else this.define.apply( this, arguments )
+  constructor( ...files ) {
+    files.forEach( file => {
+      if ( typeof file === 'string' ) this.importApacheFile( file )
+    })
   }
 
-  static createDictionary( ...conf ) {
-    return new MimeDictionary( ...conf )
+  static createDictionary( ...options ) {
+    return new MimeDictionary( ...options )
   }
 
   define( type, extensions ) {
@@ -33,9 +35,9 @@ module.exports = class MimeDictionary {
     return this
   }
 
-  fromApacheFile( path, encoding = 'utf-8' ) {
+  importApacheFile( path, encoding = 'utf-8' ) {
     fs.readFile( path, encoding, ( error, content ) => {
-      if ( error ) return console.error( error )
+      if ( error ) return garden.error( error )
 
       // Remove all empty lines and comments and then split the file into lines.
       content = content
