@@ -82,6 +82,14 @@ class Element {
     }>${this.children.map( child => child.toString() ).join( '' )}</${this.tagName}>\n`
   }
 
+  insertBefore( element, before ) {
+    let foundAt = this.children.indexOf( before )
+
+    if ( foundAt < 0 ) throw new Error( `Element ${ before.toString() } is not a child of ${ this.toString() }` )
+
+    this.children.splice( foundAt, 0, [ element ] )
+  }
+
   appendChild( element ) {
     this.children.push( element )
     return element
