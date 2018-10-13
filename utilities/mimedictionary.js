@@ -103,6 +103,7 @@ module.exports.defaultDictionary = new MimeDictionary().define({
   'text/css; charset=utf-8': [ 'css' ],
   'text/csv': [ 'csv' ],
   'text/html; charset=utf-8': [ 'htm', 'html' ],
+  'text/markdown; charset=utf-8': [ '.md' ],
   'text/plain': [ 'txt', 'log' ],
   'video/h264': [ 'h264' ],
   'video/jpeg': [ 'jpgv' ],
