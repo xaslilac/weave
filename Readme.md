@@ -5,12 +5,10 @@
 [![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)](https://ci.appveyor.com/project/partheseas/weave)-->
 
 ## Overview
-Weave is designed to give you great flexibility in resolving file locations, and
-handling live server-side transpiling of all your source files.
+Weave is designed to give you great flexibility and be easy to configure.
 It's really just a fun side project for me, and I will change the API *a lot*,
 but it's kind of fun and is generally pretty stable. Though when I say beta, I do
 mean it. I'm not a massive company with the resources to release polished beta-ware.
-It won't crash constantly, but it will crash.
 
 ### Usage
 For usage information, see [the comprehensive API overview](/documents/readme.md).
