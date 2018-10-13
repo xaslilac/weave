@@ -63,10 +63,10 @@ to provide functionality, rather than having it all built in.
 - Simplify and modularize code where possible to reduce opportunity for bugs.
 
 ### Upcoming
-#### Usability - v0.4 (Snacks)
+#### Usability - v0.4 (Snacks) ✔
 Stream larger files and enable partial downloads
 - Lay the groundwork for a remote debugging plugin
-- Accept user uploads in a reasonable way
+- Plugin to accept user uploads in a reasonable way
 - Enable the ability to stream a video file from a certain time stamp, to resume
 a disrupted download at a later time, etc. (Range HTTP header)
 
