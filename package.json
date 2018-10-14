@@ -1,6 +1,6 @@
 {
   "name": "weave",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "A super duper good Node.js server!",
   "engines": {
     "node": ">=10.0.0"
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.1",
-    "gardens": "^3.1.4",
+    "gardens": "^3.2.0",
     "string-spirits": "^0.2.3"
   }
 }
