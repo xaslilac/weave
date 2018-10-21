@@ -25,6 +25,10 @@ class Document {
     return new Element( type )
   }
 
+  createTextNode( text ) {
+    return new TextNode( text )
+  }
+
   createStyleSheet( styles ) {
     return this.head.appendChild( new StyleSheet( styles ) )
   }
