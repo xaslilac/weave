@@ -75,6 +75,7 @@ module.exports.defaultDictionary = new MimeDictionary().define({
   'application/octet-stream': [ 'bin', 'iso', 'dmg', 'pkg' ],
   'application/pdf': [ 'pdf' ],
   'application/rtf': [ 'rtf' ],
+  'application/wasm': [ 'wasm' ],
   'application/x-bittorrent': [ 'torrent' ],
   'application/x-bzip': [ 'bz' ],
   'application/z-bzip2': [ 'bz2' ],
