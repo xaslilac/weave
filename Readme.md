@@ -62,14 +62,14 @@ to provide functionality, rather than having it all built in.
 - Read large files in chunks rather than entirely at once to avoid eating memory.
 - Simplify and modularize code where possible to reduce opportunity for bugs.
 
-### Upcoming
-#### Usability - v0.4 (Snacks) ✔
+##### Usability - v0.4 (Snacks) ✔
 Stream larger files and enable partial downloads
 - Lay the groundwork for a remote debugging plugin
 - Plugin to accept user uploads in a reasonable way
 - Enable the ability to stream a video file from a certain time stamp, to resume
 a disrupted download at a later time, etc. (Range HTTP header)
 
+### Upcoming
 #### 100% test coverage/passing - v0.5 (Sweat Pants)
 All features should be 100% tested and passing
 - Run the tests on a local machine in a virtual environment
