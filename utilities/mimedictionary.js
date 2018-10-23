@@ -97,6 +97,7 @@ module.exports.defaultDictionary = new MimeDictionary().define({
   'image/gif': [ 'gif' ],
   'image/jpeg': [ 'jpg', 'jpeg' ],
   'image/png': [ 'png' ],
+  'image/svg+xml': [ 'svg' ],
   'image/tiff': [ 'tif', 'tiff' ],
   'image/vnd.adobe.photoshop': [ 'psd' ],
   'image/webp': [ 'webp' ],
