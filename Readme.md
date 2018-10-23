@@ -1,5 +1,5 @@
 # Weave
-[![Weave v0.5.0](https://img.shields.io/badge/weave-v0.5.0-446bdf.svg)](https://www.npmjs.com/package/weave)
+[![Weave v0.5.1](https://img.shields.io/badge/weave-v0.5.1-446bdf.svg)](https://www.npmjs.com/package/weave)
 ![Stability: Beta](https://img.shields.io/badge/stability-beta-69b0ba.svg)
 <!--[![Travis](https://img.shields.io/travis/partheseas/weave.svg?label=linux)](https://travis-ci.org/weave-js/weave)
 [![AppVeyor](https://img.shields.io/appveyor/ci/partheseas/weave.svg?label=windows)](https://ci.appveyor.com/project/partheseas/weave)-->
@@ -16,7 +16,7 @@ I'm lying. It's not comprehensive. It's not up to date either.
 
 ## Installation
 ```Shell
-npm install weave will eventually be a thing
+npm install weave
 ```
 or just download a .zip and throw it into a node_modules folder somewhere. You should be good to go.
 

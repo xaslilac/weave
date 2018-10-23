@@ -1,7 +1,7 @@
 {
   "name": "weave",
-  "version": "0.5.0",
-  "description": "A super duper good Node.js server!",
+  "version": "0.5.1",
+  "description": "A super duper good app server!",
   "engines": {
     "node": ">=10.0.0"
   },
