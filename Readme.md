@@ -70,7 +70,7 @@ Stream larger files and enable partial downloads
 a disrupted download at a later time, etc. (Range HTTP header)
 
 ### Upcoming
-#### 100% test coverage/passing - v0.5 (Sweat Pants)
+#### 100% test coverage/passing - v0.5 (Comfy)
 All features should be 100% tested and passing
 - Run the tests on a local machine in a virtual environment
 - Test in a real world scenario by setting up a browser based testing environment
