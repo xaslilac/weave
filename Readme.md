@@ -11,7 +11,7 @@ but it's kind of fun and is generally pretty stable. Though when I say beta, I d
 mean it. I'm not a massive company with the resources to release polished beta-ware.
 
 ### Usage
-For usage information, see [the comprehensive API overview](/documents/readme.md).
+For usage information, see [the comprehensive API overview](/docs/readme.md).
 I'm lying. It's not comprehensive. It's not up to date either.
 
 ## Installation
@@ -23,7 +23,7 @@ or just download a .zip and throw it into a node_modules folder somewhere. You s
 ## Features
 # React, Sass and TypeScript + Weave
 Weave is designed to make quick iteration of source code as painless as possible.
-These types of libraries go hand in hand with Weave's ability to [set up such an environment easily](/documents/react.md).
+These types of libraries go hand in hand with Weave's ability to [set up such an environment easily](/docs/react.md).
 
 ### Other cool things
 - Extensive and powerful customization

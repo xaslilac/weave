@@ -107,6 +107,8 @@ module.exports.defaultDictionary = new MimeDictionary().define({
   'text/html; charset=utf-8': [ 'htm', 'html' ],
   'text/markdown; charset=utf-8': [ '.md' ],
   'text/plain': [ 'txt', 'log' ],
+  'text/python': [ 'py' ],
+  'text/rust': [ 'rs' ],
   'video/h264': [ 'h264' ],
   'video/jpeg': [ 'jpgv' ],
   'video/mp4': [ 'mp4', 'mp4v', 'mpg4' ],

@@ -23,6 +23,8 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "gardens": "^3.2.0",
-    "string-spirits": "^0.2.3"
+    "string-spirits": "^0.2.3",
+    "react": "^16.6.0",
+    "react-dom": "^16.6.0"
   }
 }
